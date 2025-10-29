@@ -164,7 +164,7 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: myGrey,
       bottomNavigationBar: CurvedNavigationBar(
           color: myGrey,
-          index: 0,
+          index: _page,
           buttonBackgroundColor: primaryColor,
           backgroundColor: myGrey,
           key: _bottomNavigationKey,
