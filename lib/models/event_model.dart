@@ -1,11 +1,25 @@
-// class Event {
+class Event {
+  final DateTime timeStamp;
+  final String name;
+  final String description;
+  final String status;
+  final String action;
 
-//   final String eventId;
+  Event({
+    required this.timeStamp,
+    required this.name,
+    required this.description,
+    required this.status,
+    required this.action,
+  });
 
-
-//   Event({
-//     required this.eventId,
-
-
-//   })
-// }
+  Map<String, dynamic> toJson() {
+    return {
+      'timeStamp': timeStamp,
+      'name': name,
+      'description': description,
+      'status': status,
+      'action': action
+    };
+  }
+}
