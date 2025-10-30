@@ -79,26 +79,32 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
+          child: 
+          Image.asset(
                 'assets/favicon.png',
                 width: 30,
                 height: 30,
               ),
-              Text(
-                "Calendar",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-              ),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+          //     Image.asset(
+          //       'assets/favicon.png',
+          //       width: 30,
+          //       height: 30,
+          //     ),
+          //     //               Text(
+          //     //   "Calendar",
+          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          //     // ),
               
-            ],
-          ),
+          //   ],
+          // ),
         ),
         centerTitle: true,
-        // actions: [
-        //   IconButton(onPressed: () {}, icon: Icon(Icons.add_card_outlined)),
-        // ],
+        actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.add_card_outlined)),
+        ],
       ),
 
           1: AppBar(
@@ -106,21 +112,27 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
+          child:
+          Image.asset(
                 'assets/favicon.png',
                 width: 30,
                 height: 30,
               ),
-              Text(
-                "Dashboard",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-              ),
+          //  Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+          //     Image.asset(
+          //       'assets/favicon.png',
+          //       width: 30,
+          //       height: 30,
+          //     ),
+          //     // Text(
+          //     //   "Dashboard",
+          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          //     // ),
               
-            ],
-          ),
+          //   ],
+          // ),
         ),
         centerTitle: true,
         // actions: <Widget>[
@@ -155,21 +167,27 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              
-              Image.asset(
+          child:
+          Image.asset(
                 'assets/favicon.png',
                 width: 30,
                 height: 30,
               ),
-              Text(
-                "Profile",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-              )
-            ],
-          ),
+          //  Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+              
+          //     Image.asset(
+          //       'assets/favicon.png',
+          //       width: 30,
+          //       height: 30,
+          //     ),
+          //     // Text(
+          //     //   "Profile",
+          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          //     // )
+          //   ],
+          // ),
         ),
         centerTitle: true,
         actions: [
@@ -206,11 +224,47 @@ class _MainScreenState extends State<MainScreen> {
           key: _bottomNavigationKey,
           height: 70,
           items: <Widget>[
-            Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(Icons.calendar_month_outlined, size:30, color: _page==0? myGrey: Colors.black,),
+                SizedBox(height: 3),
+                _page==0
+                ?
+                SizedBox(width: 12,)
+                :
+                Text("Calendar", style: TextStyle(fontSize: 12, color: _page==0? myGrey: Colors.black),),
+              ],
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(Icons.dashboard_outlined, size: 30, color: _page==1? myGrey: Colors.black),
+                SizedBox(height: 3),
+                _page==1
+                ?
+                SizedBox(width: 12,)
+                :
+                Text("Dashboard", style: TextStyle(fontSize: 12, color: _page==1? myGrey: Colors.black),),
+              ],
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(Icons.account_circle_outlined, size: 30, color: _page==2? myGrey: Colors.black,),
+                SizedBox(height: 3),
+                _page==2
+                ?
+                SizedBox(width: 12,)
+                :
+                Text("Profile", style: TextStyle(fontSize: 12, color: _page==2? myGrey: Colors.black),),
+              ],
+            ),
+            // Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
             // Icon(Icons.keyboard, size: 30, color: _page==1? myGrey: Colors.black),
-            Icon(Icons.dashboard_outlined, size: 30, color: _page==1? myGrey: Colors.black),
+            // Icon(Icons.dashboard_outlined, size: 25, color: _page==1? myGrey: Colors.black),
             // Icon(Icons.timelapse, size: 30, color: _page==3? myGrey: Colors.black,),
-            Icon(Icons.account_circle_outlined, size: 30, color: _page==2? myGrey: Colors.black,),
+            // Icon(Icons.account_circle_outlined, size: 25, color: _page==2? myGrey: Colors.black,),
           ],
           onTap: (index) {
             setState(() {
