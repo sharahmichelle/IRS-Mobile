@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:upm_drrm_irs_mobile/models/activity_log_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/activity_log_model.dart';
+import 'package:upm_drrm_irs_mobile/models/event_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -56,7 +59,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     _eventData = List.generate(25, (index) {
       return Event(
-        timeStamp: DateTime(2025, 11, index + 1, 10, 0),
+        timeStampStart: DateTime(2025, 11, index + 1, 10, 0),
+        timeStampEnd: DateTime(2025, 11, index + 1, 12, 0),
         name: 'Event ${index + 1}',
         description: 'Description for Event ${(index + 1)}',
         status: index.isEven ? 'Active' : 'Inactive',
@@ -342,127 +346,3 @@ class CenterHeaderText extends StatelessWidget {
   }
 }
 
-/// DataGrid source for Activity Logs
-class ActivityDataSource extends DataGridSource {
-  ActivityDataSource(List<ActivityLog> activityLogs) {
-    _activityData = activityLogs
-        .map<DataGridRow>(
-          (e) => DataGridRow(
-            cells: [
-              DataGridCell(columnName: 'dateCreated', value: e.dateCreated),
-              DataGridCell(columnName: 'module', value: e.module),
-              DataGridCell(columnName: 'moduleItem', value: e.moduleItem),
-              DataGridCell(columnName: 'initiatedBy', value: e.initiatedBy),
-              DataGridCell(columnName: 'action', value: e.action),
-            ],
-          ),
-        )
-        .toList();
-  }
-
-  late List<DataGridRow> _activityData;
-
-
-  @override
-  List<DataGridRow> get rows => _activityData;
-
-  @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((cell) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Text(
-            cell.value.toString(),
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-  /// DataGrid source for Event
-class EventDataSource extends DataGridSource {
-  EventDataSource(List<Event> events) {
-    _eventData = events
-        .map<DataGridRow>(
-          (e) => DataGridRow(
-            cells: [
-              DataGridCell(columnName: 'dateAndTime', value: e.timeStamp),
-              DataGridCell(columnName: 'name', value: e.name),
-              DataGridCell(columnName: 'description', value: e.description),
-              DataGridCell(columnName: 'status', value: e.status),
-              DataGridCell(columnName: 'action', value: e.action),
-            ],
-          ),
-        )
-        .toList();
-  }
-
-  late List<DataGridRow> _eventData;
-
-
-
-  @override
-  List<DataGridRow> get rows => _eventData;
-
-  @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((cell) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Text(
-            cell.value.toString(),
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-
-  /// DataGrid source for Report
-class ReportDataSource extends DataGridSource {
-  ReportDataSource(List<Report> reports) {
-    _reportData = reports
-        .map<DataGridRow>(
-          (e) => DataGridRow(
-            cells: [
-              DataGridCell(columnName: 'encoderId', value: e.encoderId),
-              DataGridCell(columnName: 'reportId', value: e.reportId),
-              DataGridCell(columnName: 'upSystem', value: e.upSystem),
-              DataGridCell(columnName: 'office', value: e.office),
-              DataGridCell(columnName: 'encoderPosition', value: e.encoderPosition),
-
-            ],
-          ),
-        )
-        .toList();
-  }
-
-  late List<DataGridRow> _reportData;
-
-  @override
-  List<DataGridRow> get rows => _reportData;
-
-  @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((cell) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Text(
-            cell.value.toString(),
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}

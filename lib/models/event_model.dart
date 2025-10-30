@@ -1,12 +1,14 @@
 class Event {
-  final DateTime timeStamp;
+  final DateTime timeStampStart;
+  final DateTime timeStampEnd;
   final String name;
   final String description;
   final String status;
   final String action;
 
   Event({
-    required this.timeStamp,
+    required this.timeStampStart,
+    required this.timeStampEnd,
     required this.name,
     required this.description,
     required this.status,
@@ -15,7 +17,8 @@ class Event {
 
   Map<String, dynamic> toJson() {
     return {
-      'timeStamp': timeStamp,
+      'timeStampStart': timeStampStart,
+      'timeStampEnd': timeStampEnd,
       'name': name,
       'description': description,
       'status': status,
