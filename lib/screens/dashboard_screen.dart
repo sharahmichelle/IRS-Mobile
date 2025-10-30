@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:upm_drrm_irs_mobile/models/activity_log_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,8 +15,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final Color primaryColor = const Color.fromARGB(255, 161, 29, 28);
   late List<ActivityLog> _activityData;
   late ActivityDataSource _activityDataSource;
+
   late List<Event> _eventData;
   late EventDataSource _eventDataSource;
+
+  late List<Report> _reportData;
+  late ReportDataSource _reportDataSource;
 
   final dashboardPages = [
     'Activity Logs',
@@ -59,9 +64,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     });
 
+    _reportData = List.generate(25, (index) {
+      return Report(
+        encoderId: 'Encoder${index + 1}',
+        reportId: 'Report${index + 1}',
+        upSystem: 'UP System ${(index % 3) + 1}',
+        office: 'Office ${(index % 5) + 1}',
+      );
+    });
+
     dataListRows = [
       _activityData,
       _eventData,
+      _reportData,
     ];
 
     dataListColumns = [
@@ -119,6 +134,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: CenterHeaderText('Action', primaryColor),
         ),
       ],
+      [
+        GridColumn(
+          columnName: 'encoderId',
+          width: 150,
+          label: CenterHeaderText('Encoder ID', primaryColor),
+        ),
+        GridColumn(
+          columnName: 'reportId',
+          width: 150,
+          label: CenterHeaderText('Report ID', primaryColor),
+        ),
+        GridColumn(
+          columnName: 'upSystem',
+          width: 150,
+          label: CenterHeaderText('UP System', primaryColor),
+        ),
+        GridColumn(
+          columnName: 'office',
+          width: 150,
+          label: CenterHeaderText('Office', primaryColor),
+        ),
+        GridColumn(
+          columnName: 'encoderPosition',
+          width: 200,
+          label: CenterHeaderText('Encoder Position', primaryColor),
+        ),
+      ],
     ];
 
     _totalPages = (_activityData.length / _rowsPerPage).ceil();
@@ -132,8 +174,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final currentActivityData = _activityData.sublist(startIndex, endIndex);
     final currentEventData = _eventData.sublist(startIndex, endIndex);
+    final currentReportData = _reportData.sublist(startIndex, endIndex);
+
     _activityDataSource = ActivityDataSource(currentActivityData);
     _eventDataSource = EventDataSource(currentEventData);
+    _reportDataSource = ReportDataSource(currentReportData);
+
     setState(() {});
   }
 
@@ -158,6 +204,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       _currentIndex = dashboardPages.length - 1;
     }
+
+    _currentPage = 1;
+    _totalPages = (dataListRows[_currentIndex].length / _rowsPerPage).ceil();
+    _updateDataSource();
+
     setState(() {});
   }
 
@@ -167,6 +218,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       _currentIndex = 0;
     }
+
+    _currentPage = 1;
+    _totalPages = (dataListRows[_currentIndex].length / _rowsPerPage).ceil();
+    _updateDataSource();
+
     setState(() {});
   }
 
@@ -327,7 +383,7 @@ class ActivityDataSource extends DataGridSource {
   }
 }
 
-  /// DataGrid source for Activity Logs
+  /// DataGrid source for Event
 class EventDataSource extends DataGridSource {
   EventDataSource(List<Event> events) {
     _eventData = events
@@ -351,6 +407,48 @@ class EventDataSource extends DataGridSource {
 
   @override
   List<DataGridRow> get rows => _eventData;
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    return DataGridRowAdapter(
+      cells: row.getCells().map<Widget>((cell) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Text(
+            cell.value.toString(),
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+
+  /// DataGrid source for Report
+class ReportDataSource extends DataGridSource {
+  ReportDataSource(List<Report> reports) {
+    _reportData = reports
+        .map<DataGridRow>(
+          (e) => DataGridRow(
+            cells: [
+              DataGridCell(columnName: 'encoderId', value: e.encoderId),
+              DataGridCell(columnName: 'reportId', value: e.reportId),
+              DataGridCell(columnName: 'upSystem', value: e.upSystem),
+              DataGridCell(columnName: 'office', value: e.office),
+              DataGridCell(columnName: 'encoderPosition', value: e.encoderPosition),
+
+            ],
+          ),
+        )
+        .toList();
+  }
+
+  late List<DataGridRow> _reportData;
+
+  @override
+  List<DataGridRow> get rows => _reportData;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {

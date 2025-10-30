@@ -79,11 +79,23 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Text(
-            "Calendar",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/favicon.png',
+                width: 30,
+                height: 30,
+              ),
+              Text(
+                "Calendar",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              ),
+              
+            ],
           ),
         ),
+        centerTitle: true,
         // actions: [
         //   IconButton(onPressed: () {}, icon: Icon(Icons.add_card_outlined)),
         // ],
@@ -94,11 +106,23 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Text(
-            "Dashboard",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/favicon.png',
+                width: 30,
+                height: 30,
+              ),
+              Text(
+                "Dashboard",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              ),
+              
+            ],
           ),
         ),
+        centerTitle: true,
         // actions: <Widget>[
         //   DropdownButton<String>(
         //     value: 'UP System',
@@ -131,11 +155,23 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
           padding: EdgeInsets.all(8),
-          child: Text(
-            "Profile",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              
+              Image.asset(
+                'assets/favicon.png',
+                width: 30,
+                height: 30,
+              ),
+              Text(
+                "Profile",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+              )
+            ],
           ),
         ),
+        centerTitle: true,
         actions: [
           Padding(
             padding: EdgeInsets.all(8),
