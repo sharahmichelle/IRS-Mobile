@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   // appBar per screen (top)
-  final Map<int, PreferredSizeWidget> _appBarList = {
+  late final Map<int, PreferredSizeWidget> _appBarList = {
 
     // 2: AppBar(
     //     automaticallyImplyLeading: false,
@@ -103,7 +103,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.add_card_outlined)),
+          IconButton(onPressed: () {
+            Navigator.pushNamed(context, '/add_event');
+          }, icon: Icon(Icons.add_card_outlined)),
         ],
       ),
 

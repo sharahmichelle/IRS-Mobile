@@ -10,6 +10,15 @@ class AddEventScreen extends StatefulWidget {
 class _AddEventScreenState extends State<AddEventScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Event'),
+      ),
+      body: Form(child: 
+        Center(
+          child: Text('Add Event Form Here'),
+        )
+      ,)
+    );
   }
 }

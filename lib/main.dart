@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 
 // Firebase and Provider Initialization
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       initialRoute: "/",
       routes: {
         "/": (context) => const MainScreen(),
+        "/add_event": (context) => const AddEventScreen(),
       },
     );
   }

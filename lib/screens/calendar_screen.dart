@@ -75,6 +75,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               backgroundColor: primaryColor,
             ),
+            selectionDecoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.3),
+              border: Border.all(color: primaryColor, width: 2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+
           ),
         ),
         const SizedBox(height: 20),
