@@ -276,7 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: SizedBox(
                 width: 775,
                 child: SfDataGrid(
-                  source: _currentIndex == 0 ? _activityDataSource : _eventDataSource,
+                  source: _currentIndex == 0 ? _activityDataSource : _currentIndex == 1 ? _eventDataSource : _reportDataSource,
                   gridLinesVisibility: GridLinesVisibility.both,
                   headerGridLinesVisibility: GridLinesVisibility.both,
                   columnWidthMode: ColumnWidthMode.none,

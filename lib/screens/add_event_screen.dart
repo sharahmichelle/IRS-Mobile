@@ -120,6 +120,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 TextFormField(
                   style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
+                    hintText: "MM/DD/YYYY",
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
@@ -132,6 +133,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                     focusColor: primaryColor,
                     hoverColor: primaryColor,
                   ),
+                  
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Starting date is required';
@@ -147,10 +149,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 30),
                 TextFormField(
                   style: const TextStyle(color: Colors.black),
                   decoration: InputDecoration(
+                    hintText: "MM/DD/YYYY",
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,

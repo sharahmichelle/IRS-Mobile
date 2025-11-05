@@ -2,6 +2,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/form_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _MainScreenState extends State<MainScreen> {
     CalendarScreen(),
     DashboardScreen(),
     ProfileScreen(),
+    FormScreen(),
   ];
 
   // appBar per screen (top)
@@ -202,6 +204,23 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
+
+          3: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFECECEC),
+        title: Padding(
+          padding: EdgeInsets.all(8),
+          child:
+          Image.asset(
+                'assets/favicon.png',
+                width: 30,
+                height: 30,
+              ),
+        ),
+        centerTitle: true,
+      ),
+
+    
   };
 
   // @override
@@ -260,6 +279,18 @@ class _MainScreenState extends State<MainScreen> {
                 SizedBox(width: 12,)
                 :
                 Text("Profile", style: TextStyle(fontSize: 12, color: _page==2? myGrey: Colors.black),),
+              ],
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(Icons.list_alt_outlined, size: 30, color: _page==3? myGrey: Colors.black,),
+                SizedBox(height: 3),
+                _page==3
+                ?
+                SizedBox(width: 12,)
+                :
+                Text("Form", style: TextStyle(fontSize: 12, color: _page==3? myGrey: Colors.black),),
               ],
             ),
             // Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
