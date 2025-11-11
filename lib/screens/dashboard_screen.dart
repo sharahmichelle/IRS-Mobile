@@ -6,6 +6,7 @@ import 'package:upm_drrm_irs_mobile/models/event_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
+import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -64,7 +65,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         name: 'Event ${index + 1}',
         description: 'Description for Event ${(index + 1)}',
         status: index.isEven ? 'Active' : 'Inactive',
-        action: index.isEven ? 'Scheduled' : 'Cancelled',
+        action: index.isEven ? 'Scheduled' : 'Cancelled', 
+        eventId: '', 
+        category: '', 
+        eventIntro: '', 
+        observations: [], 
+        scenario: '', 
+        factSheet: '', 
+        incidentCommander: User(),
+        liasonOfficer: User(),
       );
     });
 

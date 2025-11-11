@@ -38,6 +38,7 @@ dependencies:
   syncfusion_flutter_calendar: ^31.2.3
   interactive_table: ^0.0.18
   syncfusion_flutter_datagrid: ^31.2.3
+  cloud_firestore: ^6.1.0
 
 dev_dependencies:
   flutter_test:

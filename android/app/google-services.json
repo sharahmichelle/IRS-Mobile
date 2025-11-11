@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "107869049252",
+    "firebase_url": "https://upirs-3c467-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "upirs-3c467",
+    "storage_bucket": "upirs-3c467.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107869049252:android:7d324209729be70c7c3131",
+        "android_client_info": {
+          "package_name": "com.example.irs_drrmh"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlgeRdziIw--opjbxce9EV1aIFVCSazK8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "107869049252-93num4p5h9k0qbqq9st0miad2deq6do6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.direapp.UP"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107869049252:android:b033d731660a99c47c3131",
+        "android_client_info": {
+          "package_name": "com.example.irsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlgeRdziIw--opjbxce9EV1aIFVCSazK8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "107869049252-93num4p5h9k0qbqq9st0miad2deq6do6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.direapp.UP"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107869049252:android:34b023b03934bea47c3131",
+        "android_client_info": {
+          "package_name": "com.example.upm_drrm_irs_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlgeRdziIw--opjbxce9EV1aIFVCSazK8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107869049252-a6ddfaldtd1ghlf5dmouedqkkp8ki531.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "107869049252-93num4p5h9k0qbqq9st0miad2deq6do6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.direapp.UP"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
