@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 
 class Event {
@@ -60,7 +61,9 @@ class Event {
       if (date == null) return DateTime.now();
       if (date is Timestamp) return date.toDate();
       try {
-        return DateTime.parse(date.toString());
+        final format = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US');
+
+        return format.parseUtc(date.toString());
       } catch (_) {
         return DateTime.now();
       }
