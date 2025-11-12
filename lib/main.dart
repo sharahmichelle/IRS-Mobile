@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:upm_drrm_irs_mobile/firebase_options.dart';
+import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 
 // Firebase and Provider Initialization
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp(),
-    );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => Events()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

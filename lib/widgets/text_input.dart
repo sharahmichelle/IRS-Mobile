@@ -37,8 +37,6 @@ class _TextInputState extends State<TextInput> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             filled: true,
             fillColor: Colors.white,
-            focusColor: primaryColor,
-            hoverColor: primaryColor,
           ),
           validator: widget.validator,
         ),

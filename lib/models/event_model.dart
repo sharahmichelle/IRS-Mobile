@@ -12,11 +12,13 @@ class Event {
   final List<String> observations;
   final String scenario;
   final String factSheet;
-  final User incidentCommander;
-  final User liasonOfficer;
+  final String incidentCommander;
+  final String liasonOfficer;
   final String status;
   final String action;
-
+  final String location;
+  final String publicInformationOfficer;
+  final String safetySecurityOfficer;
 
   Event({
     required this.eventId,
@@ -33,23 +35,39 @@ class Event {
     required this.liasonOfficer,
     required this.status,
     required this.action,
+    required this.publicInformationOfficer,
+    required this.safetySecurityOfficer,
+    required this.location,
   });
 
   factory Event.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    DateTime parseDate(Map<String, dynamic>? dateMap) {
-      if (dateMap == null) {
+    // Parse observations safely
+    final observations = data['eventObservations'] is List
+        ? List<String>.from(data['eventObservations'])
+        : [
+            if (data['eventObservations'] != null)
+              data['eventObservations'].toString(),
+          ];
+
+    // Parse actions safely
+    final actions = data['eventActions'] is List
+        ? List<String>.from(data['eventActions'])
+        : [if (data['eventActions'] != null) data['eventActions'].toString()];
+
+    DateTime parseDate(dynamic date) {
+      if (date == null) return DateTime.now();
+      if (date is Timestamp) return date.toDate();
+      try {
+        return DateTime.parse(date.toString());
+      } catch (_) {
         return DateTime.now();
       }
-      final year = _parseInt(dateMap['year']);
-      final month = _monthToInt(dateMap['month']);
-      final day = _parseInt(dateMap['day']);
-      return DateTime(year, month, day);
     }
 
     return Event(
-      eventId: doc.id.toString(),
+      eventId: doc.id,
       name: data['eventName'] ?? '',
       description: data['eventDescription'] ?? '',
       eventIntro: data['eventIntroduction'] ?? '',
@@ -57,26 +75,15 @@ class Event {
       timeStampStart: parseDate(data['eventDate']),
       timeStampEnd: parseDate(data['endDate'] ?? data['eventDate']),
       factSheet: data['factSheet'] ?? '',
-      reportsId: (data['reportsId'] != null)
-          ? List<String>.from(data['reportsId'].map((e) => e.toString()))
-          : [],
-      isActual: data['isActual'] ?? false,
-      totalFaculty: _parseInt(data['totalFaculty']),
-      totalAdminMembers: _parseInt(data['totalAdminMembers']),
-      totalRepsMembers: _parseInt(data['totalRepsMembers']),
-      totalCustodians: _parseInt(data['totalCustodians']),
-      totalJoCosMembers: _parseInt(data['totalJoCosMembers']),
-      totalStudents: _parseInt(data['totalStudents']),
-      totalSecurity: _parseInt(data['totalSecurity']),
-      totalConstructionWorkers: _parseInt(data['totalConstructionWorkers']),
-      totalHealthWorkers: _parseInt(data['totalHealthWorkers']),
-      totalGuests: _parseInt(data['totalGuests']),
-      totalPatients: _parseInt(data['totalPatients']),
-      totalMissingPersons: _parseInt(data['totalMissingPersons']),
-      totalCasualties: _parseInt(data['totalCasualties']),
-      totalDistribution: (data['totalDistribution'] != null)
-          ? Map<String, int>.from(data['totalDistribution'].map((key, value) => MapEntry(key.toString(), _parseInt(value))))
-          : {},
+      category: data['categoryID'] ?? '',
+      observations: observations,
+      scenario: data['scenarioID'] ?? '',
+      incidentCommander: data['incidentCommander'] ?? '',
+      liasonOfficer: data['liasonOfficer'] ?? '',
+      action: actions.isNotEmpty ? actions.first : '',
+      publicInformationOfficer: data['publicInformationOfficer'] ?? '',
+      safetySecurityOfficer: data['safetySecurityOfficer'] ?? '',
+      location: data['locationID'] ?? '',
     );
   }
 
@@ -105,9 +112,10 @@ class Event {
     return 0;
   }
 
-  DateTime get getStartDate => DateTime(startDate.year, startDate.month, startDate.day);
-  DateTime get getEndDate => DateTime(endDate.year, endDate.month, endDate.day);
-
+  DateTime get getStartDate =>
+      DateTime(timeStampStart.year, timeStampStart.month, timeStampStart.day);
+  DateTime get getEndDate =>
+      DateTime(timeStampEnd.year, timeStampEnd.month, timeStampEnd.day);
 
   Map<String, dynamic> toJson() {
     return {
@@ -120,11 +128,13 @@ class Event {
       'eventIntro': eventIntro,
       'observations': observations,
       'scenario': scenario,
-      'factSheet' : factSheet,
-      'incidentCommander' : incidentCommander.toJson(),
-      'liasonOfficer' : liasonOfficer.toJson(),
+      'factSheet': factSheet,
+      'incidentCommander': incidentCommander,
+      'liasonOfficer': liasonOfficer,
+      'publicInformationOfficer': publicInformationOfficer,
+      'safetySecurityOfficer': safetySecurityOfficer,
       'status': status,
-      'action': action
+      'action': action,
     };
   }
 }

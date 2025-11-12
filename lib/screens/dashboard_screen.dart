@@ -72,8 +72,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         observations: [], 
         scenario: '', 
         factSheet: '', 
-        incidentCommander: User(),
-        liasonOfficer: User(),
+        incidentCommander: "",
+        liasonOfficer: "", 
+        publicInformationOfficer: '', 
+        safetySecurityOfficer: '', 
+        location: '',
       );
     });
 

@@ -1,5 +1,7 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/form_screen.dart';
@@ -223,14 +225,15 @@ class _MainScreenState extends State<MainScreen> {
     
   };
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     context.read<Events>().fetchEvents(); 
-  //     print("Fetched events in MainScreen");
-  //   });
-  // }
+  // fetch data from database
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<Events>().fetchEvents(); 
+      print("Fetched events in MainScreen");
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
