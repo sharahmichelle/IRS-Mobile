@@ -9,6 +9,7 @@ import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -167,6 +168,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _reportData.sublist(startIndex, end),
       );
     }
+
+    setState(() {});
   }
 
   // NAVIGATION BUTTONS
@@ -233,6 +236,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // build datasource directly WITHOUT calling setState
               _activityDataSource = ActivityDataSource(
                 _activityData.sublist(startIndex, end),
+              );
+
+              return _buildDashboardBody(primaryColor);
+            },
+          );
+        },
+      );
+    } else if(_currentIndex == 1){
+      return Consumer<Events>(
+        builder: (context, provider, _) {
+          return StreamBuilder(
+            stream: provider.events,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final docs = snapshot.data!.docs;
+              _eventData = docs
+                  .map((d) => Event.fromFirestore(d))
+                  .toList();
+
+              // compute without setState
+              _totalPages = _getCurrentListLength();
+
+              final startIndex = (_currentPage - 1) * _rowsPerPage;
+              final end = (_currentPage * _rowsPerPage).clamp(
+                0,
+                _eventData.length,
+              );
+
+              // build datasource directly WITHOUT calling setState
+              _eventDataSource = EventDataSource(
+                _eventData.sublist(startIndex, end),
               );
 
               return _buildDashboardBody(primaryColor);
