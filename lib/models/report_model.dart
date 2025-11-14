@@ -1,5 +1,7 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Report {
   final String encoderId;
   final String reportId;
@@ -41,36 +43,36 @@ class Report {
     this.numCasualty = 0,
   });
 
-  // factory Report.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-  //   final data = doc.data()!;
-  //   return Report(
-  //     encoderId: data['encoderId'] ?? '',
-  //     reportId: doc.id,
-  //     upSystem: data['upSystem'] ?? '',
-  //     office: data['office'] ?? '',
-  //     encoderPosition: data['encoderPosition'] ?? '',
-  //     headCountFaculty: _parseInt(data['headCountFaculty']),
-  //     headCountadminMember: _parseInt(data['headCountadminMember']),
-  //     headCountRepsMember: _parseInt(data['headCountRepsMember']),
-  //     headCountCustodian: _parseInt(data['headCountCustodian']),
-  //     headCountJoCosMember: _parseInt(data['headCountJoCosMember']),
-  //     headCountStudent: _parseInt(data['headCountStudent']),
-  //     headCountSecurity: _parseInt(data['headCountSecurity']),
-  //     headCountConstructionWorker: _parseInt(data['headCountConstructionWorker']),
-  //     headCountHealthWorker: _parseInt(data['headCountHealthWorker']),
-  //     headCountGuest: _parseInt(data['headCountGuest']),
-  //     headCountPatient: _parseInt(data['headCountPatient']),
-  //     numMissingPerson: _parseInt(data['numMissingPerson']),
-  //     numCasualty: _parseInt(data['numCasualty']),
-  //   );
-  // }
+  factory Report.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data()!;
+    return Report(
+      encoderId: data['encoderId'] ?? '',
+      reportId: doc.id,
+      upSystem: data['upSystem'] ?? '',
+      office: data['office'] ?? '',
+      encoderPosition: data['encoderPosition'] ?? '',
+      headCountFaculty: _parseInt(data['headCountFaculty']),
+      headCountadminMember: _parseInt(data['headCountadminMember']),
+      headCountRepsMember: _parseInt(data['headCountRepsMember']),
+      headCountCustodian: _parseInt(data['headCountCustodian']),
+      headCountJoCosMember: _parseInt(data['headCountJoCosMember']),
+      headCountStudent: _parseInt(data['headCountStudent']),
+      headCountSecurity: _parseInt(data['headCountSecurity']),
+      headCountConstructionWorker: _parseInt(data['headCountConstructionWorker']),
+      headCountHealthWorker: _parseInt(data['headCountHealthWorker']),
+      headCountGuest: _parseInt(data['headCountGuest']),
+      headCountPatient: _parseInt(data['headCountPatient']),
+      numMissingPerson: _parseInt(data['numMissingPerson']),
+      numCasualty: _parseInt(data['numCasualty']),
+    );
+  }
 
-  // static int _parseInt(dynamic value) {
-  //   if (value == null) return 0;
-  //   if (value is int) return value;
-  //   if (value is String) return int.tryParse(value) ?? 0;
-  //   return 0;
-  // }
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
 
   Map<String, dynamic> toJson() {
     return {

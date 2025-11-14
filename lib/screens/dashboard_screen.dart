@@ -197,6 +197,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _updateDataSource();
   }
 
+  void _onPageLeft() {
+    if (_currentPage > 1) {
+      setState(() {
+        _currentPage--;
+        _updateDataSource();
+      });
+    }
+  }
+
+  void _onPageRight() {
+    if (_currentPage < _totalPages) {
+      setState(() {
+        _currentPage++;
+        _updateDataSource();
+      });
+    }
+  }
+
   int _getCurrentListLength() {
     if (_currentIndex == 0) return (_activityData.length / _rowsPerPage).ceil();
     if (_currentIndex == 1) return (_eventData.length / _rowsPerPage).ceil();
@@ -243,7 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
       );
-    } else if(_currentIndex == 1){
+    } else if (_currentIndex == 1) {
       return Consumer<Events>(
         builder: (context, provider, _) {
           return StreamBuilder(
@@ -254,9 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
 
               final docs = snapshot.data!.docs;
-              _eventData = docs
-                  .map((d) => Event.fromFirestore(d))
-                  .toList();
+              _eventData = docs.map((d) => Event.fromFirestore(d)).toList();
 
               // compute without setState
               _totalPages = _getCurrentListLength();
@@ -325,6 +341,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
             child: _buildTable(),
+          ),
+          SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.chevron_left, color: primaryColor),
+                onPressed: _onPageLeft,
+              ),
+              Text(
+                'Page $_currentPage of $_totalPages',
+                style: TextStyle(fontSize: 16, color: primaryColor),
+              ),
+              IconButton(
+                icon: Icon(Icons.chevron_right, color: primaryColor),
+                onPressed: _onPageRight,
+              ),
+            ],
           ),
         ],
       ),
