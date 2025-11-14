@@ -22,7 +22,7 @@ class FirebaseEventAPI {
     }
   }
 
-  Future<void> updateStatusByDate (String id)  async {
+  Future<void> updateStatusByDate(String id)  async {
     await db.runTransaction((transaction) async {
         final snapshot = await transaction.get(db.collection('events').doc(id));
 

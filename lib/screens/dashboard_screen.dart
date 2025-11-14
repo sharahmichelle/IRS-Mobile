@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:upm_drrm_irs_mobile/models/activity_log_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/activity_log_model.dart';
@@ -7,6 +8,7 @@ import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,69 +19,33 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final Color primaryColor = const Color.fromARGB(255, 161, 29, 28);
-  late List<ActivityLog> _activityData;
-  late ActivityDataSource _activityDataSource;
 
-  late List<Event> _eventData;
-  late EventDataSource _eventDataSource;
+  // DATA LISTS
+  List<ActivityLog> _activityData = [];
+  List<Event> _eventData = [];
+  List<Report> _reportData = [];
 
-  late List<Report> _reportData;
-  late ReportDataSource _reportDataSource;
+  // DATASOURCES
+  ActivityDataSource? _activityDataSource;
+  EventDataSource? _eventDataSource;
+  ReportDataSource? _reportDataSource;
 
-  final dashboardPages = [
-    'Activity Logs',
-    'Events',
-    'Reports',
-  ];
+  final dashboardPages = ['Activity Logs', 'Events', 'Reports'];
 
-  // Pagination parameters
+  // Pagination
   final int _rowsPerPage = 10;
   int _currentPage = 1;
   int _totalPages = 1;
 
-  // Dashboard Page
   int _currentIndex = 0;
 
   List<List<GridColumn>> dataListColumns = [];
-  List<List<dynamic>> dataListRows = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Generate dummy data
-    _activityData = List.generate(25, (index) {
-      return ActivityLog(
-        dateCreated: '2025-10-${(index + 1).toString().padLeft(2, '0')}',
-        module: 'Module ${index + 1}',
-        moduleItem: 'Item ${(index + 1)}',
-        initiatedBy: 'User ${index + 1}',
-        action: index.isEven ? 'Created' : 'Updated',
-      );
-    });
-
-    _eventData = List.generate(25, (index) {
-      return Event(
-        timeStampStart: DateTime(2025, 11, index + 1, 10, 0),
-        timeStampEnd: DateTime(2025, 11, index + 1, 12, 0),
-        name: 'Event ${index + 1}',
-        description: 'Description for Event ${(index + 1)}',
-        status: index.isEven ? 'Active' : 'Inactive',
-        action: index.isEven ? 'Scheduled' : 'Cancelled', 
-        eventId: '', 
-        category: '', 
-        eventIntro: '', 
-        observations: [], 
-        scenario: '', 
-        factSheet: '', 
-        incidentCommander: "",
-        liasonOfficer: "", 
-        publicInformationOfficer: '', 
-        safetySecurityOfficer: '', 
-        location: '',
-      );
-    });
-
+    // TEMPORARY DUMMY REPORT DATA (still valid)
     _reportData = List.generate(25, (index) {
       return Report(
         encoderId: 'Encoder${index + 1}',
@@ -89,13 +55,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     });
 
-    dataListRows = [
-      _activityData,
-      _eventData,
-      _reportData,
-    ];
-
+    // Initialize columns
     dataListColumns = [
+      // ACTIVITY LOGS COLUMNS
       [
         GridColumn(
           columnName: 'dateCreated',
@@ -123,6 +85,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: CenterHeaderText('Action', primaryColor),
         ),
       ],
+
+      // EVENTS COLUMNS
       [
         GridColumn(
           columnName: 'dateAndTime',
@@ -150,6 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: CenterHeaderText('Action', primaryColor),
         ),
       ],
+
+      // REPORTS COLUMNS
       [
         GridColumn(
           columnName: 'encoderId',
@@ -178,82 +144,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ],
     ];
-
-    _totalPages = (_activityData.length / _rowsPerPage).ceil();
-    _updateDataSource();
   }
 
+  // PAGINATION UPDATE
   void _updateDataSource() {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
-    final endIndex =
-        (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
 
-    final currentActivityData = _activityData.sublist(startIndex, endIndex);
-    final currentEventData = _eventData.sublist(startIndex, endIndex);
-    final currentReportData = _reportData.sublist(startIndex, endIndex);
-
-    _activityDataSource = ActivityDataSource(currentActivityData);
-    _eventDataSource = EventDataSource(currentEventData);
-    _reportDataSource = ReportDataSource(currentReportData);
-
-    setState(() {});
-  }
-
-  void _goToPreviousPage() {
-    if (_currentPage > 1) {
-      _currentPage--;
-      _updateDataSource();
+    if (_currentIndex == 0) {
+      // ACTIVITY LOGS
+      final end = (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
+      _activityDataSource = ActivityDataSource(
+        _activityData.sublist(startIndex, end),
+      );
+    } else if (_currentIndex == 1) {
+      // EVENTS
+      final end = (_currentPage * _rowsPerPage).clamp(0, _eventData.length);
+      _eventDataSource = EventDataSource(_eventData.sublist(startIndex, end));
+    } else {
+      // REPORTS
+      final end = (_currentPage * _rowsPerPage).clamp(0, _reportData.length);
+      _reportDataSource = ReportDataSource(
+        _reportData.sublist(startIndex, end),
+      );
     }
   }
 
-  void _goToNextPage() {
-    if (_currentPage < _totalPages) {
-      _currentPage++;
-      _updateDataSource();
-    }
-  }
-
+  // NAVIGATION BUTTONS
   void _onLeftClick() {
     if (_currentIndex > 0) {
       _currentIndex--;
-      
     } else {
-      _currentIndex = dashboardPages.length - 1;
+      _currentIndex = 2;
     }
 
     _currentPage = 1;
-    _totalPages = (dataListRows[_currentIndex].length / _rowsPerPage).ceil();
+    _totalPages = _getCurrentListLength();
     _updateDataSource();
-
-    setState(() {});
   }
 
   void _onRightClick() {
-    if (_currentIndex < dashboardPages.length - 1) {
+    if (_currentIndex < 2) {
       _currentIndex++;
     } else {
       _currentIndex = 0;
     }
 
     _currentPage = 1;
-    _totalPages = (dataListRows[_currentIndex].length / _rowsPerPage).ceil();
+    _totalPages = _getCurrentListLength();
     _updateDataSource();
-
-    setState(() {});
   }
 
+  int _getCurrentListLength() {
+    if (_currentIndex == 0) return (_activityData.length / _rowsPerPage).ceil();
+    if (_currentIndex == 1) return (_eventData.length / _rowsPerPage).ceil();
+    return (_reportData.length / _rowsPerPage).ceil();
+  }
+
+  // MAIN UI BUILDER
   @override
   Widget build(BuildContext context) {
+    final primaryColor = const Color.fromARGB(255, 161, 29, 28);
+
+    /// If Activity Logs TAB → StreamBuilder
+    if (_currentIndex == 0) {
+      return Consumer<ActivityLogs>(
+        builder: (context, provider, _) {
+          return StreamBuilder(
+            stream: provider.activityLogs,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final docs = snapshot.data!.docs;
+              _activityData = docs
+                  .map((d) => ActivityLog.fromFirestore(d.data()))
+                  .toList();
+
+              // compute without setState
+              _totalPages = _getCurrentListLength();
+
+              final startIndex = (_currentPage - 1) * _rowsPerPage;
+              final end = (_currentPage * _rowsPerPage).clamp(
+                0,
+                _activityData.length,
+              );
+
+              // build datasource directly WITHOUT calling setState
+              _activityDataSource = ActivityDataSource(
+                _activityData.sublist(startIndex, end),
+              );
+
+              return _buildDashboardBody(primaryColor);
+            },
+          );
+        },
+      );
+    }
+
+    /// For Events & Reports — no StreamBuilder yet
+    _totalPages = _getCurrentListLength();
+    _updateDataSource();
+
+    return _buildDashboardBody(primaryColor);
+  }
+
+  // UI WRAPPER
+  Widget _buildDashboardBody(Color primaryColor) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(onPressed: _onLeftClick, icon: Icon(Icons.arrow_circle_left_outlined, color: primaryColor, size: 30,)),
+              IconButton(
+                onPressed: _onLeftClick,
+                icon: Icon(Icons.arrow_back, color: primaryColor),
+              ),
               Text(
                 dashboardPages[_currentIndex],
                 style: TextStyle(
@@ -262,77 +270,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color: primaryColor,
                 ),
               ),
-              IconButton(onPressed: _onRightClick, icon: Icon(Icons.arrow_circle_right_outlined, color: primaryColor, size: 30,)),
+              IconButton(
+                onPressed: _onRightClick,
+                icon: Icon(Icons.arrow_forward, color: primaryColor),
+              ),
             ],
           ),
 
-          // Table container
+          const SizedBox(height: 10),
+
           Container(
-            width: double.infinity,
             height: MediaQuery.of(context).size.height * 0.675,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  // ignore: deprecated_member_use
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: 775,
-                child: SfDataGrid(
-                  source: _currentIndex == 0 ? _activityDataSource : _currentIndex == 1 ? _eventDataSource : _reportDataSource,
-                  gridLinesVisibility: GridLinesVisibility.both,
-                  headerGridLinesVisibility: GridLinesVisibility.both,
-                  columnWidthMode: ColumnWidthMode.none,
-                  columns: dataListColumns[_currentIndex],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Pagination Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: _currentPage > 1 ? _goToPreviousPage : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  disabledBackgroundColor: Colors.grey[300],
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Previous'),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                'Page $_currentPage of $_totalPages',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: _currentPage < _totalPages ? _goToNextPage : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  disabledBackgroundColor: Colors.grey[300],
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Next'),
-              ),
-            ],
+            child: _buildTable(),
           ),
         ],
       ),
     );
+  }
+
+  // SWITCH TABLE BASED ON PAGE
+  Widget _buildTable() {
+    if (_currentIndex == 0 && _activityDataSource != null) {
+      return SfDataGrid(
+        source: _activityDataSource!,
+        columns: dataListColumns[0],
+      );
+    }
+
+    if (_currentIndex == 1 && _eventDataSource != null) {
+      return SfDataGrid(source: _eventDataSource!, columns: dataListColumns[1]);
+    }
+
+    return SfDataGrid(source: _reportDataSource!, columns: dataListColumns[2]);
   }
 }
 
@@ -349,12 +324,8 @@ class CenterHeaderText extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: color),
       ),
     );
   }
 }
-

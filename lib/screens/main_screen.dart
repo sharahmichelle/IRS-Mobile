@@ -1,6 +1,7 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
@@ -232,6 +233,9 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<Events>().fetchEvents(); 
       print("Fetched events in MainScreen");
+
+      context.read<ActivityLogs>().fetchActivityLogs();
+      print("Fetched activity logs in Mainscreen");
     });
   }
   
