@@ -6,6 +6,7 @@ import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/form_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/graphs_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -16,22 +17,22 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _page = 1;
+  int _page = 2;
   Color myGrey = Color(0xFFECECEC);
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   final Color primaryColor = Color.fromARGB(255, 161, 29, 28);
-  
+
   // screen per division (Based on BottomNavBar)
   final List<Widget> _pageList = [
     CalendarScreen(),
     DashboardScreen(),
     ProfileScreen(),
     FormScreen(),
+    GraphsScreen()
   ];
 
   // appBar per screen (top)
   late final Map<int, PreferredSizeWidget> _appBarList = {
-
     // 2: AppBar(
     //     automaticallyImplyLeading: false,
     //     backgroundColor: Color(0xFFECECEC),
@@ -63,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
     //           );
     //         }).toList(),
     //         onChanged: (value) => {
-              
+
     //         },
     //         )
     //         ],
@@ -79,136 +80,134 @@ class _MainScreenState extends State<MainScreen> {
     //       ),
     //     ),
     //   ),
-        0: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFECECEC),
-        title: Padding(
-          padding: EdgeInsets.all(8),
-          child: 
-          Image.asset(
-                'assets/favicon.png',
-                width: 30,
-                height: 30,
-              ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.center,
-          //   children: [
-          //     Image.asset(
-          //       'assets/favicon.png',
-          //       width: 30,
-          //       height: 30,
-          //     ),
-          //     //               Text(
-          //     //   "Calendar",
-          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-          //     // ),
-              
-          //   ],
-          // ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(onPressed: () {
-            Navigator.pushNamed(context, '/add_event');
-          }, icon: Icon(Icons.add_card_outlined)),
-        ],
-      ),
-
-          1: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFECECEC),
-        title: Padding(
-          padding: EdgeInsets.all(8),
-          child:
-          Image.asset(
-                'assets/favicon.png',
-                width: 30,
-                height: 30,
-              ),
-          //  Row(
-          //   mainAxisAlignment: MainAxisAlignment.center,
-          //   children: [
-          //     Image.asset(
-          //       'assets/favicon.png',
-          //       width: 30,
-          //       height: 30,
-          //     ),
-          //     // Text(
-          //     //   "Dashboard",
-          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-          //     // ),
-              
-          //   ],
-          // ),
-        ),
-        centerTitle: true,
-        // actions: <Widget>[
-        //   DropdownButton<String>(
-        //     value: 'UP System',
-        //     icon: const Icon(Icons.keyboard_arrow_down),
-        //     elevation: 16,
-        //     style: const TextStyle(color: Color.fromARGB(255, 20, 99, 50), fontSize: 16),
-        //     underline: Container(
-        //       height: 2,
-        //       color: Color.fromARGB(255, 20, 99, 50),
+    0: AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Color(0xFFECECEC),
+      title: Padding(
+        padding: EdgeInsets.all(8),
+        child: Image.asset('assets/favicon.png', width: 30, height: 30),
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     Image.asset(
+        //       'assets/favicon.png',
+        //       width: 30,
+        //       height: 30,
         //     ),
-        //     items: [
-        //       'UP System',
-        //       'Campus',
-        //       'College',
-        //     ].map<DropdownMenuItem<String>>((String value) {
-        //       return DropdownMenuItem<String>(
-        //         value: value,
-        //         child: Text(value),
-        //       );
-        //     }).toList(),
-        //     onChanged: (value) => {
-              
-        //     },
-        //     )
-        //     ],
+        //     //               Text(
+        //     //   "Calendar",
+        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        //     // ),
+
+        //   ],
+        // ),
       ),
-    
+      centerTitle: true,
+      actions: [
+        IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/add_event');
+          },
+          icon: Icon(Icons.add_card_outlined),
+        ),
+      ],
+    ),
+
+    1: AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Color(0xFFECECEC),
+      title: Padding(
+        padding: EdgeInsets.all(8),
+        child: Image.asset('assets/favicon.png', width: 30, height: 30),
+        //  Row(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     Image.asset(
+        //       'assets/favicon.png',
+        //       width: 30,
+        //       height: 30,
+        //     ),
+        //     // Text(
+        //     //   "Dashboard",
+        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        //     // ),
+
+        //   ],
+        // ),
+      ),
+      centerTitle: true,
+      // actions: <Widget>[
+      //   DropdownButton<String>(
+      //     value: 'UP System',
+      //     icon: const Icon(Icons.keyboard_arrow_down),
+      //     elevation: 16,
+      //     style: const TextStyle(color: Color.fromARGB(255, 20, 99, 50), fontSize: 16),
+      //     underline: Container(
+      //       height: 2,
+      //       color: Color.fromARGB(255, 20, 99, 50),
+      //     ),
+      //     items: [
+      //       'UP System',
+      //       'Campus',
+      //       'College',
+      //     ].map<DropdownMenuItem<String>>((String value) {
+      //       return DropdownMenuItem<String>(
+      //         value: value,
+      //         child: Text(value),
+      //       );
+      //     }).toList(),
+      //     onChanged: (value) => {
+
+      //     },
+      //     )
+      //     ],
+    ),
+
     2: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFECECEC),
-        title: Padding(
+      automaticallyImplyLeading: false,
+      backgroundColor: Color(0xFFECECEC),
+      title: Padding(
+        padding: EdgeInsets.all(8),
+        child: Image.asset('assets/favicon.png', width: 30, height: 30),
+        //  Row(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+
+        //     Image.asset(
+        //       'assets/favicon.png',
+        //       width: 30,
+        //       height: 30,
+        //     ),
+        //     // Text(
+        //     //   "Profile",
+        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        //     // )
+        //   ],
+        // ),
+      ),
+      centerTitle: true,
+      actions: [
+        Padding(
           padding: EdgeInsets.all(8),
-          child:
-          Image.asset(
-                'assets/favicon.png',
-                width: 30,
-                height: 30,
-              ),
-          //  Row(
-          //   mainAxisAlignment: MainAxisAlignment.center,
-          //   children: [
-              
-          //     Image.asset(
-          //       'assets/favicon.png',
-          //       width: 30,
-          //       height: 30,
-          //     ),
-          //     // Text(
-          //     //   "Profile",
-          //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-          //     // )
-          //   ],
-          // ),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: EdgeInsets.all(8),
-            child: IconButton(
-              onPressed: () => {},
-              icon: Icon(Icons.edit_outlined),
-            ),
+          child: IconButton(
+            onPressed: () => {},
+            icon: Icon(Icons.edit_outlined),
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
 
-          3: AppBar(
+    3: AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Color(0xFFECECEC),
+      title: Padding(
+        padding: EdgeInsets.all(8),
+        child: Image.asset('assets/favicon.png', width: 30, height: 30),
+      ),
+      centerTitle: true,
+    ),
+
+    4: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFFECECEC),
         title: Padding(
@@ -222,8 +221,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
         centerTitle: true,
       ),
-
-    
   };
 
   // fetch data from database
@@ -231,92 +228,141 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<Events>().fetchEvents(); 
+      context.read<Events>().fetchEvents();
       print("Fetched events in MainScreen");
 
       context.read<ActivityLogs>().fetchActivityLogs();
       print("Fetched activity logs in Mainscreen");
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appBarList[_page],
       backgroundColor: myGrey,
       bottomNavigationBar: CurvedNavigationBar(
-          color: myGrey,
-          index: _page,
-          buttonBackgroundColor: primaryColor,
-          backgroundColor: myGrey,
-          key: _bottomNavigationKey,
-          height: 70,
-          items: <Widget>[
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.calendar_month_outlined, size:30, color: _page==0? myGrey: Colors.black,),
-                SizedBox(height: 3),
-                _page==0
-                ?
-                SizedBox(width: 12,)
-                :
-                Text("Calendar", style: TextStyle(fontSize: 12, color: _page==0? myGrey: Colors.black),),
-              ],
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.dashboard_outlined, size: 30, color: _page==1? myGrey: Colors.black),
-                SizedBox(height: 3),
-                _page==1
-                ?
-                SizedBox(width: 12,)
-                :
-                Text("Dashboard", style: TextStyle(fontSize: 12, color: _page==1? myGrey: Colors.black),),
-              ],
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.account_circle_outlined, size: 30, color: _page==2? myGrey: Colors.black,),
-                SizedBox(height: 3),
-                _page==2
-                ?
-                SizedBox(width: 12,)
-                :
-                Text("Profile", style: TextStyle(fontSize: 12, color: _page==2? myGrey: Colors.black),),
-              ],
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.list_alt_outlined, size: 30, color: _page==3? myGrey: Colors.black,),
-                SizedBox(height: 3),
-                _page==3
-                ?
-                SizedBox(width: 12,)
-                :
-                Text("Form", style: TextStyle(fontSize: 12, color: _page==3? myGrey: Colors.black),),
-              ],
-            ),
-            // Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
-            // Icon(Icons.keyboard, size: 30, color: _page==1? myGrey: Colors.black),
-            // Icon(Icons.dashboard_outlined, size: 25, color: _page==1? myGrey: Colors.black),
-            // Icon(Icons.timelapse, size: 30, color: _page==3? myGrey: Colors.black,),
-            // Icon(Icons.account_circle_outlined, size: 25, color: _page==2? myGrey: Colors.black,),
-          ],
-          onTap: (index) {
-            setState(() {
-              _page = index;
-            });
-          },
-        ),
-      
-      body: IndexedStack(
+        color: myGrey,
         index: _page,
-        children: _pageList,
+        buttonBackgroundColor: primaryColor,
+        backgroundColor: myGrey,
+        key: _bottomNavigationKey,
+        height: 70,
+        items: <Widget>[
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                size: 30,
+                color: _page == 0 ? myGrey : Colors.black,
+              ),
+              SizedBox(height: 3),
+              _page == 0
+                  ? SizedBox(width: 12)
+                  : Text(
+                      "Calendar",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _page == 0 ? myGrey : Colors.black,
+                      ),
+                    ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(
+                Icons.dashboard_outlined,
+                size: 30,
+                color: _page == 1 ? myGrey : Colors.black,
+              ),
+              SizedBox(height: 3),
+              _page == 1
+                  ? SizedBox(width: 12)
+                  : Text(
+                      "Dashboard",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _page == 1 ? myGrey : Colors.black,
+                      ),
+                    ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(
+                Icons.account_circle_outlined,
+                size: 30,
+                color: _page == 2 ? myGrey : Colors.black,
+              ),
+              SizedBox(height: 3),
+              _page == 2
+                  ? SizedBox(width: 12)
+                  : Text(
+                      "Profile",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _page == 2 ? myGrey : Colors.black,
+                      ),
+                    ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(
+                Icons.list_alt_outlined,
+                size: 30,
+                color: _page == 3 ? myGrey : Colors.black,
+              ),
+              SizedBox(height: 3),
+              _page == 3
+                  ? SizedBox(width: 12)
+                  : Text(
+                      "Form",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _page == 3 ? myGrey : Colors.black,
+                      ),
+                    ),
+            ],
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Icon(
+                Icons.auto_graph_outlined,
+                size: 30,
+                color: _page == 4 ? myGrey : Colors.black,
+              ),
+              SizedBox(height: 4),
+              _page == 4
+                  ? SizedBox(width: 12)
+                  : Text(
+                      "Graph",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _page == 4 ? myGrey : Colors.black,
+                      ),
+                    ),
+            ],
+          ),
+          // Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
+          // Icon(Icons.keyboard, size: 30, color: _page==1? myGrey: Colors.black),
+          // Icon(Icons.dashboard_outlined, size: 25, color: _page==1? myGrey: Colors.black),
+          // Icon(Icons.timelapse, size: 30, color: _page==3? myGrey: Colors.black,),
+          // Icon(Icons.account_circle_outlined, size: 25, color: _page==2? myGrey: Colors.black,),
+        ],
+        onTap: (index) {
+          setState(() {
+            _page = index;
+          });
+        },
       ),
+
+      body: IndexedStack(index: _page, children: _pageList),
     );
   }
 }
