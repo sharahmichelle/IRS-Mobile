@@ -18,11 +18,23 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _page = 2;
-  Color myGrey = Color(0xFFECECEC);
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
-  final Color primaryColor = Color.fromARGB(255, 161, 29, 28);
+  
+  // Modern color scheme
+  final Color backgroundColor = Color(0xFFF8FAFC);
+  final Color primaryColor = Color(0xFFA11D1C);
+  final Color surfaceColor = Colors.white;
+  final Color textPrimary = Color(0xFF1E293B);
+  final Color textSecondary = Color(0xFF64748B);
+  final Color iconColor = Color(0xFF475569);
+  
+  // Modern shadows
+  final BoxShadow cardShadow = BoxShadow(
+    color: Colors.black.withOpacity(0.05),
+    blurRadius: 16,
+    offset: Offset(0, 4),
+  );
 
-  // screen per division (Based on BottomNavBar)
   final List<Widget> _pageList = [
     CalendarScreen(),
     DashboardScreen(),
@@ -31,206 +43,117 @@ class _MainScreenState extends State<MainScreen> {
     GraphsScreen()
   ];
 
-  // appBar per screen (top)
+  // Modern app bars with gradient and better typography
   late final Map<int, PreferredSizeWidget> _appBarList = {
-    // 2: AppBar(
-    //     automaticallyImplyLeading: false,
-    //     backgroundColor: Color(0xFFECECEC),
-    //     title: Padding(
-    //       padding: EdgeInsets.all(8),
-    //       child: Text(
-    //         "Dashboard",
-    //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-    //       ),
-    //     ),
-    //     actions: <Widget>[
-    //       DropdownButton<String>(
-    //         value: 'UP System',
-    //         icon: const Icon(Icons.keyboard_arrow_down),
-    //         elevation: 16,
-    //         style: const TextStyle(color: Color.fromARGB(255, 20, 99, 50), fontSize: 16),
-    //         underline: Container(
-    //           height: 2,
-    //           color: Color.fromARGB(255, 20, 99, 50),
-    //         ),
-    //         items: [
-    //           'UP System',
-    //           'Campus',
-    //           'College',
-    //         ].map<DropdownMenuItem<String>>((String value) {
-    //           return DropdownMenuItem<String>(
-    //             value: value,
-    //             child: Text(value),
-    //           );
-    //         }).toList(),
-    //         onChanged: (value) => {
-
-    //         },
-    //         )
-    //         ],
-    //   ),
-    // 3: AppBar(
-    //     automaticallyImplyLeading: false,
-    //     backgroundColor: Color(0xFFECECEC),
-    //     title: Padding(
-    //       padding: EdgeInsets.all(8),
-    //       child: Text(
-    //         "Encoding History",
-    //         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-    //       ),
-    //     ),
-    //   ),
-    0: AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Color(0xFFECECEC),
-      title: Padding(
-        padding: EdgeInsets.all(8),
-        child: Image.asset('assets/favicon.png', width: 30, height: 30),
-        // Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     Image.asset(
-        //       'assets/favicon.png',
-        //       width: 30,
-        //       height: 30,
-        //     ),
-        //     //               Text(
-        //     //   "Calendar",
-        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-        //     // ),
-
-        //   ],
-        // ),
-      ),
-      centerTitle: true,
+    0: _buildModernAppBar(
+      title: "Calendar",
       actions: [
-        IconButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/add_event');
-          },
-          icon: Icon(Icons.add_card_outlined),
+        _buildIconButton(
+          icon: Icons.add,
+          onPressed: () => Navigator.pushNamed(context, '/add_event'),
         ),
       ],
     ),
-
-    1: AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Color(0xFFECECEC),
-      title: Padding(
-        padding: EdgeInsets.all(8),
-        child: Image.asset('assets/favicon.png', width: 30, height: 30),
-        //  Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     Image.asset(
-        //       'assets/favicon.png',
-        //       width: 30,
-        //       height: 30,
-        //     ),
-        //     // Text(
-        //     //   "Dashboard",
-        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-        //     // ),
-
-        //   ],
-        // ),
-      ),
-      centerTitle: true,
-      // actions: <Widget>[
-      //   DropdownButton<String>(
-      //     value: 'UP System',
-      //     icon: const Icon(Icons.keyboard_arrow_down),
-      //     elevation: 16,
-      //     style: const TextStyle(color: Color.fromARGB(255, 20, 99, 50), fontSize: 16),
-      //     underline: Container(
-      //       height: 2,
-      //       color: Color.fromARGB(255, 20, 99, 50),
-      //     ),
-      //     items: [
-      //       'UP System',
-      //       'Campus',
-      //       'College',
-      //     ].map<DropdownMenuItem<String>>((String value) {
-      //       return DropdownMenuItem<String>(
-      //         value: value,
-      //         child: Text(value),
-      //       );
-      //     }).toList(),
-      //     onChanged: (value) => {
-
-      //     },
-      //     )
-      //     ],
+    1: _buildModernAppBar(
+      title: "Dashboard",
     ),
-
-    2: AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Color(0xFFECECEC),
-      title: Padding(
-        padding: EdgeInsets.all(8),
-        child: Image.asset('assets/favicon.png', width: 30, height: 30),
-        //  Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-
-        //     Image.asset(
-        //       'assets/favicon.png',
-        //       width: 30,
-        //       height: 30,
-        //     ),
-        //     // Text(
-        //     //   "Profile",
-        //     //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-        //     // )
-        //   ],
-        // ),
-      ),
-      centerTitle: true,
+    2: _buildModernAppBar(
+      title: "Profile",
       actions: [
-        Padding(
-          padding: EdgeInsets.all(8),
-          child: IconButton(
-            onPressed: () => {},
-            icon: Icon(Icons.edit_outlined),
-          ),
+        _buildIconButton(
+          icon: Icons.edit_outlined,
+          onPressed: () {},
         ),
       ],
     ),
-
-    3: AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Color(0xFFECECEC),
-      title: Padding(
-        padding: EdgeInsets.all(8),
-        child: Image.asset('assets/favicon.png', width: 30, height: 30),
-      ),
-      centerTitle: true,
+    3: _buildModernAppBar(
+      title: "Forms",
     ),
-
-    4: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFECECEC),
-        title: Padding(
-          padding: EdgeInsets.all(8),
-          child:
-          Image.asset(
-                'assets/favicon.png',
-                width: 30,
-                height: 30,
-              ),
-        ),
-        centerTitle: true,
-      ),
+    4: _buildModernAppBar(
+      title: "Analytics",
+    ),
   };
 
-  // fetch data from database
+  PreferredSizeWidget _buildModernAppBar({
+    required String title,
+    List<Widget>? actions,
+  }) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: surfaceColor,
+      elevation: 0,
+      title: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryColor, Color(0xFFC62828)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Image.asset(
+                'assets/favicon.png',
+                width: 20,
+                height: 20,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              color: textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
+      actions: actions,
+    );
+  }
+
+  Widget _buildIconButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        shape: BoxShape.circle,
+        boxShadow: [cardShadow],
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: iconColor),
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.transparent,
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<Events>().fetchEvents();
       print("Fetched events in MainScreen");
-
       context.read<ActivityLogs>().fetchActivityLogs();
       print("Fetched activity logs in Mainscreen");
     });
@@ -240,120 +163,72 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appBarList[_page],
-      backgroundColor: myGrey,
-      bottomNavigationBar: CurvedNavigationBar(
-        color: myGrey,
+      backgroundColor: backgroundColor,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [backgroundColor, Color(0xFFF1F5F9)],
+          ),
+        ),
+        child: IndexedStack(index: _page, children: _pageList),
+      ),
+      bottomNavigationBar: _buildModernNavigationBar(),
+    );
+  }
+
+  Widget _buildModernNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
+        ],
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: CurvedNavigationBar(
+        color: surfaceColor,
         index: _page,
         buttonBackgroundColor: primaryColor,
-        backgroundColor: myGrey,
+        backgroundColor: Colors.transparent,
         key: _bottomNavigationKey,
         height: 70,
+        animationCurve: Curves.easeInOutCubic,
+        animationDuration: Duration(milliseconds: 400),
         items: <Widget>[
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                Icons.calendar_month_outlined,
-                size: 30,
-                color: _page == 0 ? myGrey : Colors.black,
-              ),
-              SizedBox(height: 3),
-              _page == 0
-                  ? SizedBox(width: 12)
-                  : Text(
-                      "Calendar",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _page == 0 ? myGrey : Colors.black,
-                      ),
-                    ),
-            ],
+          _buildNavItem(
+            icon: Icons.calendar_month_rounded,
+            label: "Calendar",
+            isActive: _page == 0,
           ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                Icons.dashboard_outlined,
-                size: 30,
-                color: _page == 1 ? myGrey : Colors.black,
-              ),
-              SizedBox(height: 3),
-              _page == 1
-                  ? SizedBox(width: 12)
-                  : Text(
-                      "Dashboard",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _page == 1 ? myGrey : Colors.black,
-                      ),
-                    ),
-            ],
+          _buildNavItem(
+            icon: Icons.dashboard_rounded,
+            label: "Dashboard",
+            isActive: _page == 1,
           ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                Icons.account_circle_outlined,
-                size: 30,
-                color: _page == 2 ? myGrey : Colors.black,
-              ),
-              SizedBox(height: 3),
-              _page == 2
-                  ? SizedBox(width: 12)
-                  : Text(
-                      "Profile",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _page == 2 ? myGrey : Colors.black,
-                      ),
-                    ),
-            ],
+          _buildNavItem(
+            icon: Icons.person_rounded,
+            label: "Profile",
+            isActive: _page == 2,
           ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                Icons.list_alt_outlined,
-                size: 30,
-                color: _page == 3 ? myGrey : Colors.black,
-              ),
-              SizedBox(height: 3),
-              _page == 3
-                  ? SizedBox(width: 12)
-                  : Text(
-                      "Form",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _page == 3 ? myGrey : Colors.black,
-                      ),
-                    ),
-            ],
+          _buildNavItem(
+            icon: Icons.assignment_rounded,
+            label: "Forms",
+            isActive: _page == 3,
           ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                Icons.auto_graph_outlined,
-                size: 30,
-                color: _page == 4 ? myGrey : Colors.black,
-              ),
-              SizedBox(height: 4),
-              _page == 4
-                  ? SizedBox(width: 12)
-                  : Text(
-                      "Graph",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _page == 4 ? myGrey : Colors.black,
-                      ),
-                    ),
-            ],
+          _buildNavItem(
+            icon: Icons.analytics_rounded,
+            label: "Analytics",
+            isActive: _page == 4,
           ),
-          // Icon(Icons.calendar_month_outlined, size: 30, color: _page==0? myGrey: Colors.black,),
-          // Icon(Icons.keyboard, size: 30, color: _page==1? myGrey: Colors.black),
-          // Icon(Icons.dashboard_outlined, size: 25, color: _page==1? myGrey: Colors.black),
-          // Icon(Icons.timelapse, size: 30, color: _page==3? myGrey: Colors.black,),
-          // Icon(Icons.account_circle_outlined, size: 25, color: _page==2? myGrey: Colors.black,),
         ],
         onTap: (index) {
           setState(() {
@@ -361,8 +236,53 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
       ),
+    );
+  }
 
-      body: IndexedStack(index: _page, children: _pageList),
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+  }) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: isActive
+              ? BoxDecoration(
+                  color: primaryColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                )
+              : null,
+          child: Icon(
+            icon,
+            size: 22,
+            color: isActive ? Colors.white : iconColor,
+          ),
+        ),
+        SizedBox(height: 4),
+        isActive?
+        SizedBox(width: 1,)
+        :
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            color: isActive ? primaryColor : textSecondary,
+            letterSpacing: -0.2,
+          ),
+        ),
+      ],
     );
   }
 }

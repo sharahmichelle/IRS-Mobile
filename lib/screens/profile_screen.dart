@@ -9,13 +9,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // Modern color scheme
+  final Color primaryColor = Color(0xFFA11D1C);
+  final Color backgroundColor = Color(0xFFF8FAFC);
+  final Color surfaceColor = Colors.white;
+  final Color textPrimary = Color(0xFF1E293B);
+  final Color textSecondary = Color(0xFF64748B);
+  final Color accentColor = Color(0xFF0EA5E9);
+
   late User currentUser;
-  
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = Color.fromARGB(255, 161, 29, 28);
-    // dummy data
+    // Dummy data
     final User currentUser = User(
       firstName: "Emman",
       middleName: "Sakay",
@@ -30,168 +36,484 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     final userDetails = [
-      ["Position", currentUser.toJson()["position"]],
-      ["UP Organization", currentUser.toJson()["upCampus"]],
-      ["Office / College", currentUser.toJson()["office"]],
-      ["Building Name", currentUser.toJson()["bldgName"]],
+      {"icon": Icons.work_rounded, "label": "Position", "value": currentUser.position},
+      {"icon": Icons.school_rounded, "label": "UP Organization", "value": currentUser.upCampus},
+      {"icon": Icons.business_rounded, "label": "Office / College", "value": currentUser.office},
+      {"icon": Icons.location_city_rounded, "label": "Building Name", "value": currentUser.bldgName},
     ];
 
-    final List<Widget> bottomCard = [
-      ListTile(
-        title: Text("FAQs", style: TextStyle(fontWeight: FontWeight.bold)),
-        trailing: IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.arrow_forward_ios_outlined),
-        ),
-      ),
-      ListTile(
-        title: Text(
-          "Log out",
-          style: TextStyle(
-            color: Colors.redAccent,
-            fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // Header with gradient
+              _buildProfileHeader(currentUser),
+              const SizedBox(height: 24),
+              
+              // User Info Card
+              _buildUserInfoCard(currentUser, userDetails),
+              const SizedBox(height: 16),
+              
+              // Action Cards
+              _buildActionCards(),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
-        trailing: IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.logout_outlined, color: Colors.redAccent),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(User user) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, Color(0xFFC62828)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
-    ];
-    
-    return SingleChildScrollView(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage:
-                          const NetworkImage(
-                                "https://avatar.iran.liara.run/public/boy",
-                              )
-                              as ImageProvider,
-                    ),
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () => {},
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                      ),
+          const SizedBox(height: 20),
+          // Profile Avatar with Edit Button
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${currentUser.firstName} ${currentUser.middleName[0]}. ${currentUser.lastName}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(currentUser.position, style: TextStyle(fontSize: 15)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.email_outlined,
-                      weight: 8,
-                      color: Colors.blueGrey,
-                      size: 12,
-                    ),
-                    Text(
-                      currentUser.email,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 9,
-                    bottom: 9,
-                  ),
-                  child: Card(
-                    color: Colors.white,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(8),
-                      itemCount: userDetails.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return ListTile(
-                          title: Text(
-                            userDetails[index][1].toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(userDetails[index][0].toString()),
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: ClipOval(
+                    child: Image.network(
+                      "https://avatar.iran.liara.run/public/boy",
+                      width: 116,
+                      height: 116,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.person_rounded,
+                          size: 60,
+                          color: primaryColor,
                         );
                       },
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: 9,
-                    bottom: 9,
-                  ),
-                  child: Card(
-                    color: Colors.white,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(5),
-                      itemCount: 2,
-                      itemBuilder: (BuildContext context, int index) {
-                        return bottomCard[index];
-                      },
+              ),
+              // Edit Photo Button
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: surfaceColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+                child: IconButton(
+                  onPressed: () => _showEditPhotoOptions(),
+                  icon: Icon(Icons.camera_alt_rounded, size: 20, color: primaryColor),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          
+          // User Name
+          Text(
+            '${user.firstName} ${user.middleName[0]}. ${user.lastName} ${user.suffix}',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          
+          // Position
+          Text(
+            user.position,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.9),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          
+          // Email
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.email_outlined, size: 16, color: Colors.white.withOpacity(0.8)),
+              const SizedBox(width: 6),
+              Text(
+                user.email,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserInfoCard(User user, List<Map<String, dynamic>> details) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 16,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.person_outline_rounded, color: primaryColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Personal Information",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              // Details Grid
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.6,
+                ),
+                itemCount: details.length,
+                itemBuilder: (context, index) {
+                  final item = details[index];
+                  return _buildDetailItem(
+                    icon: item['icon'] as IconData,
+                    label: item['label'] as String,
+                    value: item['value'] as String,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailItem({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: primaryColor),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              color: textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCards() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          // FAQ Card
+          _buildActionCard(
+            icon: Icons.help_outline_rounded,
+            title: "FAQs & Help Center",
+            subtitle: "Get answers to common questions",
+            color: accentColor,
+            onTap: () => _showFAQs(),
+          ),
+          const SizedBox(height: 12),
+          
+          // Logout Card
+          _buildActionCard(
+            icon: Icons.logout_rounded,
+            title: "Log Out",
+            subtitle: "Sign out of your account",
+            color: Colors.redAccent,
+            isLogout: true,
+            onTap: () => _showLogoutConfirmation(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    bool isLogout = false,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: isLogout ? Colors.redAccent : textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            color: textSecondary,
+          ),
+        ),
+        trailing: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditPhotoOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Update Profile Photo",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildPhotoOption(
+              icon: Icons.photo_library_rounded,
+              title: "Choose from Gallery",
+              onTap: () {
+                Navigator.pop(context);
+                // Implement gallery selection
+              },
+            ),
+            _buildPhotoOption(
+              icon: Icons.camera_alt_rounded,
+              title: "Take Photo",
+              onTap: () {
+                Navigator.pop(context);
+                // Implement camera
+              },
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: textSecondary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoOption({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: primaryColor),
+      ),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+    );
+  }
+
+  void _showFAQs() {
+    // Implement FAQ screen navigation
+    print("Navigate to FAQs");
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Log Out",
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: TextStyle(color: textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Implement logout logic
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text("Log Out", style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );

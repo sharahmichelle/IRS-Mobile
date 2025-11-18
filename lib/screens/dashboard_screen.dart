@@ -7,7 +7,6 @@ import 'package:upm_drrm_irs_mobile/models/event_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
-import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 
@@ -19,25 +18,35 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final Color primaryColor = const Color.fromARGB(255, 161, 29, 28);
+  // Modern color scheme
+  final Color primaryColor = Color(0xFFA11D1C);
+  final Color backgroundColor = Color(0xFFF8FAFC);
+  final Color surfaceColor = Colors.white;
+  final Color textPrimary = Color(0xFF1E293B);
+  final Color textSecondary = Color(0xFF64748B);
+  final Color accentColor = Color(0xFF0EA5E9);
 
-  // DATA LISTS
+  // Data lists
   List<ActivityLog> _activityData = [];
   List<Event> _eventData = [];
   List<Report> _reportData = [];
 
-  // DATASOURCES
+  // Data sources
   ActivityDataSource? _activityDataSource;
   EventDataSource? _eventDataSource;
   ReportDataSource? _reportDataSource;
 
-  final dashboardPages = ['Activity Logs', 'Events', 'Reports'];
+  final List<String> dashboardPages = ['Activity Logs', 'Events', 'Reports'];
+  final List<IconData> dashboardIcons = [
+    Icons.history_rounded,
+    Icons.event_rounded,
+    Icons.assessment_rounded,
+  ];
 
   // Pagination
   final int _rowsPerPage = 10;
   int _currentPage = 1;
   int _totalPages = 1;
-
   int _currentIndex = 0;
 
   List<List<GridColumn>> dataListColumns = [];
@@ -46,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
-    // TEMPORARY DUMMY REPORT DATA (still valid)
+    // Temporary dummy report data
     _reportData = List.generate(25, (index) {
       return Report(
         encoderId: 'Encoder${index + 1}',
@@ -56,145 +65,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     });
 
-    // Initialize columns
+    // Initialize columns with modern styling
     dataListColumns = [
       // ACTIVITY LOGS COLUMNS
       [
-        GridColumn(
-          columnName: 'dateCreated',
-          width: 150,
-          label: CenterHeaderText('Date Created', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'module',
-          width: 150,
-          label: CenterHeaderText('Module', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'moduleItem',
-          width: 200,
-          label: CenterHeaderText('Module Item', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'initiatedBy',
-          width: 150,
-          label: CenterHeaderText('Initiated By', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'action',
-          width: 150,
-          label: CenterHeaderText('Action', primaryColor),
-        ),
+        _buildGridColumn('dateCreated', 'Date Created', 140),
+        _buildGridColumn('module', 'Module', 130),
+        _buildGridColumn('moduleItem', 'Module Item', 180),
+        _buildGridColumn('initiatedBy', 'Initiated By', 140),
+        _buildGridColumn('action', 'Action', 120),
       ],
 
       // EVENTS COLUMNS
       [
-        GridColumn(
-          columnName: 'dateAndTime',
-          width: 200,
-          label: CenterHeaderText('Date & Time', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'name',
-          width: 150,
-          label: CenterHeaderText('Name', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'description',
-          width: 250,
-          label: CenterHeaderText('Description', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'status',
-          width: 100,
-          label: CenterHeaderText('Status', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'action',
-          width: 150,
-          label: CenterHeaderText('Action', primaryColor),
-        ),
+        _buildGridColumn('dateAndTime', 'Date & Time', 160),
+        _buildGridColumn('name', 'Name', 130),
+        _buildGridColumn('description', 'Description', 200),
+        _buildGridColumn('status', 'Status', 100),
+        _buildGridColumn('action', 'Action', 120),
       ],
 
       // REPORTS COLUMNS
       [
-        GridColumn(
-          columnName: 'encoderId',
-          width: 150,
-          label: CenterHeaderText('Encoder ID', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'reportId',
-          width: 150,
-          label: CenterHeaderText('Report ID', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'upSystem',
-          width: 150,
-          label: CenterHeaderText('UP System', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'office',
-          width: 150,
-          label: CenterHeaderText('Office', primaryColor),
-        ),
-        GridColumn(
-          columnName: 'encoderPosition',
-          width: 200,
-          label: CenterHeaderText('Encoder Position', primaryColor),
-        ),
+        _buildGridColumn('encoderId', 'Encoder ID', 130),
+        _buildGridColumn('reportId', 'Report ID', 130),
+        _buildGridColumn('upSystem', 'UP System', 130),
+        _buildGridColumn('office', 'Office', 130),
+        _buildGridColumn('encoderPosition', 'Encoder Position', 160),
       ],
     ];
   }
 
-  // PAGINATION UPDATE
+  GridColumn _buildGridColumn(String columnName, String label, double width) {
+    return GridColumn(
+      columnName: columnName,
+      width: width,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          color: primaryColor.withOpacity(0.05),
+          border: Border(
+            right: BorderSide(color: Color(0xFFE2E8F0)),
+            bottom: BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: primaryColor,
+            fontSize: 13,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  // Pagination update
   void _updateDataSource() {
     final startIndex = (_currentPage - 1) * _rowsPerPage;
 
     if (_currentIndex == 0) {
-      // ACTIVITY LOGS
       final end = (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
-      _activityDataSource = ActivityDataSource(
-        _activityData.sublist(startIndex, end),
-      );
+      _activityDataSource = ActivityDataSource(_activityData.sublist(startIndex, end));
     } else if (_currentIndex == 1) {
-      // EVENTS
       final end = (_currentPage * _rowsPerPage).clamp(0, _eventData.length);
       _eventDataSource = EventDataSource(_eventData.sublist(startIndex, end));
     } else {
-      // REPORTS
       final end = (_currentPage * _rowsPerPage).clamp(0, _reportData.length);
-      _reportDataSource = ReportDataSource(
-        _reportData.sublist(startIndex, end),
-      );
+      _reportDataSource = ReportDataSource(_reportData.sublist(startIndex, end));
     }
 
     setState(() {});
   }
 
-  // NAVIGATION BUTTONS
-  void _onLeftClick() {
-    if (_currentIndex > 0) {
-      _currentIndex--;
-    } else {
-      _currentIndex = 2;
-    }
-
-    _currentPage = 1;
-    _totalPages = _getCurrentListLength();
-    _updateDataSource();
-  }
-
-  void _onRightClick() {
-    if (_currentIndex < 2) {
-      _currentIndex++;
-    } else {
-      _currentIndex = 0;
-    }
-
-    _currentPage = 1;
-    _totalPages = _getCurrentListLength();
-    _updateDataSource();
+  // Navigation methods
+  void _onTabChange(int index) {
+    setState(() {
+      _currentIndex = index;
+      _currentPage = 1;
+      _totalPages = _getCurrentListLength();
+      _updateDataSource();
+    });
   }
 
   void _onPageLeft() {
@@ -221,12 +174,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return (_reportData.length / _rowsPerPage).ceil();
   }
 
-  // MAIN UI BUILDER
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color.fromARGB(255, 161, 29, 28);
-
-    /// If Activity Logs TAB → StreamBuilder
     if (_currentIndex == 0) {
       return Consumer<ActivityLogs>(
         builder: (context, provider, _) {
@@ -234,29 +183,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             stream: provider.activityLogs,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
+                return _buildLoadingState();
               }
 
               final docs = snapshot.data!.docs;
-              _activityData = docs
-                  .map((d) => ActivityLog.fromFirestore(d.data()))
-                  .toList();
-
-              // compute without setState
+              _activityData = docs.map((d) => ActivityLog.fromFirestore(d.data())).toList();
               _totalPages = _getCurrentListLength();
-
+              
               final startIndex = (_currentPage - 1) * _rowsPerPage;
-              final end = (_currentPage * _rowsPerPage).clamp(
-                0,
-                _activityData.length,
-              );
+              final end = (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
+              _activityDataSource = ActivityDataSource(_activityData.sublist(startIndex, end));
 
-              // build datasource directly WITHOUT calling setState
-              _activityDataSource = ActivityDataSource(
-                _activityData.sublist(startIndex, end),
-              );
-
-              return _buildDashboardBody(primaryColor);
+              return _buildDashboardBody();
             },
           );
         },
@@ -268,135 +206,376 @@ class _DashboardScreenState extends State<DashboardScreen> {
             stream: provider.events,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
+                return _buildLoadingState();
               }
 
               final docs = snapshot.data!.docs;
               _eventData = docs.map((d) => Event.fromFirestore(d)).toList();
-
-              // compute without setState
               _totalPages = _getCurrentListLength();
-
+              
               final startIndex = (_currentPage - 1) * _rowsPerPage;
-              final end = (_currentPage * _rowsPerPage).clamp(
-                0,
-                _eventData.length,
-              );
+              final end = (_currentPage * _rowsPerPage).clamp(0, _eventData.length);
+              _eventDataSource = EventDataSource(_eventData.sublist(startIndex, end));
 
-              // build datasource directly WITHOUT calling setState
-              _eventDataSource = EventDataSource(
-                _eventData.sublist(startIndex, end),
-              );
-
-              return _buildDashboardBody(primaryColor);
+              return _buildDashboardBody();
             },
           );
         },
       );
     }
 
-    /// For Events & Reports — no StreamBuilder yet
     _totalPages = _getCurrentListLength();
     _updateDataSource();
-
-    return _buildDashboardBody(primaryColor);
+    return _buildDashboardBody();
   }
 
-  // UI WRAPPER
-  Widget _buildDashboardBody(Color primaryColor) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                onPressed: _onLeftClick,
-                icon: Icon(Icons.arrow_back, color: primaryColor),
+  Widget _buildLoadingState() {
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: primaryColor),
+            const SizedBox(height: 16),
+            Text(
+              'Loading data...',
+              style: TextStyle(
+                color: textSecondary,
+                fontSize: 16,
               ),
-              Text(
-                dashboardPages[_currentIndex],
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardBody() {
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              _buildHeader(),
+              const SizedBox(height: 24),
+
+              // Tab Navigation
+              _buildTabNavigation(),
+              const SizedBox(height: 20),
+
+              // Data Table Card
+              Expanded(
+                child: _buildDataTableCard(),
+              ),
+
+              // Pagination
+              const SizedBox(height: 16),
+              _buildPagination(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [primaryColor, Color(0xFFC62828)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.dashboard_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Dashboard",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: textPrimary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    "Monitor activities and reports",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 4,
+          width: 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [primaryColor, Color(0xFFC62828)]),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabNavigation() {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: List.generate(dashboardPages.length, (index) {
+          final isActive = index == _currentIndex;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _onTabChange(index),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isActive ? primaryColor.withOpacity(0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: isActive
+                      ? Border.all(color: primaryColor.withOpacity(0.3))
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      dashboardIcons[index],
+                      size: 20,
+                      color: isActive ? primaryColor : textSecondary,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dashboardPages[index],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        color: isActive ? primaryColor : textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                onPressed: _onRightClick,
-                icon: Icon(Icons.arrow_forward, color: primaryColor),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          Container(
-            height: MediaQuery.of(context).size.height * 0.675,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
-            child: _buildTable(),
-          ),
-          SizedBox(height: 10),
+          );
+        }),
+      ),
+    );
+  }
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(Icons.chevron_left, color: primaryColor),
-                onPressed: _onPageLeft,
-              ),
-              Text(
-                'Page $_currentPage of $_totalPages',
-                style: TextStyle(fontSize: 16, color: primaryColor),
-              ),
-              IconButton(
-                icon: Icon(Icons.chevron_right, color: primaryColor),
-                onPressed: _onPageRight,
-              ),
-            ],
+  Widget _buildDataTableCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Table Header
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(
+                  dashboardIcons[_currentIndex],
+                  color: primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  dashboardPages[_currentIndex],
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${_getCurrentDataLength()} items',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Divider
+          Container(height: 1, color: Color(0xFFE2E8F0)),
+          
+          // Data Table
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(1), // Small padding for the table
+              child: _buildTable(),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // SWITCH TABLE BASED ON PAGE
+  int _getCurrentDataLength() {
+    if (_currentIndex == 0) return _activityData.length;
+    if (_currentIndex == 1) return _eventData.length;
+    return _reportData.length;
+  }
+
   Widget _buildTable() {
     if (_currentIndex == 0 && _activityDataSource != null) {
       return SfDataGrid(
         source: _activityDataSource!,
         columns: dataListColumns[0],
+        gridLinesVisibility: GridLinesVisibility.horizontal,
+        headerGridLinesVisibility: GridLinesVisibility.horizontal,
       );
     }
 
     if (_currentIndex == 1 && _eventDataSource != null) {
-      return SfDataGrid(source: _eventDataSource!, columns: dataListColumns[1]);
+      return SfDataGrid(
+        source: _eventDataSource!,
+        columns: dataListColumns[1],
+        gridLinesVisibility: GridLinesVisibility.horizontal,
+        headerGridLinesVisibility: GridLinesVisibility.horizontal,
+      );
     }
 
-    return SfDataGrid(source: _reportDataSource!, columns: dataListColumns[2]);
+    return SfDataGrid(
+      source: _reportDataSource!,
+      columns: dataListColumns[2],
+      gridLinesVisibility: GridLinesVisibility.horizontal,
+      headerGridLinesVisibility: GridLinesVisibility.horizontal,
+    );
   }
-}
 
-class CenterHeaderText extends StatelessWidget {
-  final String text;
-  final Color color;
-  const CenterHeaderText(this.text, this.color, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPagination() {
     return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontWeight: FontWeight.bold, color: color),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildPaginationButton(
+            icon: Icons.chevron_left_rounded,
+            onPressed: _onPageLeft,
+            isEnabled: _currentPage > 1,
+          ),
+          const SizedBox(width: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Page $_currentPage of $_totalPages',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          _buildPaginationButton(
+            icon: Icons.chevron_right_rounded,
+            onPressed: _onPageRight,
+            isEnabled: _currentPage < _totalPages,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginationButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required bool isEnabled,
+  }) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: isEnabled ? primaryColor : Colors.grey.withOpacity(0.3),
+        shape: BoxShape.circle,
+        boxShadow: isEnabled
+            ? [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: IconButton(
+        onPressed: isEnabled ? onPressed : null,
+        icon: Icon(icon, color: Colors.white, size: 20),
+        padding: EdgeInsets.zero,
       ),
     );
   }
