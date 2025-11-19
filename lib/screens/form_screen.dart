@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/text_input.dart';
+import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
+import 'package:upm_drrm_irs_mobile/widgets/form_section_header.dart';
+import 'package:upm_drrm_irs_mobile/widgets/form_input_row.dart';
+import 'package:upm_drrm_irs_mobile/widgets/form_submit_button.dart';
+import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -62,6 +67,45 @@ class _FormScreenState extends State<FormScreen> {
     super.dispose();
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => SuccessDialog(
+        onDone: () {
+          Navigator.of(context).pop();
+          _formKey.currentState!.reset();
+        },
+        primaryColor: primaryColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
+      ),
+    );
+  }
+
+  String? _requiredNumber(String? val) {
+    if (val == null || val.isEmpty) return 'This field is required';
+    final number = int.tryParse(val);
+    if (number == null || number < 0) return 'Enter a valid number';
+    return null;
+  }
+
+  Widget _buildCompactNumberInput({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+  }) {
+    return Container(
+      width: (MediaQuery.of(context).size.width - 80) / 2,
+      child: CompactNumberInput(
+        label: label,
+        controller: controller,
+        hintText: "0",
+        validator: _requiredNumber,
+        icon: icon,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +121,14 @@ class _FormScreenState extends State<FormScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header Section
-                  _buildHeader(),
+                  ScreenHeader(
+                    primaryColor: primaryColor,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
+                    title: "Status Report",
+                    subtitle: "UPM NSED Q4 2025",
+                    icon: Icons.assignment_rounded,
+                  ),
                   const SizedBox(height: 24),
 
                   // Form Content in Card
@@ -99,14 +150,17 @@ class _FormScreenState extends State<FormScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Basic Information Section
-                          _buildSectionHeader(
+                          FormSectionHeader(
                             icon: Icons.person_outline_rounded,
                             title: "Basic Information",
                             subtitle: "Your personal and organizational details",
+                            primaryColor: primaryColor,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(height: 20),
 
-                          _buildInputRow(
+                          FormInputRow(
                             children: [
                               Expanded(
                                 child: TextInput(
@@ -121,7 +175,7 @@ class _FormScreenState extends State<FormScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          _buildInputRow(
+                          FormInputRow(
                             children: [
                               Expanded(
                                 child: TextInput(
@@ -148,10 +202,13 @@ class _FormScreenState extends State<FormScreen> {
                           const SizedBox(height: 32),
 
                           // Headcount Section
-                          _buildSectionHeader(
+                          FormSectionHeader(
                             icon: Icons.people_outline_rounded,
                             title: "Headcount Information",
                             subtitle: "Number of people in each category",
+                            primaryColor: primaryColor,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(height: 20),
 
@@ -225,14 +282,17 @@ class _FormScreenState extends State<FormScreen> {
                           const SizedBox(height: 32),
 
                           // Incident Details Section
-                          _buildSectionHeader(
+                          FormSectionHeader(
                             icon: Icons.warning_amber_rounded,
                             title: "Incident Details",
                             subtitle: "Critical information about the incident",
+                            primaryColor: primaryColor,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
                           ),
                           const SizedBox(height: 20),
 
-                          _buildInputRow(
+                          FormInputRow(
                             children: [
                               Expanded(
                                 child: NumberInput(
@@ -295,285 +355,20 @@ class _FormScreenState extends State<FormScreen> {
                   const SizedBox(height: 32),
 
                   // Submit Button
-                  _buildSubmitButton(),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [primaryColor, Color(0xFFC62828)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.assignment_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Status Report",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    "UPM NSED Q4 2025",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: textSecondary,
-                    ),
+                  FormSubmitButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _showSuccessDialog();
+                      }
+                    },
+                    primaryColor: primaryColor,
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 4,
-          width: 60,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryColor, Color(0xFFC62828)],
-            ),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                color: primaryColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInputRow({required List<Widget> children}) {
-    return Row(
-      children: children,
-    );
-  }
-
-  Widget _buildCompactNumberInput({
-    required String label,
-    required TextEditingController controller,
-    required IconData icon,
-  }) {
-    return Container(
-      width: (MediaQuery.of(context).size.width - 80) / 2,
-      child: CompactNumberInput(
-        label: label,
-        controller: controller,
-        hintText: "0",
-        validator: _requiredNumber,
-        icon: icon,
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Center(
-      child: Container(
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, Color(0xFFC62828)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: primaryColor.withOpacity(0.3),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              _showSuccessDialog();
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                "Submit Report",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
           ),
         ),
       ),
     );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_rounded,
-                  color: Colors.green,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Report Submitted!",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Your status report has been successfully submitted.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: textSecondary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // Optionally clear form
-                    _formKey.currentState!.reset();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    "Done",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String? _requiredNumber(String? val) {
-    if (val == null || val.isEmpty) return 'This field is required';
-    final number = int.tryParse(val);
-    if (number == null || number < 0) return 'Enter a valid number';
-    return null;
   }
 }

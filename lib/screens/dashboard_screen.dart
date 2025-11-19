@@ -9,6 +9,7 @@ import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -261,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              _buildHeader(),
+              ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Dashboard", subtitle: "Monitor activities and reports", icon: Icons.dashboard),
               const SizedBox(height: 24),
 
               // Tab Navigation
@@ -280,68 +281,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [primaryColor, Color(0xFFC62828)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.dashboard_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Dashboard",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: textPrimary,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    "Monitor activities and reports",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 4,
-          width: 60,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [primaryColor, Color(0xFFC62828)]),
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-      ],
     );
   }
 

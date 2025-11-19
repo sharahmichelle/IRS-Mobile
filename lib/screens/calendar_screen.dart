@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:upm_drrm_irs_mobile/models/event_calendar_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -35,7 +36,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           children: [
             // Header
-            _buildHeader(),
+            ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Calendar", subtitle: "Monitor events and schedules", icon: Icons.calendar_month_rounded),
             const SizedBox(height: 16),
             
             // View Selector
@@ -165,71 +166,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         backgroundColor: primaryColor,
         child: Icon(Icons.add_rounded, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primaryColor, Color(0xFFC62828)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.calendar_month_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Calendar",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: textPrimary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    Text(
-                      "Monitor events and schedules",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 4,
-            width: 60,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [primaryColor, Color(0xFFC62828)]),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
       ),
     );
   }
