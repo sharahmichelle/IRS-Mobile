@@ -44,6 +44,8 @@ dependencies:
   intl: ^0.20.2
   fl_chart: ^1.1.1
   const_date_time: ^1.2.1
+  flutter_svg: ^2.2.2
+  stylish_table: ^0.0.2
 
 dev_dependencies:
   flutter_test:

@@ -105,7 +105,7 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
             aspectRatio: 2,
             child: PieChart(
               PieChartData(
-                centerSpaceRadius: widget.isTop3 ? 25 : 50,
+                centerSpaceRadius: widget.isTop3 ? 20 : 50,
                 sectionsSpace: 1,
                 sections: [
                   for (var entry in top3Percentages.entries)
@@ -117,7 +117,7 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
                               Colors.primaries.length],
                       value: entry.value,
                       title: '${entry.value.toStringAsFixed(1)}%',
-                      radius: widget.isTop3 ? 60 : 110,
+                      radius: widget.isTop3 ? 55 : 110,
                       titleStyle: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

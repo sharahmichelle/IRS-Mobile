@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/widgets/bar_graph_builder.dart';
 import 'package:upm_drrm_irs_mobile/widgets/pie_chart_builder.dart';
 
 class ChartCard extends StatelessWidget {
@@ -13,6 +14,7 @@ class ChartCard extends StatelessWidget {
   final Color textPrimary;
   final Color textSecondary;
   final Color Function(String) getStatusColor;
+  final String chartType;
 
   const ChartCard({
     super.key,
@@ -24,12 +26,15 @@ class ChartCard extends StatelessWidget {
     required this.textPrimary,
     required this.textSecondary,
     required this.getStatusColor,
+    required this.chartType,
   });
 
   @override
   Widget build(BuildContext context) {
-    final responseRate = currentEventTotal.expectedData > 0 
-        ? (currentEventTotal.receivedData / currentEventTotal.expectedData * 100)
+    final responseRate = currentEventTotal.expectedData > 0
+        ? (currentEventTotal.receivedData /
+              currentEventTotal.expectedData *
+              100)
         : 0;
 
     return Container(
@@ -82,10 +87,7 @@ class ChartCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         "${currentEvent.name} - ${currentEvent.timeStampStart.year}",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: textSecondary,
-                        ),
+                        style: TextStyle(fontSize: 12, color: textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -94,7 +96,10 @@ class ChartCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: getStatusColor(currentEvent.status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -102,7 +107,11 @@ class ChartCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.circle, size: 8, color: getStatusColor(currentEvent.status)),
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: getStatusColor(currentEvent.status),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         currentEvent.status,
@@ -120,10 +129,10 @@ class ChartCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Divider
           Container(height: 1, color: Color(0xFFE2E8F0)),
-          
+
           // Chart Area
           Expanded(
             child: Container(
@@ -132,12 +141,19 @@ class ChartCard extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(8),
               child: currentEventTotal.receivedData > 0
-                  ? PieChartBuilder(
-                      key: ValueKey('pie_chart_${currentEvent.eventId}'),
-                      eventTotalData: currentEventTotal,
-                      eventData: currentEvent,
-                      isTop3: true,
-                    )
+                  ? chartType == 'Demographics'
+                        ? PieChartBuilder(
+                            key: ValueKey('pie_chart_${currentEvent.eventId}'),
+                            eventTotalData: currentEventTotal,
+                            eventData: currentEvent,
+                            isTop3: true,
+                          )
+                        : BarGraphBuilder(
+                            key: ValueKey('bar_graph_${currentEvent.eventId}'),
+                            eventData: currentEvent,
+                            eventTotal: currentEventTotal,
+                            isTop3: true,
+                          )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -170,7 +186,7 @@ class ChartCard extends StatelessWidget {
                     ),
             ),
           ),
-          
+
           // Chart Footer
           Container(
             padding: const EdgeInsets.all(12),
@@ -184,8 +200,14 @@ class ChartCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildFooterItem("Participants", "${currentEventTotal.receivedData}"),
-                _buildFooterItem("Response", "${responseRate.toStringAsFixed(1)}%"),
+                _buildFooterItem(
+                  "Participants",
+                  "${currentEventTotal.receivedData}",
+                ),
+                _buildFooterItem(
+                  "Response",
+                  "${responseRate.toStringAsFixed(1)}%",
+                ),
                 _buildFooterItem("Category", currentEvent.category),
               ],
             ),
@@ -213,10 +235,7 @@ class ChartCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 10,
-              color: textSecondary,
-            ),
+            style: TextStyle(fontSize: 10, color: textSecondary),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -27,7 +27,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
   int _currentEventIndex = 0;
   final List<String> _chartTypes = [
     'Demographics',
-    'Response Data',
+    'Distribution',
     'Trend Analysis',
   ];
 
@@ -412,6 +412,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
                   getStatusColor: _getStatusColor,
+                  chartType: _chartTypes[_currentChartIndex],
                 ),
               ),
             ),
