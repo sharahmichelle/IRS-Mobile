@@ -147,44 +147,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 20),
           
-          // User Name
-          Text(
-            '${user.firstName} ${user.middleName[0]}. ${user.lastName} ${user.suffix}',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: -0.5,
+          // User Name with improved overflow handling
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '${user.firstName} ${user.middleName[0]}. ${user.lastName} ${user.suffix}',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           
-          // Position
-          Text(
-            user.position,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withOpacity(0.9),
+          // Position with improved overflow handling
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              user.position,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.9),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(height: 12),
           
-          // Email
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.email_outlined, size: 16, color: Colors.white.withOpacity(0.8)),
-              const SizedBox(width: 6),
-              Text(
-                user.email,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.8),
+          // Email with improved overflow handling
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.email_outlined, size: 16, color: Colors.white.withOpacity(0.8)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    user.email,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -223,19 +242,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Icon(Icons.person_outline_rounded, color: primaryColor),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    "Personal Information",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary,
+                  Expanded(
+                    child: Text(
+                      "Personal Information",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               
-              // Details Grid
+              // Details Grid with improved overflow handling
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -298,21 +321,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: textPrimary,
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : "Not specified",
+              style: TextStyle(
+                fontSize: 14,
+                color: textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -385,6 +411,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.w600,
             color: isLogout ? Colors.redAccent : textPrimary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
           subtitle,
@@ -392,6 +420,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontSize: 12,
             color: textSecondary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         trailing: Container(
           width: 36,
@@ -428,6 +458,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontWeight: FontWeight.w700,
                 color: textPrimary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 20),
             _buildPhotoOption(
@@ -476,7 +508,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Icon(icon, color: primaryColor),
       ),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+      title: Text(
+        title, 
+        style: TextStyle(fontWeight: FontWeight.w500),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
       trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16),
     );
   }
@@ -489,32 +526,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          "Log Out",
-          style: TextStyle(fontWeight: FontWeight.w700),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
         ),
-        content: Text("Are you sure you want to log out?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: textSecondary)),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Implement logout logic
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Warning Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  size: 40,
+                  color: Colors.redAccent,
+                ),
               ),
-            ),
-            child: Text("Log Out", style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 20),
+              
+              // Title
+              Text(
+                "Log Out?",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Description
+              Text(
+                "Are you sure you want to log out? You'll need to sign in again to access your account.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              
+              // Buttons
+              Row(
+                children: [
+                  // Cancel Button
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: textSecondary.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Logout Button
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Implement logout logic
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "Log Out",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
