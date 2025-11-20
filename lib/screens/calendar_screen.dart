@@ -120,6 +120,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             dayFormat: 'EEE',
                             timeFormat: 'HH:mm',
                           ),
+                          showTodayButton: true,
                           todayHighlightColor: primaryColor,
                           selectionDecoration: BoxDecoration(
                             color: primaryColor.withOpacity(0.1),
