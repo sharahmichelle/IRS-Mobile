@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/text_input.dart';
@@ -19,23 +23,39 @@ class _FormScreenState extends State<FormScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _clusterController = TextEditingController();
-  final TextEditingController _headcountFacultyController = TextEditingController();
-  final TextEditingController _headcountAdminController = TextEditingController();
-  final TextEditingController _headcountREPSController = TextEditingController();
+  final TextEditingController _headcountFacultyController =
+      TextEditingController();
+  final TextEditingController _headcountAdminController =
+      TextEditingController();
+  final TextEditingController _headcountREPSController =
+      TextEditingController();
   final TextEditingController _headcountRAController = TextEditingController();
-  final TextEditingController _headcountStudentController = TextEditingController();
-  final TextEditingController _headcountPhilcareController = TextEditingController();
-  final TextEditingController _headcountSecurityController = TextEditingController();
-  final TextEditingController _headcountConstructionController = TextEditingController();
-  final TextEditingController _headcountTenantsController = TextEditingController();
-  final TextEditingController _headcountHealthWorkerController = TextEditingController();
-  final TextEditingController _headcountNonAcadStaffController = TextEditingController();
-  final TextEditingController _headcountGuestsController = TextEditingController();
-  final TextEditingController _numberMissingController = TextEditingController();
-  final TextEditingController _missingPeopleNamesController = TextEditingController();
-  final TextEditingController _numberCasualtyController = TextEditingController();
-  final TextEditingController _identityConditionController = TextEditingController();
-  final TextEditingController _damageAssessmentController = TextEditingController();
+  final TextEditingController _headcountStudentController =
+      TextEditingController();
+  final TextEditingController _headcountPhilcareController =
+      TextEditingController();
+  final TextEditingController _headcountSecurityController =
+      TextEditingController();
+  final TextEditingController _headcountConstructionController =
+      TextEditingController();
+  final TextEditingController _headcountTenantsController =
+      TextEditingController();
+  final TextEditingController _headcountHealthWorkerController =
+      TextEditingController();
+  final TextEditingController _headcountNonAcadStaffController =
+      TextEditingController();
+  final TextEditingController _headcountGuestsController =
+      TextEditingController();
+  final TextEditingController _numberMissingController =
+      TextEditingController();
+  final TextEditingController _missingPeopleNamesController =
+      TextEditingController();
+  final TextEditingController _numberCasualtyController =
+      TextEditingController();
+  final TextEditingController _identityConditionController =
+      TextEditingController();
+  final TextEditingController _damageAssessmentController =
+      TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -48,19 +68,144 @@ class _FormScreenState extends State<FormScreen> {
   final Color textSecondary = Color(0xFF64748B);
   final Color borderColor = Color(0xFFE2E8F0);
 
+  List<String> locationSuggestions = [];
+
+  // Add these variables to your FormScreen state
+  List<String> _locationSuggestions = [];
+  OverlayEntry? _overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+  final FocusNode _locationFocusNode = FocusNode();
+
+  // Add these methods to your FormScreen state
+  void _updateLocationSuggestions(String query) {
+    if (query.length > 2) {
+      final localSuggestions =
+          [
+                'UP Manila Main Building',
+                'UP Manila College of Medicine',
+                'UP Manila College of Nursing',
+                'UP Manila College of Public Health',
+                'UP Manila Philippine General Hospital',
+                'UP Manila Calderon Hall',
+                'UP Manila Lara Hall',
+                'UP Manila Sports Center',
+                'UP Manila Library',
+                'UP Manila Student Center',
+                'UP Manila Paz Mendoza Building',
+                'UP Manila Central Administration Building',
+                'UP Manila Museum of a History of Ideas',
+                'UP Manila Chapel',
+                'UP Manila Gymnasium',
+              ]
+              .where(
+                (location) =>
+                    location.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
+
+      setState(() {
+        _locationSuggestions = localSuggestions;
+      });
+
+      _showSuggestionOverlay();
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _showSuggestionOverlay() {
+    _removeOverlay();
+
+    if (_locationSuggestions.isEmpty) return;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: MediaQuery.of(context).size.width - 40, // Account for padding
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, 50),
+          child: Material(
+            elevation: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              constraints: BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _locationSuggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = _locationSuggestions[index];
+                  return ListTile(
+                    title: Text(suggestion, style: TextStyle(fontSize: 14)),
+                    onTap: () {
+                      _locationController.text = suggestion;
+                      _removeOverlay();
+                      _locationFocusNode.unfocus();
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _onLocationUnfocus() {
+    // Small delay to allow tap events to process
+    Future.delayed(Duration(milliseconds: 100), () {
+      _removeOverlay();
+    });
+  }
+
   @override
   void dispose() {
+    _locationFocusNode.dispose();
+    _removeOverlay();
+
     // Dispose all controllers
     final controllers = [
-      _nameController, _positionController, _clusterController,
-      _headcountFacultyController, _headcountAdminController, _headcountREPSController,
-      _headcountRAController, _headcountStudentController, _headcountPhilcareController,
-      _headcountSecurityController, _headcountConstructionController, _headcountTenantsController,
-      _headcountHealthWorkerController, _headcountNonAcadStaffController, _headcountGuestsController,
-      _numberMissingController, _missingPeopleNamesController, _numberCasualtyController,
-      _identityConditionController, _damageAssessmentController, _locationController,
+      _nameController,
+      _positionController,
+      _clusterController,
+      _headcountFacultyController,
+      _headcountAdminController,
+      _headcountREPSController,
+      _headcountRAController,
+      _headcountStudentController,
+      _headcountPhilcareController,
+      _headcountSecurityController,
+      _headcountConstructionController,
+      _headcountTenantsController,
+      _headcountHealthWorkerController,
+      _headcountNonAcadStaffController,
+      _headcountGuestsController,
+      _numberMissingController,
+      _missingPeopleNamesController,
+      _numberCasualtyController,
+      _identityConditionController,
+      _damageAssessmentController,
+      _locationController,
     ];
-    
     for (var controller in controllers) {
       controller.dispose();
     }
@@ -104,6 +249,38 @@ class _FormScreenState extends State<FormScreen> {
         icon: icon,
       ),
     );
+  }
+
+  void updateLocationSuggestions(String query) async {
+    final results = await searchLocation(query);
+    setState(() {
+      locationSuggestions = results.toList();
+    });
+  }
+
+  static Future<Iterable<String>> searchLocation(String query) async {
+    if (query.isEmpty) {
+      return const Iterable<String>.empty();
+    }
+    final response = await http.get(
+      Uri.parse(
+        'https://api.geoapify.com/v1/geocode/autocomplete?text=$query&apiKey=${dotenv.env['GEOAPIFY_API_KEY']}',
+      ),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final features = data['features'] as List<dynamic>;
+
+      // Optionally print each formatted location for debugging
+      for (var feature in features) {
+        print(feature['properties']['formatted'] as String);
+      }
+
+      return features.map(
+        (feature) => feature['properties']['formatted'] as String,
+      );
+    }
+    return const Iterable<String>.empty();
   }
 
   @override
@@ -153,7 +330,8 @@ class _FormScreenState extends State<FormScreen> {
                           FormSectionHeader(
                             icon: Icons.person_outline_rounded,
                             title: "Basic Information",
-                            subtitle: "Your personal and organizational details",
+                            subtitle:
+                                "Your personal and organizational details",
                             primaryColor: primaryColor,
                             textPrimary: textPrimary,
                             textSecondary: textSecondary,
@@ -167,8 +345,9 @@ class _FormScreenState extends State<FormScreen> {
                                   label: "Full Name",
                                   controller: _nameController,
                                   hintText: "Enter your full name",
-                                  validator: (val) =>
-                                      val == null || val.isEmpty ? 'Full name is required' : null,
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? 'Full name is required'
+                                      : null,
                                 ),
                               ),
                             ],
@@ -182,8 +361,9 @@ class _FormScreenState extends State<FormScreen> {
                                   label: "Position",
                                   controller: _positionController,
                                   hintText: "Enter your position",
-                                  validator: (val) =>
-                                      val == null || val.isEmpty ? 'Position is required' : null,
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? 'Position is required'
+                                      : null,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -192,8 +372,9 @@ class _FormScreenState extends State<FormScreen> {
                                   label: "Cluster",
                                   controller: _clusterController,
                                   hintText: "Enter your cluster",
-                                  validator: (val) =>
-                                      val == null || val.isEmpty ? 'Cluster is required' : null,
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? 'Cluster is required'
+                                      : null,
                                 ),
                               ),
                             ],
@@ -318,7 +499,8 @@ class _FormScreenState extends State<FormScreen> {
                           TextInput(
                             label: "Names of Missing Persons",
                             controller: _missingPeopleNamesController,
-                            hintText: "Enter names separated by commas (if any)",
+                            hintText:
+                                "Enter names separated by commas (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -326,7 +508,8 @@ class _FormScreenState extends State<FormScreen> {
                           TextInput(
                             label: "Identity and Condition of Casualties",
                             controller: _identityConditionController,
-                            hintText: "Provide details about casualties (if any)",
+                            hintText:
+                                "Provide details about casualties (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -335,17 +518,68 @@ class _FormScreenState extends State<FormScreen> {
                             label: "Damage Assessment",
                             controller: _damageAssessmentController,
                             hintText: "Brief description of damage assessment",
-                            validator: (val) =>
-                                val == null || val.isEmpty ? 'Damage assessment is required' : null,
+                            validator: (val) => val == null || val.isEmpty
+                                ? 'Damage assessment is required'
+                                : null,
                           ),
                           const SizedBox(height: 16),
 
-                          TextInput(
-                            label: "Location",
-                            controller: _locationController,
-                            hintText: "Exact location of the incident",
-                            validator: (val) =>
-                                val == null || val.isEmpty ? 'Location is required' : null,
+                          CompositedTransformTarget(
+                            link: _layerLink,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Location",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _locationController,
+                                  focusNode: _locationFocusNode,
+                                  onChanged: _updateLocationSuggestions,
+                                  onTap: () {
+                                    if (_locationController.text.isNotEmpty &&
+                                        _locationSuggestions.isNotEmpty) {
+                                      _showSuggestionOverlay();
+                                    }
+                                  },
+                                  onTapOutside: (event) {
+                                    _onLocationUnfocus();
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: "Enter location of the incident",
+                                    hintStyle: TextStyle(color: textSecondary),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? 'Location is required'
+                                      : null,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

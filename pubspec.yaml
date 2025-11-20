@@ -46,6 +46,8 @@ dependencies:
   const_date_time: ^1.2.1
   flutter_svg: ^2.2.2
   stylish_table: ^0.0.2
+  http: ^1.6.0
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:

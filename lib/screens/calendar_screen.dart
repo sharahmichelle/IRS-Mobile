@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:upm_drrm_irs_mobile/models/event_calendar_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -501,8 +502,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _addNewEvent() {
-    // Implement add event functionality
     print('Add new event pressed');
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => AddEventScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => AddEventScreen()));
   }
 }

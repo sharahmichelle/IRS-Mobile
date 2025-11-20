@@ -47,12 +47,6 @@ class _MainScreenState extends State<MainScreen> {
   late final Map<int, PreferredSizeWidget> _appBarList = {
     0: _buildModernAppBar(
       title: "Calendar",
-      actions: [
-        _buildIconButton(
-          icon: Icons.add,
-          onPressed: () => Navigator.pushNamed(context, '/add_event'),
-        ),
-      ],
     ),
     1: _buildModernAppBar(
       title: "Dashboard",

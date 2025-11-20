@@ -5,8 +5,9 @@ class TextInput extends StatefulWidget {
   final TextEditingController? controller;
   final String? hintText;
   final FormFieldValidator<String>? validator;
+  final ValueChanged<String>? onChanged; 
 
-  const TextInput({super.key, required this.label, required this.controller, this.hintText, this.validator});
+  const TextInput({super.key, required this.label, required this.controller, this.hintText, this.validator, this.onChanged});
 
   @override
   State<TextInput> createState() => _TextInputState();
@@ -39,6 +40,7 @@ class _TextInputState extends State<TextInput> {
             fillColor: Colors.white,
           ),
           validator: widget.validator,
+          onChanged: widget.onChanged,
         ),
         SizedBox(height: 20,),
       ],
