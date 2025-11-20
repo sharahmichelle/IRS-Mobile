@@ -5,7 +5,6 @@ import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
-import 'package:upm_drrm_irs_mobile/screens/form_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/graphs_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
 
@@ -39,7 +38,6 @@ class _MainScreenState extends State<MainScreen> {
     CalendarScreen(),
     DashboardScreen(),
     ProfileScreen(),
-    FormScreen(),
     GraphsScreen()
   ];
 
@@ -61,9 +59,6 @@ class _MainScreenState extends State<MainScreen> {
       ],
     ),
     3: _buildModernAppBar(
-      title: "Forms",
-    ),
-    4: _buildModernAppBar(
       title: "Analytics",
     ),
   };
@@ -214,14 +209,9 @@ class _MainScreenState extends State<MainScreen> {
             isActive: _page == 2,
           ),
           _buildNavItem(
-            icon: Icons.assignment_rounded,
-            label: "Forms",
-            isActive: _page == 3,
-          ),
-          _buildNavItem(
             icon: Icons.analytics_rounded,
             label: "Analytics",
-            isActive: _page == 4,
+            isActive: _page == 3,
           ),
         ],
         onTap: (index) {

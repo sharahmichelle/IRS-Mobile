@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/text_input.dart';
@@ -12,14 +9,16 @@ import 'package:upm_drrm_irs_mobile/widgets/form_input_row.dart';
 import 'package:upm_drrm_irs_mobile/widgets/form_submit_button.dart';
 import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 
-class FormScreen extends StatefulWidget {
-  const FormScreen({super.key});
+class AddReportScreen extends StatefulWidget {
+  final Event currentEvent;
+
+  const AddReportScreen({super.key, required this.currentEvent});
 
   @override
-  State<FormScreen> createState() => _FormScreenState();
+  State<AddReportScreen> createState() => _AddReportScreenState();
 }
 
-class _FormScreenState extends State<FormScreen> {
+class _AddReportScreenState extends State<AddReportScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _clusterController = TextEditingController();
@@ -68,113 +67,16 @@ class _FormScreenState extends State<FormScreen> {
   final Color textSecondary = Color(0xFF64748B);
   final Color borderColor = Color(0xFFE2E8F0);
 
-  List<String> locationSuggestions = [];
-
-  // Add these variables to your FormScreen state
+  // Location auto-complete variables
   List<String> _locationSuggestions = [];
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
   final FocusNode _locationFocusNode = FocusNode();
 
-  // Add these methods to your FormScreen state
-  void _updateLocationSuggestions(String query) {
-    if (query.length > 2) {
-      final localSuggestions =
-          [
-                'UP Manila Main Building',
-                'UP Manila College of Medicine',
-                'UP Manila College of Nursing',
-                'UP Manila College of Public Health',
-                'UP Manila Philippine General Hospital',
-                'UP Manila Calderon Hall',
-                'UP Manila Lara Hall',
-                'UP Manila Sports Center',
-                'UP Manila Library',
-                'UP Manila Student Center',
-                'UP Manila Paz Mendoza Building',
-                'UP Manila Central Administration Building',
-                'UP Manila Museum of a History of Ideas',
-                'UP Manila Chapel',
-                'UP Manila Gymnasium',
-              ]
-              .where(
-                (location) =>
-                    location.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
-
-      setState(() {
-        _locationSuggestions = localSuggestions;
-      });
-
-      _showSuggestionOverlay();
-    } else {
-      _removeOverlay();
-    }
-  }
-
-  void _showSuggestionOverlay() {
-    _removeOverlay();
-
-    if (_locationSuggestions.isEmpty) return;
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        width: MediaQuery.of(context).size.width - 40, // Account for padding
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, 50),
-          child: Material(
-            elevation: 4,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              constraints: BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: _locationSuggestions.length,
-                itemBuilder: (context, index) {
-                  final suggestion = _locationSuggestions[index];
-                  return ListTile(
-                    title: Text(suggestion, style: TextStyle(fontSize: 14)),
-                    onTap: () {
-                      _locationController.text = suggestion;
-                      _removeOverlay();
-                      _locationFocusNode.unfocus();
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  void _onLocationUnfocus() {
-    // Small delay to allow tap events to process
-    Future.delayed(Duration(milliseconds: 100), () {
-      _removeOverlay();
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Initialize any required data
   }
 
   @override
@@ -210,6 +112,104 @@ class _FormScreenState extends State<FormScreen> {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _updateLocationSuggestions(String query) {
+    if (query.length > 2) {
+      final localSuggestions = [
+        'UP Manila Main Building',
+        'UP Manila College of Medicine',
+        'UP Manila College of Nursing',
+        'UP Manila College of Public Health',
+        'UP Manila Philippine General Hospital',
+        'UP Manila Calderon Hall',
+        'UP Manila Lara Hall',
+        'UP Manila Sports Center',
+        'UP Manila Library',
+        'UP Manila Student Center',
+        'UP Manila Paz Mendoza Building',
+        'UP Manila Central Administration Building',
+        'UP Manila Museum of a History of Ideas',
+        'UP Manila Chapel',
+        'UP Manila Gymnasium',
+      ].where((location) =>
+          location.toLowerCase().contains(query.toLowerCase()),
+        ).toList();
+
+      setState(() {
+        _locationSuggestions = localSuggestions;
+      });
+
+      _showSuggestionOverlay();
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _showSuggestionOverlay() {
+    _removeOverlay();
+
+    if (_locationSuggestions.isEmpty) return;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: MediaQuery.of(context).size.width - 40,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, 50),
+          child: Material(
+            elevation: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              constraints: BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _locationSuggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = _locationSuggestions[index];
+                  return ListTile(
+                    title: Text(
+                      suggestion,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    onTap: () {
+                      _locationController.text = suggestion;
+                      _removeOverlay();
+                      _locationFocusNode.unfocus();
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _onLocationUnfocus() {
+    Future.delayed(Duration(milliseconds: 100), () {
+      _removeOverlay();
+    });
   }
 
   void _showSuccessDialog() {
@@ -251,42 +251,31 @@ class _FormScreenState extends State<FormScreen> {
     );
   }
 
-  void updateLocationSuggestions(String query) async {
-    final results = await searchLocation(query);
-    setState(() {
-      locationSuggestions = results.toList();
-    });
-  }
-
-  static Future<Iterable<String>> searchLocation(String query) async {
-    if (query.isEmpty) {
-      return const Iterable<String>.empty();
-    }
-    final response = await http.get(
-      Uri.parse(
-        'https://api.geoapify.com/v1/geocode/autocomplete?text=$query&apiKey=${dotenv.env['GEOAPIFY_API_KEY']}',
-      ),
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final features = data['features'] as List<dynamic>;
-
-      // Optionally print each formatted location for debugging
-      for (var feature in features) {
-        print(feature['properties']['formatted'] as String);
-      }
-
-      return features.map(
-        (feature) => feature['properties']['formatted'] as String,
-      );
-    }
-    return const Iterable<String>.empty();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: surfaceColor,
+        elevation: 1,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: textPrimary,
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Text(
+          "Add Status Report",
+          style: TextStyle(
+            color: textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -302,8 +291,8 @@ class _FormScreenState extends State<FormScreen> {
                     primaryColor: primaryColor,
                     textPrimary: textPrimary,
                     textSecondary: textSecondary,
-                    title: "Status Report",
-                    subtitle: "UPM NSED Q4 2025",
+                    title: widget.currentEvent.name,
+                    subtitle: widget.currentEvent.description,
                     icon: Icons.assignment_rounded,
                   ),
                   const SizedBox(height: 24),
@@ -330,8 +319,7 @@ class _FormScreenState extends State<FormScreen> {
                           FormSectionHeader(
                             icon: Icons.person_outline_rounded,
                             title: "Basic Information",
-                            subtitle:
-                                "Your personal and organizational details",
+                            subtitle: "Your personal and organizational details",
                             primaryColor: primaryColor,
                             textPrimary: textPrimary,
                             textSecondary: textSecondary,
@@ -499,8 +487,7 @@ class _FormScreenState extends State<FormScreen> {
                           TextInput(
                             label: "Names of Missing Persons",
                             controller: _missingPeopleNamesController,
-                            hintText:
-                                "Enter names separated by commas (if any)",
+                            hintText: "Enter names separated by commas (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -508,8 +495,7 @@ class _FormScreenState extends State<FormScreen> {
                           TextInput(
                             label: "Identity and Condition of Casualties",
                             controller: _identityConditionController,
-                            hintText:
-                                "Provide details about casualties (if any)",
+                            hintText: "Provide details about casualties (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -524,6 +510,7 @@ class _FormScreenState extends State<FormScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          // Location Field with Auto-complete
                           CompositedTransformTarget(
                             link: _layerLink,
                             child: Column(

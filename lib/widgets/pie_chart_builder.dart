@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
 
 class PieChartBuilder extends StatefulWidget {
   final Event eventData;
@@ -162,52 +163,6 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
                           ),
                         ],
                       ),
-                  // if (!widget.isTop3)
-                  //   Row(
-                  //     children:
-                  //         top3Percentages.entries.map((entry) {
-                  //           final colorIndex =
-                  //               top3Percentages.keys.toList().indexOf(
-                  //                 entry.key,
-                  //               ) %
-                  //               Colors.primaries.length;
-
-                  //           return Padding(
-                  //             padding: const EdgeInsets.symmetric(
-                  //               horizontal: 8.0,
-                  //             ),
-                  //             child: Row(
-                  //               mainAxisSize: MainAxisSize.min,
-                  //               children: [
-                  //                 Container(
-                  //                   width: 14, // bigger
-                  //                   height: 14,
-                  //                   decoration: BoxDecoration(
-                  //                     shape: BoxShape.circle,
-                  //                     color:
-                  //                         widget.isTop3
-                  //                             ? Colors.primaries[(colorIndex +
-                  //                                     9) %
-                  //                                 Colors.primaries.length]
-                  //                             : Colors.primaries[colorIndex],
-                  //                   ),
-                  //                 ),
-                  //                 const SizedBox(width: 8),
-                  //                 Text(
-                  //                   entry.key.length > 20
-                  //                       ? '${entry.key.substring(0, 20)}..'
-                  //                       : entry.key,
-                  //                   style: const TextStyle(
-                  //                     fontSize: 12, // bigger font
-                  //                     fontWeight: FontWeight.w500,
-                  //                   ),
-                  //                 ),
-                  //                 const SizedBox(width: 12),
-                  //               ],
-                  //             ),
-                  //           );
-                  //         }).toList(),
-                  //   ),
                 ],
               ),
             ),
@@ -215,18 +170,30 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
                 ? Row(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 20, right: 5),
-                        child: _buildOutlinedButton(
-                          label: "Map View",
+                        padding: const EdgeInsets.only(bottom: 20, right: 8),
+                        child: _buildActionButton(
+                          label: "Add Report",
+                          icon: Icons.add_rounded,
+                          isPrimary: true,
                           onTap: () {
-                            Navigator.pushNamed(context, "/map-view");
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => AddReportScreen(
+                                      currentEvent: widget.eventData,
+                                    ),
+                              ),
+                            );
                           },
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 20, right: 14),
-                        child: _buildOutlinedButton(
-                          label: "Detailed View",
+                        child: _buildActionButton(
+                          label: "Details",
+                          icon: Icons.analytics_rounded,
+                          isPrimary: false,
                           onTap: () {
                             // Navigator.push(
                             //   context,
@@ -249,29 +216,43 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
     );
   }
 
-  Widget _buildOutlinedButton({
+  // NEW BUTTON METHOD - Same as BarGraphBuilder
+  Widget _buildActionButton({
     required String label,
+    required IconData icon,
+    required bool isPrimary,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        width: 75,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: primaryColor, width: 1),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: primaryColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+    return Container(
+      width: 110, // Same smaller width
+      height: 36, // Same smaller height
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isPrimary ? primaryColor : Colors.transparent,
+          foregroundColor: isPrimary ? Colors.white : primaryColor,
+          elevation: isPrimary ? 2 : 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // Same smaller radius
+            side: isPrimary 
+                ? BorderSide.none
+                : BorderSide(color: primaryColor.withOpacity(0.3)),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // Same smaller padding
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14), // Same smaller icon
+            const SizedBox(width: 4), // Same smaller spacing
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11, // Same smaller font
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

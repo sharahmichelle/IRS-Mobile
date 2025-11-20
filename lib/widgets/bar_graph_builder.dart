@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
 
 class BarGraphBuilder extends StatefulWidget {
   final Event eventData;
@@ -178,7 +179,7 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
           ),
         ),
 
-        // Legend and buttons
+        // Legend and buttons - ONLY THIS PART CHANGED
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -187,7 +188,6 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Always show legend, but only show top 3 items when isTop3 is true
                   for (var entry in topEntriesList)
                     Row(
                       children: [
@@ -216,35 +216,47 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
 
             widget.isTop3
                 ? Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20, right: 5),
-                      child: _buildOutlinedButton(
-                        label: "Map View",
-                        onTap: () {
-                          Navigator.pushNamed(context, "/map-view");
-                        },
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20, right: 8),
+                        child: _buildActionButton(
+                          label: "Add Report",
+                          icon: Icons.add_rounded,
+                          isPrimary: true,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => AddReportScreen(
+                                      currentEvent: widget.eventData,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20, right: 14),
-                      child: _buildOutlinedButton(
-                        label: "Detailed View",
-                        onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder:
-                          //         (context) => DetailedViewScreen(
-                          //           currentEvent: widget.eventData,
-                          //         ),
-                          //   ),
-                          // );
-                        },
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20, right: 14),
+                        child: _buildActionButton(
+                          label: "Details",
+                          icon: Icons.analytics_rounded,
+                          isPrimary: false,
+                          onTap: () {
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder:
+                            //         (context) => DetailedViewScreen(
+                            //           currentEvent: widget.eventData,
+                            //         ),
+                            //   ),
+                            // );
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                )
+                    ],
+                  )
                 : const SizedBox.shrink(),
           ],
         ),
@@ -252,29 +264,43 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
     );
   }
 
-  Widget _buildOutlinedButton({
+  // UPDATED BUTTON METHOD - Smaller and side by side
+  Widget _buildActionButton({
     required String label,
+    required IconData icon,
+    required bool isPrimary,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        width: 75,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: primaryColor, width: 1),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: primaryColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
+    return Container(
+      width: 110, // Smaller width
+      height: 36, // Smaller height
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isPrimary ? primaryColor : Colors.transparent,
+          foregroundColor: isPrimary ? Colors.white : primaryColor,
+          elevation: isPrimary ? 2 : 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10), // Slightly smaller radius
+            side: isPrimary 
+                ? BorderSide.none
+                : BorderSide(color: primaryColor.withOpacity(0.3)),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // Smaller padding
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14), // Smaller icon
+            const SizedBox(width: 4), // Smaller spacing
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11, // Smaller font
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:upm_drrm_irs_mobile/firebase_options.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 
 // Firebase and Provider Initialization
