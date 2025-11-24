@@ -80,7 +80,7 @@ class Event {
       timeStampStart: parseDate(data['eventDate']),
       timeStampEnd: parseDate(data['endDate'] ?? data['eventDate']),
       factSheet: data['factSheet'] ?? '',
-      category: data['categoryID'] ?? '',
+      category: data['categoryID'] ?? data['category'] ?? '',
       eventObservations: observations,
       eventScenario: data['scenarioID'] ?? '',
       incidentCommander: data['incidentCommander'] ?? '',
