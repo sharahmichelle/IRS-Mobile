@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -20,6 +23,17 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
+  
+  // New controllers for additional fields
+  final _eventIntroController = TextEditingController();
+  final _scenarioController = TextEditingController();
+  final _factSheetController = TextEditingController();
+  final _incidentCommanderController = TextEditingController();
+  final _liasonOfficerController = TextEditingController();
+  final _statusController = TextEditingController();
+  final _actionController = TextEditingController();
+  final _publicInformationOfficerController = TextEditingController();
+  final _safetySecurityOfficerController = TextEditingController();
 
   String selectedCategory = "Drill";
   DateTime? _startDate;
@@ -42,6 +56,15 @@ class _AddEventScreenState extends State<AddEventScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _eventIntroController.dispose();
+    _scenarioController.dispose();
+    _factSheetController.dispose();
+    _incidentCommanderController.dispose();
+    _liasonOfficerController.dispose();
+    _statusController.dispose();
+    _actionController.dispose();
+    _publicInformationOfficerController.dispose();
+    _safetySecurityOfficerController.dispose();
     super.dispose();
   }
 
@@ -119,6 +142,44 @@ class _AddEventScreenState extends State<AddEventScreen> {
         return;
       }
 
+      DateTime startDateFull = DateTime(
+        _startDate!.year,
+        _startDate!.month,
+        _startDate!.day,
+        _startTime?.hour ?? 0,
+        _startTime?.minute ?? 0,
+      );
+
+      DateTime endDateFull = DateTime(
+        _endDate!.year,
+        _endDate!.month,
+        _endDate!.day,
+        _endTime?.hour ?? 0,
+        _endTime?.minute ?? 0,
+      );
+
+      final Event currentEvent = Event(
+        name: _titleController.text,
+        description: _descriptionController.text,
+        category: selectedCategory,
+        timeStampStart: startDateFull,
+        timeStampEnd: endDateFull,
+        location: _locationController.text,
+        eventId: '', 
+        eventIntro: _eventIntroController.text,
+        observations: [], 
+        scenario: _scenarioController.text,
+        factSheet: _factSheetController.text,
+        incidentCommander: _incidentCommanderController.text,
+        liasonOfficer: _liasonOfficerController.text,
+        status: _statusController.text,
+        action: _actionController.text,
+        publicInformationOfficer: _publicInformationOfficerController.text,
+        safetySecurityOfficer: _safetySecurityOfficerController.text,
+      );
+
+      context.read<Events>().addEvent(currentEvent);
+
       // Form is valid, proceed with submission
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -191,6 +252,36 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Event Intro
+                _buildSectionHeader('Event Introduction', Icons.info_rounded),
+                const SizedBox(height: 12),
+                _buildTextFormField(
+                  controller: _eventIntroController,
+                  hintText: 'Enter event introduction and overview',
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 24),
+
+                // Scenario
+                _buildSectionHeader('Scenario', Icons.assignment_rounded),
+                const SizedBox(height: 12),
+                _buildTextFormField(
+                  controller: _scenarioController,
+                  hintText: 'Describe the event scenario',
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 24),
+
+                // Fact Sheet
+                _buildSectionHeader('Fact Sheet', Icons.fact_check_rounded),
+                const SizedBox(height: 12),
+                _buildTextFormField(
+                  controller: _factSheetController,
+                  hintText: 'Enter key facts and information',
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 24),
+
                 // Event Category
                 _buildSectionHeader('Event Category', Icons.category_rounded),
                 const SizedBox(height: 12),
@@ -252,6 +343,66 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   controller: _locationController,
                   hintText: 'Enter event location',
                   validator: (val) => val == null || val.isEmpty ? 'Location is required' : null,
+                ),
+                const SizedBox(height: 24),
+
+                // Incident Command Team Section
+                _buildSectionHeader('Incident Command Team', Icons.groups_rounded),
+                const SizedBox(height: 16),
+
+                // Incident Commander
+                _buildPersonnelField(
+                  controller: _incidentCommanderController,
+                  hintText: 'Enter Incident Commander name',
+                  label: 'Incident Commander',
+                  icon: Icons.person_rounded,
+                ),
+                const SizedBox(height: 16),
+
+                // Liaison Officer
+                _buildPersonnelField(
+                  controller: _liasonOfficerController,
+                  hintText: 'Enter Liaison Officer name',
+                  label: 'Liaison Officer',
+                  icon: Icons.contact_phone_rounded,
+                ),
+                const SizedBox(height: 16),
+
+                // Public Information Officer
+                _buildPersonnelField(
+                  controller: _publicInformationOfficerController,
+                  hintText: 'Enter Public Information Officer name',
+                  label: 'Public Information Officer',
+                  icon: Icons.mic_rounded,
+                ),
+                const SizedBox(height: 16),
+
+                // Safety Security Officer
+                _buildPersonnelField(
+                  controller: _safetySecurityOfficerController,
+                  hintText: 'Enter Safety Security Officer name',
+                  label: 'Safety Security Officer',
+                  icon: Icons.security_rounded,
+                ),
+                const SizedBox(height: 24),
+
+                // Status
+                _buildSectionHeader('Current Status', Icons.assessment_rounded),
+                const SizedBox(height: 12),
+                _buildTextFormField(
+                  controller: _statusController,
+                  hintText: 'Enter current event status',
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 24),
+
+                // Action
+                _buildSectionHeader('Actions Required', Icons.playlist_add_check_rounded),
+                const SizedBox(height: 12),
+                _buildTextFormField(
+                  controller: _actionController,
+                  hintText: 'Enter required actions and next steps',
+                  maxLines: 4,
                 ),
                 const SizedBox(height: 40),
 
@@ -356,7 +507,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String hintText,
-    required String? Function(String?)? validator,
+    String? Function(String?)? validator,
     int maxLines = 1,
   }) {
     return TextFormField(
@@ -379,6 +530,48 @@ class _AddEventScreenState extends State<AddEventScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       validator: validator,
+    );
+  }
+
+  Widget _buildPersonnelField({
+    required TextEditingController controller,
+    required String hintText,
+    required String label,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          style: TextStyle(color: textPrimary, fontSize: 16),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(color: textSecondary),
+            filled: true,
+            fillColor: surfaceColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: primaryColor, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            prefixIcon: Icon(icon, size: 20, color: textSecondary),
+          ),
+        ),
+      ],
     );
   }
 

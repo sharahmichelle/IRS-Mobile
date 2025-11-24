@@ -15,10 +15,15 @@ class FirebaseEventAPI {
 
   Future<String> addEvent(Map<String, dynamic> event) async {
     try {
-      await db.collection("events").add(event);
-      return "Successfully added event!";
+      DocumentReference docRef = db.collection("events").doc();
+      
+      event['eventId'] = docRef.id;
+      
+      await docRef.set(event);
+      
+      return "Successfully added event with ID: ${docRef.id}!";
     } on FirebaseException catch (e) {
-      return "Failed with error '${e.code}: ${e.message}";
+      return "Failed with error '${e.code}: ${e.message}'";
     }
   }
 
