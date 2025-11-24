@@ -32,25 +32,27 @@ class _GraphsScreenState extends State<GraphsScreen> {
   ];
 
   // Comprehensive Dummy Events Data
+  // Comprehensive Dummy Events Data
   final List<Event> dummyEvents = [
     Event(
-      eventId: "EVT001",
+      eventID: "EVT001", // Changed from eventId to eventID
       timeStampStart: DateTime(2025, 1, 15, 9, 0),
       timeStampEnd: DateTime(2025, 1, 15, 17, 0),
-      name: "Earthquake Drill",
-      description:
+      eventName: "Earthquake Drill", // Changed from name to eventName
+      eventDescription: // Changed from description to eventDescription
           "University-wide earthquake preparedness drill focusing on structural safety and evacuation procedures.",
       status: "Completed",
       action: "Filed Report",
       category: "Drill",
-      eventIntro:
+      eventIntroduction: // Changed from eventIntro to eventIntroduction
           "This drill simulates an earthquake scenario for safety preparedness and emergency response training.",
-      observations: [
+      eventObservations: [
+        // Changed from observations to eventObservations
         "Evacuation completed in 8 minutes",
         "98% participation rate from academic departments",
         "Communication systems functioned properly",
       ],
-      scenario: "Magnitude 6.5 simulated quake with multiple aftershocks",
+      eventScenario: "Magnitude 6.5 simulated quake with multiple aftershocks",
       factSheet:
           "Prepared by the Disaster Response Committee in coordination with local emergency services",
       incidentCommander: "Dr. Maria Santos",
@@ -60,23 +62,24 @@ class _GraphsScreenState extends State<GraphsScreen> {
       location: "UP Manila Main Campus Grounds",
     ),
     Event(
-      eventId: "EVT002",
+      eventID: "EVT002", // Changed from eventId to eventID
       timeStampStart: DateTime(2025, 2, 20, 8, 30),
       timeStampEnd: DateTime(2025, 2, 20, 16, 0),
-      name: "Fire Safety Training",
-      description:
+      eventName: "Fire Safety Training", // Changed from name to eventName
+      eventDescription: // Changed from description to eventDescription
           "Comprehensive fire safety and prevention training with live demonstrations.",
       status: "Completed",
       action: "Report Generated",
       category: "Training",
-      eventIntro:
+      eventIntroduction: // Changed from eventIntro to eventIntroduction
           "Hands-on fire safety training including fire extinguisher usage and evacuation protocols.",
-      observations: [
+      eventObservations: [
+        // Changed from observations to eventObservations
         "All participants practiced with fire extinguishers",
         "Evacuation routes clearly marked and followed",
         "Emergency exits unobstructed",
       ],
-      scenario:
+      eventScenario:
           "Multi-story building fire simulation with smoke and heat elements",
       factSheet: "Conducted in partnership with Manila Fire Department",
       incidentCommander: "Engr. Robert Tan",
@@ -86,23 +89,24 @@ class _GraphsScreenState extends State<GraphsScreen> {
       location: "UP Manila Engineering Building",
     ),
     Event(
-      eventId: "EVT003",
+      eventID: "EVT003", // Changed from eventId to eventID
       timeStampStart: DateTime(2025, 3, 10, 10, 0),
       timeStampEnd: DateTime(2025, 3, 10, 15, 30),
-      name: "Flood Preparedness Seminar",
-      description:
+      eventName: "Flood Preparedness Seminar", // Changed from name to eventName
+      eventDescription: // Changed from description to eventDescription
           "Educational seminar on flood risks and emergency response during monsoon season.",
       status: "Ongoing",
       action: "Monitoring",
       category: "Seminar",
-      eventIntro:
+      eventIntroduction: // Changed from eventIntro to eventIntroduction
           "Focus on flood preparedness, early warning systems, and community response coordination.",
-      observations: [
+      eventObservations: [
+        // Changed from observations to eventObservations
         "High attendance from coastal community representatives",
         "Interactive Q&A session generated valuable insights",
         "Resource materials distributed to all participants",
       ],
-      scenario: "Simulated heavy monsoon rainfall and rising water levels",
+      eventScenario: "Simulated heavy monsoon rainfall and rising water levels",
       factSheet: "Developed with PAGASA and MMDA collaboration",
       incidentCommander: "Dr. Elena Cruz",
       liasonOfficer: "Prof. David Martinez",
@@ -111,23 +115,24 @@ class _GraphsScreenState extends State<GraphsScreen> {
       location: "UP Manila Conference Hall A",
     ),
     Event(
-      eventId: "EVT004",
+      eventID: "EVT004",
       timeStampStart: DateTime(2025, 4, 5, 7, 0),
       timeStampEnd: DateTime(2025, 4, 5, 19, 0),
-      name: "Medical Emergency Response Drill",
-      description:
+      eventName: "Medical Emergency Response Drill",
+      eventDescription:
           "Full-scale medical emergency simulation with triage and first aid components.",
       status: "Completed",
       action: "Evaluation Pending",
       category: "Medical Drill",
-      eventIntro:
+      eventIntroduction:
           "Comprehensive medical emergency response testing hospital and field capabilities.",
-      observations: [
+      eventObservations: [
         "Triage system implemented efficiently",
         "Medical supplies adequately stocked",
         "Coordination between departments effective",
       ],
-      scenario: "Mass casualty incident with varying injury severity levels",
+      eventScenario:
+          "Mass casualty incident with varying injury severity levels",
       factSheet: "Approved by Department of Health and Red Cross",
       incidentCommander: "Dr. Susan Ngo",
       liasonOfficer: "Dr. William Ong",
@@ -136,23 +141,25 @@ class _GraphsScreenState extends State<GraphsScreen> {
       location: "UP Manila Medical Center & Surrounding Areas",
     ),
     Event(
-      eventId: "EVT005",
+      eventID: "EVT005", // Changed from eventId to eventID
       timeStampStart: DateTime(2025, 5, 12, 9, 0),
       timeStampEnd: DateTime(2025, 5, 12, 13, 0),
-      name: "Cyclone Preparedness Workshop",
-      description:
+      eventName:
+          "Cyclone Preparedness Workshop", // Changed from name to eventName
+      eventDescription: // Changed from description to eventDescription
           "Workshop focusing on cyclone risks, shelter management, and post-storm assessment.",
       status: "Upcoming",
       action: "Planning Phase",
       category: "Workshop",
-      eventIntro:
+      eventIntroduction: // Changed from eventIntro to eventIntroduction
           "Interactive workshop for cyclone preparedness and community resilience building.",
-      observations: [
+      eventObservations: [
+        // Changed from observations to eventObservations
         "Community leaders actively participating",
         "Emergency shelter locations identified",
         "Communication protocols established",
       ],
-      scenario: "Category 3 cyclone approaching metropolitan area",
+      eventScenario: "Category 3 cyclone approaching metropolitan area",
       factSheet: "Based on latest PAGASA cyclone tracking data",
       incidentCommander: "Prof. Amanda Reyes",
       liasonOfficer: "Mr. Henry Tan",

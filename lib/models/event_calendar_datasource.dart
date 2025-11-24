@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'event_model.dart';
 
@@ -20,12 +19,12 @@ class EventDataSource extends CalendarDataSource<Object?> {
 
   @override
   String getSubject(int index) {
-    return appointments![index].name;
+    return appointments![index].eventName;
   }
 
   @override
   String getNotes(int index) {
-    return appointments![index].description;
+    return appointments![index].eventDescription;
   }
 
   @override

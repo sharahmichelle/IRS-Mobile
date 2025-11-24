@@ -403,7 +403,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    appointment.name,
+                    appointment.eventName,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -417,7 +417,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             _buildEventDetailRow(Icons.category_rounded, 'Category', appointment.category ?? 'N/A'),
             _buildEventDetailRow(Icons.access_time_rounded, 'Time', 
                 '${_formatDateTime(appointment.timeStampStart)} - ${_formatDateTime(appointment.timeStampEnd)}'),
-            _buildEventDetailRow(Icons.description_rounded, 'Description', appointment.description ?? 'No description'),
+            _buildEventDetailRow(Icons.description_rounded, 'Description', appointment.eventDescription ?? 'No description'),
             _buildEventDetailRow(Icons.star_rounded, 'Status', appointment.status ?? 'N/A'),
             const SizedBox(height: 24),
             SizedBox(

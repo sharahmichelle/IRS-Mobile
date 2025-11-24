@@ -55,7 +55,7 @@ class EventSelector extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    currentEvent.name,
+                    currentEvent.eventName,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

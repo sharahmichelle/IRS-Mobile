@@ -3,15 +3,16 @@ import 'package:intl/intl.dart';
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 
 class Event {
-  final String eventId;
+  final String eventID;
   final DateTime timeStampStart;
   final DateTime timeStampEnd;
   final String category;
-  final String name;
-  final String description;
-  final String eventIntro;
-  final List<String> observations;
-  final String scenario;
+  final String eventName;
+  final String eventDescription;
+  final String eventIntroduction;
+  final List<String> eventObservations;
+  final String eventScenario;
+  final bool eventStarted;
   final String factSheet;
   final String incidentCommander;
   final String liasonOfficer;
@@ -22,15 +23,15 @@ class Event {
   final String safetySecurityOfficer;
 
   Event({
-    required this.eventId,
+    required this.eventID,
     required this.timeStampStart,
     required this.timeStampEnd,
     required this.category,
-    required this.name,
-    required this.description,
-    required this.eventIntro,
-    required this.observations,
-    required this.scenario,
+    required this.eventName,
+    required this.eventDescription,
+    required this.eventIntroduction,
+    required this.eventObservations,
+    required this.eventScenario,
     required this.factSheet,
     required this.incidentCommander,
     required this.liasonOfficer,
@@ -39,6 +40,7 @@ class Event {
     required this.publicInformationOfficer,
     required this.safetySecurityOfficer,
     required this.location,
+    this.eventStarted = false,
   });
 
   factory Event.fromFirestore(DocumentSnapshot doc) {
@@ -70,17 +72,17 @@ class Event {
     }
 
     return Event(
-      eventId: doc.id,
-      name: data['eventName'] ?? '',
-      description: data['eventDescription'] ?? '',
-      eventIntro: data['eventIntroduction'] ?? '',
+      eventID: doc.id,
+      eventName: data['eventName'] ?? '',
+      eventDescription: data['eventDescription'] ?? '',
+      eventIntroduction: data['eventIntroduction'] ?? '',
       status: data['status'] ?? '',
       timeStampStart: parseDate(data['eventDate']),
       timeStampEnd: parseDate(data['endDate'] ?? data['eventDate']),
       factSheet: data['factSheet'] ?? '',
       category: data['categoryID'] ?? '',
-      observations: observations,
-      scenario: data['scenarioID'] ?? '',
+      eventObservations: observations,
+      eventScenario: data['scenarioID'] ?? '',
       incidentCommander: data['incidentCommander'] ?? '',
       liasonOfficer: data['liasonOfficer'] ?? '',
       action: actions.isNotEmpty ? actions.first : '',
@@ -122,15 +124,15 @@ class Event {
 
   Map<String, dynamic> toJson() {
     return {
-      'eventId': eventId,
+      'eventID': eventID,
       'timeStampStart': timeStampStart,
       'timeStampEnd': timeStampEnd,
       'category': category,
-      'name': name,
-      'description': description,
-      'eventIntro': eventIntro,
-      'observations': observations,
-      'scenario': scenario,
+      'eventName': eventName,
+      'eventDescription': eventDescription,
+      'eventIntroduction': eventIntroduction,
+      'eventObservations': eventObservations,
+      'eventScenario': eventScenario,
       'factSheet': factSheet,
       'incidentCommander': incidentCommander,
       'liasonOfficer': liasonOfficer,

@@ -86,7 +86,7 @@ class ChartCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        "${currentEvent.name} - ${currentEvent.timeStampStart.year}",
+                        "${currentEvent.eventName} - ${currentEvent.timeStampStart.year}",
                         style: TextStyle(fontSize: 12, color: textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -143,13 +143,13 @@ class ChartCard extends StatelessWidget {
               child: currentEventTotal.receivedData > 0
                   ? chartType == 'Demographics'
                         ? PieChartBuilder(
-                            key: ValueKey('pie_chart_${currentEvent.eventId}'),
+                            key: ValueKey('pie_chart_${currentEvent.eventID}'),
                             eventTotalData: currentEventTotal,
                             eventData: currentEvent,
                             isTop3: true,
                           )
                         : BarGraphBuilder(
-                            key: ValueKey('bar_graph_${currentEvent.eventId}'),
+                            key: ValueKey('bar_graph_${currentEvent.eventID}'),
                             eventData: currentEvent,
                             eventTotal: currentEventTotal,
                             isTop3: true,

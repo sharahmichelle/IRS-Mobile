@@ -159,16 +159,16 @@ class _AddEventScreenState extends State<AddEventScreen> {
       );
 
       final Event currentEvent = Event(
-        name: _titleController.text,
-        description: _descriptionController.text,
+        eventName: _titleController.text,
+        eventDescription: _descriptionController.text,
         category: selectedCategory,
         timeStampStart: startDateFull,
         timeStampEnd: endDateFull,
         location: _locationController.text,
-        eventId: '', 
-        eventIntro: _eventIntroController.text,
-        observations: [], 
-        scenario: _scenarioController.text,
+        eventID: '', 
+        eventIntroduction: _eventIntroController.text,
+        eventObservations: [], 
+        eventScenario: _scenarioController.text,
         factSheet: _factSheetController.text,
         incidentCommander: _incidentCommanderController.text,
         liasonOfficer: _liasonOfficerController.text,

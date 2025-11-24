@@ -10,8 +10,8 @@ class EventDataSource extends DataGridSource {
           (e) => DataGridRow(
             cells: [
               DataGridCell(columnName: 'dateAndTime', value: e.timeStampStart),
-              DataGridCell(columnName: 'name', value: e.name),
-              DataGridCell(columnName: 'description', value: e.description),
+              DataGridCell(columnName: 'name', value: e.eventName),
+              DataGridCell(columnName: 'description', value: e.eventDescription),
               DataGridCell(columnName: 'status', value: e.status),
               DataGridCell(columnName: 'action', value: e.action),
             ],
