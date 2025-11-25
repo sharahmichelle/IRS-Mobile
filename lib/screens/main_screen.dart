@@ -16,7 +16,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _page = 2;
+  int _page = 1;
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
   
   // Modern color scheme
@@ -36,10 +36,12 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pageList = [
     CalendarScreen(),
-    DashboardScreen(),
+    GraphsScreen(),
     ProfileScreen(),
-    GraphsScreen()
   ];
+
+  bool isAnalyticsEnabled = false;
+
 
   // Modern app bars with gradient and better typography
   late final Map<int, PreferredSizeWidget> _appBarList = {
@@ -48,6 +50,21 @@ class _MainScreenState extends State<MainScreen> {
     ),
     1: _buildModernAppBar(
       title: "Dashboard",
+      actions: [
+        _buildIconButton(
+          icon: Icons.refresh_rounded,
+          onPressed: () {
+            context.read<Events>().fetchEvents();
+            context.read<ActivityLogs>().fetchActivityLogs();
+          },
+        ),
+        _buildIconButton(icon: isAnalyticsEnabled? Icons.analytics: Icons.table_view_outlined, onPressed: (){
+          setState(() {
+            isAnalyticsEnabled = !isAnalyticsEnabled;
+            _pageList[1] = isAnalyticsEnabled ? DashboardScreen() : GraphsScreen();
+          });
+        })
+      ],
     ),
     2: _buildModernAppBar(
       title: "Profile",
@@ -57,9 +74,6 @@ class _MainScreenState extends State<MainScreen> {
           onPressed: () {},
         ),
       ],
-    ),
-    3: _buildModernAppBar(
-      title: "Analytics",
     ),
   };
 
@@ -207,11 +221,6 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icons.person_rounded,
             label: "Profile",
             isActive: _page == 2,
-          ),
-          _buildNavItem(
-            icon: Icons.analytics_rounded,
-            label: "Analytics",
-            isActive: _page == 3,
           ),
         ],
         onTap: (index) {

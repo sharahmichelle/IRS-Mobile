@@ -32,14 +32,13 @@ class _GraphsScreenState extends State<GraphsScreen> {
   ];
 
   // Comprehensive Dummy Events Data
-  // Comprehensive Dummy Events Data
   final List<Event> dummyEvents = [
     Event(
-      eventID: "EVT001", // Changed from eventId to eventID
+      eventID: "EVT001", 
       timeStampStart: DateTime(2025, 1, 15, 9, 0),
       timeStampEnd: DateTime(2025, 1, 15, 17, 0),
-      eventName: "Earthquake Drill", // Changed from name to eventName
-      eventDescription: // Changed from description to eventDescription
+      eventName: "Earthquake Drill", 
+      eventDescription:
           "University-wide earthquake preparedness drill focusing on structural safety and evacuation procedures.",
       status: "Completed",
       action: "Filed Report",
@@ -319,6 +318,11 @@ class _GraphsScreenState extends State<GraphsScreen> {
       totalDistribution: {},
     ),
   ];
+
+  void initState() {
+    
+    super.initState();
+  }
 
   Event get currentEvent => dummyEvents[_currentEventIndex];
   EventTotal get currentEventTotal => dummyEventTotals[_currentEventIndex];
