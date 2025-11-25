@@ -58,12 +58,19 @@ class _MainScreenState extends State<MainScreen> {
             context.read<ActivityLogs>().fetchActivityLogs();
           },
         ),
-        _buildIconButton(icon: isAnalyticsEnabled? Icons.analytics: Icons.table_view_outlined, onPressed: (){
+        isAnalyticsEnabled?
+        _buildIconButton(icon: Icons.analytics, onPressed: (){
           setState(() {
             isAnalyticsEnabled = !isAnalyticsEnabled;
             _pageList[1] = isAnalyticsEnabled ? DashboardScreen() : GraphsScreen();
           });
-        })
+        }):
+        _buildIconButton(icon: Icons.analytics_outlined, onPressed: (){
+          setState(() {
+            isAnalyticsEnabled = !isAnalyticsEnabled;
+            _pageList[1] = isAnalyticsEnabled ? DashboardScreen() : GraphsScreen();
+          });
+        }),
       ],
     ),
     2: _buildModernAppBar(
