@@ -1,62 +1,41 @@
-// about roles 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class FirebaseEventAPI {
+class FirebaseEventTotalAPI {
   static final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Stream<QuerySnapshot> getAllEvents() {
-    return db.collection("events").snapshots();
+  Stream<QuerySnapshot> getAllEventTotals() {
+    return db.collection("event-totals").snapshots();
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> getEventById(String id) {
-    return FirebaseFirestore.instance.collection('events').doc(id).get();
+  Future<DocumentSnapshot<Map<String, dynamic>>> getEventTotalById(String id) {
+    return FirebaseFirestore.instance.collection('event-totals').doc(id).get();
   }
 
-  Future<String> addEvent(Map<String, dynamic> event) async {
+  Future<QuerySnapshot<Map<String, dynamic>>> getEventTotalByEventId(String id) {
+    return db.collection('event-totals').where('eventID', isEqualTo: id).get();
+  }
+
+  Future<String> addEventTotal(Map<String, dynamic> eventTotal) async {
     try {
-      DocumentReference docRef = db.collection("events").doc();
-      
-      event['eventID'] = docRef.id;
-      
-      await docRef.set(event);
-      
-      return docRef.id;
+      await db.collection("event-totals").add(eventTotal);
+      return "Successfully added activity log!";
     } on FirebaseException catch (e) {
-      return "Failed with error '${e.code}: ${e.message}'";
+      return "Failed with error '${e.code}: ${e.message}";
     }
   }
 
-  Future<void> updateStatusByDate(String id)  async {
-    await db.runTransaction((transaction) async {
-        final snapshot = await transaction.get(db.collection('events').doc(id));
-
-        if (!snapshot.exists) throw Exception("Event does not exist!");
-
-        if (snapshot['status'] == "Ongoing" && DateTime.now().isAfter((snapshot['endDate'] as Timestamp).toDate())) {
-          transaction.update(db.collection('events').doc(id), {
-            'status': 'Completed',
-          });
-        } else if(snapshot['status'] == "Not Started" && DateTime.now().isAfter((snapshot['startDate'] as Timestamp).toDate()) && DateTime.now().isBefore((snapshot['endDate'] as Timestamp).toDate())) {
-          transaction.update(db.collection('events').doc(id), {
-            'status': 'Ongoing',
-          });
-        }
-      });
-  }
-
-  Future<String> deleteEvent(String? id) async {
+  Future<String> deleteEventTotal(String? id) async {
     try {
-      await db.collection("events").doc(id).delete();
+      await db.collection("event-totals").doc(id).delete();
       return "Successfully deleted event!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
     }
   }
 
-  Future<String> editEvent(String? id, Map<String, dynamic> edit) async {
+  Future<String> editEventTotal(String? id, Map<String, dynamic> edit) async {
     try {
-      await db.collection("events").doc(id).update(edit);
+      await db.collection("event-totals").doc(id).update(edit);
       return "Successfully edited event!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
@@ -70,7 +49,7 @@ class FirebaseEventAPI {
     Map<String, int> data,
   ) async {
     try {
-      await db.collection("events").doc(id).update({
+      await db.collection("event-totals").doc(id).update({
         'reportsId': FieldValue.arrayUnion([reportId]),
         'receivedData': FieldValue.increment(1),
         'totalFaculty': FieldValue.increment(data['headCountFaculty'] ?? 0),
@@ -104,12 +83,12 @@ class FirebaseEventAPI {
       });
 
       await db.runTransaction((transaction) async {
-        final snapshot = await transaction.get(db.collection('events').doc(id));
+        final snapshot = await transaction.get(db.collection('event-totals').doc(id));
 
         if (!snapshot.exists) throw Exception("Event does not exist!");
 
         if (snapshot['receivedData'] >= snapshot['expectedData']) {
-          transaction.update(db.collection('events').doc(id), {
+          transaction.update(db.collection('event-totals').doc(id), {
             'status': 'Completed',
           });
         }

@@ -378,7 +378,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
               primaryColor: primaryColor,
               textPrimary: textPrimary,
               textSecondary: textSecondary,
-              title: "Event Analytics",
+              title: "Analytics",
               subtitle: "Compare statistics across different events",
               icon: Icons.analytics_rounded,
             ),

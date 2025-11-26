@@ -19,10 +19,12 @@ class Events with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addEvent(Event event) async {
+  Future<String> addEvent(Event event) async {
     final message = await firebaseService.addEvent(event.toJson());
     debugPrint(message);
     notifyListeners();
+    return message;
+    
   }
 
   Future<void> editEvent(String id, Map<String, dynamic> edit) async {

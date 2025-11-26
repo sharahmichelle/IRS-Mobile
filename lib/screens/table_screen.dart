@@ -262,7 +262,7 @@ class _TableScreenState extends State<TableScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Table", subtitle: "Monitor activities and reports", icon: Icons.table_chart_outlined),
+              ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Tables", subtitle: "Monitor activities and reports", icon: Icons.table_chart_outlined),
               const SizedBox(height: 24),
 
               // Tab Navigation

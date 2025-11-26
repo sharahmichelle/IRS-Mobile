@@ -54,7 +54,6 @@ class Event {
               data['eventObservations'].toString(),
           ];
 
-    // Parse actions safely
     final actions = data['eventActions'] is List
         ? List<String>.from(data['eventActions'])
         : [if (data['eventActions'] != null) data['eventActions'].toString()];
@@ -89,6 +88,29 @@ class Event {
       publicInformationOfficer: data['publicInformationOfficer'] ?? '',
       safetySecurityOfficer: data['safetySecurityOfficer'] ?? '',
       location: data['locationID'] ?? '',
+    );
+  }
+
+  factory Event.empty() {
+    return Event(
+      eventID: '',
+      timeStampStart: DateTime.now(),
+      timeStampEnd: DateTime.now(),
+      category: '',
+      eventName: '',
+      eventDescription: '',
+      eventIntroduction: '',
+      eventObservations: [],
+      eventScenario: '',
+      factSheet: '',
+      incidentCommander: '',
+      liasonOfficer: '',
+      status: '',
+      action: '',
+      publicInformationOfficer: '',
+      safetySecurityOfficer: '',
+      location: '',
+      eventStarted: false,
     );
   }
 

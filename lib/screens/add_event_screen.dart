@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/event_total_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 
 class AddEventScreen extends StatefulWidget {
@@ -130,7 +132,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_startDate == null || _endDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -178,7 +180,33 @@ class _AddEventScreenState extends State<AddEventScreen> {
         safetySecurityOfficer: _safetySecurityOfficerController.text,
       );
 
-      context.read<Events>().addEvent(currentEvent);
+      final eventId = context.read<Events>().addEvent(currentEvent);
+
+      context.read<EventTotals>().addEventTotal(
+        EventTotal(
+          eventId: await eventId, 
+          timeStampStart: startDateFull,
+          timeStampEnd: endDateFull,
+          expectedData: 0,
+          receivedData: 0,
+          totalFaculty: 0,
+          totalAdminMembers: 0,
+          totalRepsMembers: 0,
+          totalCustodians: 0,
+          totalJoCosMembers: 0,
+          totalStudents: 0,
+          totalSecurity: 0,
+          totalConstructionWorkers: 0,
+          totalHealthWorkers: 0,
+          totalGuests: 0,
+          totalPatients: 0,
+          totalMissingPersons: 0,
+          totalCasualties: 0,
+          isActual: false,
+          reportsId: [],
+          totalDistribution: {},
+        )
+      );
 
       // Form is valid, proceed with submission
       ScaffoldMessenger.of(context).showSnackBar(
