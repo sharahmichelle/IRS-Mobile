@@ -11,14 +11,14 @@ import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class TableScreen extends StatefulWidget {
+  const TableScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<TableScreen> createState() => _TableScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _TableScreenState extends State<TableScreen> {
   // Modern color scheme
   final Color primaryColor = Color(0xFFA11D1C);
   final Color backgroundColor = Color(0xFFF8FAFC);
@@ -37,8 +37,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   EventDataSource? _eventDataSource;
   ReportDataSource? _reportDataSource;
 
-  final List<String> dashboardPages = ['Activity Logs', 'Events', 'Reports'];
-  final List<IconData> dashboardIcons = [
+  final List<String> tablePages = ['Activity Logs', 'Events', 'Reports'];
+  final List<IconData> tableIcons = [
     Icons.history_rounded,
     Icons.event_rounded,
     Icons.assessment_rounded,
@@ -195,7 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final end = (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
               _activityDataSource = ActivityDataSource(_activityData.sublist(startIndex, end));
 
-              return _buildDashboardBody();
+              return _buildTableBody();
             },
           );
         },
@@ -218,7 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final end = (_currentPage * _rowsPerPage).clamp(0, _eventData.length);
               _eventDataSource = EventDataSource(_eventData.sublist(startIndex, end));
 
-              return _buildDashboardBody();
+              return _buildTableBody();
             },
           );
         },
@@ -227,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     _totalPages = _getCurrentListLength();
     _updateDataSource();
-    return _buildDashboardBody();
+    return _buildTableBody();
   }
 
   Widget _buildLoadingState() {
@@ -252,7 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDashboardBody() {
+  Widget _buildTableBody() {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -262,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Dashboard", subtitle: "Monitor activities and reports", icon: Icons.dashboard),
+              ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Table", subtitle: "Monitor activities and reports", icon: Icons.table_chart_outlined),
               const SizedBox(height: 24),
 
               // Tab Navigation
@@ -299,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       child: Row(
-        children: List.generate(dashboardPages.length, (index) {
+        children: List.generate(tablePages.length, (index) {
           final isActive = index == _currentIndex;
           return Expanded(
             child: GestureDetector(
@@ -316,13 +316,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      dashboardIcons[index],
+                      tableIcons[index],
                       size: 20,
                       color: isActive ? primaryColor : textSecondary,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      dashboardPages[index],
+                      tablePages[index],
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
@@ -360,13 +360,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Row(
               children: [
                 Icon(
-                  dashboardIcons[_currentIndex],
+                  tableIcons[_currentIndex],
                   color: primaryColor,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  dashboardPages[_currentIndex],
+                  tablePages[_currentIndex],
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,

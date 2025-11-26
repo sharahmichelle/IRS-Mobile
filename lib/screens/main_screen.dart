@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
-import 'package:upm_drrm_irs_mobile/screens/dashboard_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/table_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/graphs_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
 
@@ -34,55 +34,93 @@ class _MainScreenState extends State<MainScreen> {
     offset: Offset(0, 4),
   );
 
-  final List<Widget> _pageList = [
+  bool isAnalyticsEnabled = false;
+
+  // Don't pre-initialize the page list, build it dynamically
+  List<Widget> get _pageList => [
     CalendarScreen(),
-    GraphsScreen(),
+    isAnalyticsEnabled ? TableScreen() : GraphsScreen(),
     ProfileScreen(),
   ];
 
-  bool isAnalyticsEnabled = false;
+  PreferredSizeWidget _buildAppBar() {
+    switch (_page) {
+      case 0:
+        return _buildModernAppBar(title: "Calendar");
+      case 1:
+        return _buildModernAppBar(
+          title: "Dashboard",
+          actions: [
+            _buildIconButton(
+              icon: Icons.refresh_rounded,
+              onPressed: () {
+                context.read<Events>().fetchEvents();
+                context.read<ActivityLogs>().fetchActivityLogs();
+              },
+            ),
+            _buildViewToggle(),
+          ],
+        );
+      case 2:
+        return _buildModernAppBar(
+          title: "Profile",
+          actions: [
+            _buildIconButton(
+              icon: Icons.edit_outlined,
+              onPressed: () {},
+            ),
+          ],
+        );
+      default:
+        return _buildModernAppBar(title: "Dashboard");
+    }
+  }
 
+  Widget _buildViewToggle() {
+    return Container(
+      margin: EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [cardShadow],
+      ),
+      child: TextButton(
+        onPressed: _toggleView,
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isAnalyticsEnabled ? Icons.bar_chart : Icons.table_chart,
+              size: 18,
+              color: primaryColor,
+            ),
+            SizedBox(width: 6),
+            Text(
+              isAnalyticsEnabled ? "Graph" : "Table",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  // Modern app bars with gradient and better typography
-  late final Map<int, PreferredSizeWidget> _appBarList = {
-    0: _buildModernAppBar(
-      title: "Calendar",
-    ),
-    1: _buildModernAppBar(
-      title: "Dashboard",
-      actions: [
-        _buildIconButton(
-          icon: Icons.refresh_rounded,
-          onPressed: () {
-            context.read<Events>().fetchEvents();
-            context.read<ActivityLogs>().fetchActivityLogs();
-          },
-        ),
-        isAnalyticsEnabled?
-        _buildIconButton(icon: Icons.analytics, onPressed: (){
-          setState(() {
-            isAnalyticsEnabled = !isAnalyticsEnabled;
-            _pageList[1] = isAnalyticsEnabled ? DashboardScreen() : GraphsScreen();
-          });
-        }):
-        _buildIconButton(icon: Icons.analytics_outlined, onPressed: (){
-          setState(() {
-            isAnalyticsEnabled = !isAnalyticsEnabled;
-            _pageList[1] = isAnalyticsEnabled ? DashboardScreen() : GraphsScreen();
-          });
-        }),
-      ],
-    ),
-    2: _buildModernAppBar(
-      title: "Profile",
-      actions: [
-        _buildIconButton(
-          icon: Icons.edit_outlined,
-          onPressed: () {},
-        ),
-      ],
-    ),
-  };
+  void _toggleView() {
+    setState(() {
+      isAnalyticsEnabled = !isAnalyticsEnabled;
+      // The page list will be rebuilt automatically due to the getter
+    });
+  }
 
   PreferredSizeWidget _buildModernAppBar({
     required String title,
@@ -122,13 +160,16 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
           SizedBox(width: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 24,
-              color: textPrimary,
-              letterSpacing: -0.5,
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 24,
+                color: textPrimary,
+                letterSpacing: -0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -172,7 +213,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _appBarList[_page],
+      appBar: _buildAppBar(),
       backgroundColor: backgroundColor,
       body: Container(
         decoration: BoxDecoration(
@@ -248,8 +289,8 @@ class _MainScreenState extends State<MainScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 45,
+          height: 45,
           decoration: isActive
               ? BoxDecoration(
                   color: primaryColor,
@@ -265,7 +306,7 @@ class _MainScreenState extends State<MainScreen> {
               : null,
           child: Icon(
             icon,
-            size: 22,
+            size: 25,
             color: isActive ? Colors.white : iconColor,
           ),
         ),
