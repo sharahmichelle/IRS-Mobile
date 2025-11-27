@@ -48,7 +48,18 @@ class _MainScreenState extends State<MainScreen> {
   PreferredSizeWidget _buildAppBar() {
     switch (_page) {
       case 0:
-        return _buildModernAppBar(title: "Calendar");
+        return _buildModernAppBar(
+          title: "Calendar",
+          actions: [
+            _buildIconButton(
+              icon: Icons.refresh_rounded,
+              onPressed: () {
+                context.read<Events>().fetchEvents();
+                context.read<ActivityLogs>().fetchActivityLogs();
+              },
+            ),
+          ],
+        );
       case 1:
         return _buildModernAppBar(
           title: "Dashboard",
