@@ -18,7 +18,7 @@ class FirebaseEventTotalAPI {
   Future<String> addEventTotal(Map<String, dynamic> eventTotal) async {
     try {
       await db.collection("event-totals").add(eventTotal);
-      return "Successfully added activity log!";
+      return "Successfully added event totals!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
     }
@@ -27,7 +27,7 @@ class FirebaseEventTotalAPI {
   Future<String> deleteEventTotal(String? id) async {
     try {
       await db.collection("event-totals").doc(id).delete();
-      return "Successfully deleted event!";
+      return "Successfully deleted event total!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
     }
@@ -36,7 +36,7 @@ class FirebaseEventTotalAPI {
   Future<String> editEventTotal(String? id, Map<String, dynamic> edit) async {
     try {
       await db.collection("event-totals").doc(id).update(edit);
-      return "Successfully edited event!";
+      return "Successfully edited event total!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
     }

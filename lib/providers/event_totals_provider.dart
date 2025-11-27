@@ -5,22 +5,22 @@ import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
 
 class EventTotals with ChangeNotifier {
   late final FirebaseEventTotalAPI firebaseService;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _eventsStream;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _eventTotalsStream;
 
   EventTotals() {
     firebaseService = FirebaseEventTotalAPI();
     fetchEventTotals();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> get events => _eventsStream;
+  Stream<QuerySnapshot<Map<String, dynamic>>> get eventTotals => _eventTotalsStream;
 
   void fetchEventTotals() {
-    _eventsStream = firebaseService.getAllEventTotals().cast<QuerySnapshot<Map<String, dynamic>>>();
+    _eventTotalsStream = firebaseService.getAllEventTotals().cast<QuerySnapshot<Map<String, dynamic>>>();
     notifyListeners();
   }
 
-  Future<void> addEventTotal(EventTotal event) async {
-    final message = await firebaseService.addEventTotal(event.toJson());
+  Future<void> addEventTotal(EventTotal eventTotal) async {
+    final message = await firebaseService.addEventTotal(eventTotal.toJson());
     debugPrint(message);
     notifyListeners();
   }

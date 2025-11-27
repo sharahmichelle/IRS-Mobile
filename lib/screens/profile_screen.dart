@@ -36,10 +36,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     final userDetails = [
-      {"icon": Icons.work_rounded, "label": "Position", "value": currentUser.position},
-      {"icon": Icons.school_rounded, "label": "UP Organization", "value": currentUser.upCampus},
-      {"icon": Icons.business_rounded, "label": "Office / College", "value": currentUser.office},
-      {"icon": Icons.location_city_rounded, "label": "Building Name", "value": currentUser.bldgName},
+      {
+        "icon": Icons.work_rounded,
+        "label": "Position",
+        "value": currentUser.position,
+      },
+      {
+        "icon": Icons.school_rounded,
+        "label": "UP Organization",
+        "value": currentUser.upCampus,
+      },
+      {
+        "icon": Icons.business_rounded,
+        "label": "Office / College",
+        "value": currentUser.office,
+      },
+      {
+        "icon": Icons.location_city_rounded,
+        "label": "Building Name",
+        "value": currentUser.bldgName,
+      },
     ];
 
     return Scaffold(
@@ -52,11 +68,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Header with gradient
               _buildProfileHeader(currentUser),
               const SizedBox(height: 24),
-              
+
               // User Info Card
               _buildUserInfoCard(currentUser, userDetails),
               const SizedBox(height: 16),
-              
+
               // Action Cards
               _buildActionCards(),
               const SizedBox(height: 32),
@@ -139,14 +155,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: IconButton(
                   onPressed: () => _showEditPhotoOptions(),
-                  icon: Icon(Icons.camera_alt_rounded, size: 20, color: primaryColor),
+                  icon: Icon(
+                    Icons.camera_alt_rounded,
+                    size: 20,
+                    color: primaryColor,
+                  ),
                   padding: EdgeInsets.zero,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          
+
           // User Name with improved overflow handling
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -164,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Position with improved overflow handling
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -181,26 +201,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Email with improved overflow handling
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.email_outlined, size: 16, color: Colors.white.withOpacity(0.8)),
+                Icon(
+                  Icons.email_outlined,
+                  size: 16,
+                  color: Colors.white.withOpacity(0.8),
+                ),
                 const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    user.email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                Text(
+                  user.email,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -239,7 +261,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.person_outline_rounded, color: primaryColor),
+                    child: Icon(
+                      Icons.person_outline_rounded,
+                      color: primaryColor,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -257,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Details Grid with improved overflow handling
               GridView.builder(
                 shrinkWrap: true,
@@ -359,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onTap: () => _showFAQs(),
           ),
           const SizedBox(height: 12),
-          
+
           // Logout Card
           _buildActionCard(
             icon: Icons.logout_rounded,
@@ -416,10 +441,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 12,
-            color: textSecondary,
-          ),
+          style: TextStyle(fontSize: 12, color: textSecondary),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -481,10 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                "Cancel",
-                style: TextStyle(color: textSecondary),
-              ),
+              child: Text("Cancel", style: TextStyle(color: textSecondary)),
             ),
           ],
         ),
@@ -509,7 +528,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Icon(icon, color: primaryColor),
       ),
       title: Text(
-        title, 
+        title,
         style: TextStyle(fontWeight: FontWeight.w500),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -527,9 +546,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         elevation: 16,
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -555,7 +572,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Title
               Text(
                 "Log Out?",
@@ -566,7 +583,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Description
               Text(
                 "Are you sure you want to log out? You'll need to sign in again to access your account.",
@@ -578,7 +595,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              
+
               // Buttons
               Row(
                 children: [
@@ -604,7 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Logout Button
                   Expanded(
                     child: ElevatedButton(
