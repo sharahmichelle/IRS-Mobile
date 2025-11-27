@@ -48,6 +48,30 @@ class EventTotal {
     this.totalDistribution = const {},
   });
 
+  static EventTotal empty() => EventTotal(
+    eventId: "",
+    timeStampStart: DateTime.now(),
+    timeStampEnd: DateTime.now(),
+    expectedData: 0,
+    receivedData: 0,
+    isActual: false,
+    reportsId: [],
+    totalFaculty: 0,
+    totalAdminMembers: 0,
+    totalRepsMembers: 0,
+    totalCustodians: 0,
+    totalJoCosMembers: 0,
+    totalStudents: 0,
+    totalSecurity: 0,
+    totalConstructionWorkers: 0,
+    totalHealthWorkers: 0,
+    totalGuests: 0,
+    totalPatients: 0,
+    totalMissingPersons: 0,
+    totalCasualties: 0,
+    totalDistribution: {},
+  );
+
   factory EventTotal.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
@@ -155,5 +179,6 @@ class EventTotal {
       "totalCasualties": totalCasualties,
       "totalDistribution": totalDistribution,
     };
+    
   }
 }

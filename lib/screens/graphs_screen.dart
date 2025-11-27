@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/chart_card.dart';
 import 'package:upm_drrm_irs_mobile/widgets/chart_type_selector.dart';
 import 'package:upm_drrm_irs_mobile/widgets/event_selector.dart';
@@ -31,140 +35,26 @@ class _GraphsScreenState extends State<GraphsScreen> {
     'Trend Analysis',
   ];
 
-  // Comprehensive Dummy Events Data
+  // Dummy data as fallback (you can remove this once everything works)
   final List<Event> dummyEvents = [
     Event(
       eventID: "EVT001", 
       timeStampStart: DateTime(2025, 1, 15, 9, 0),
       timeStampEnd: DateTime(2025, 1, 15, 17, 0),
       eventName: "Earthquake Drill", 
-      eventDescription:
-          "University-wide earthquake preparedness drill focusing on structural safety and evacuation procedures.",
+      eventDescription: "University-wide earthquake preparedness drill.",
       status: "Completed",
       action: "Filed Report",
       category: "Drill",
-      eventIntroduction: // Changed from eventIntro to eventIntroduction
-          "This drill simulates an earthquake scenario for safety preparedness and emergency response training.",
-      eventObservations: [
-        // Changed from observations to eventObservations
-        "Evacuation completed in 8 minutes",
-        "98% participation rate from academic departments",
-        "Communication systems functioned properly",
-      ],
-      eventScenario: "Magnitude 6.5 simulated quake with multiple aftershocks",
-      factSheet:
-          "Prepared by the Disaster Response Committee in coordination with local emergency services",
+      eventIntroduction: "This drill simulates an earthquake scenario.",
+      eventObservations: ["Evacuation completed in 8 minutes"],
+      eventScenario: "Magnitude 6.5 simulated quake",
+      factSheet: "Prepared by Disaster Response Committee",
       incidentCommander: "Dr. Maria Santos",
       liasonOfficer: "Prof. James Rodriguez",
       publicInformationOfficer: "Ms. Anna Lopez",
       safetySecurityOfficer: "Mr. Carlos Reyes",
-      location: "UP Manila Main Campus Grounds",
-    ),
-    Event(
-      eventID: "EVT002", // Changed from eventId to eventID
-      timeStampStart: DateTime(2025, 2, 20, 8, 30),
-      timeStampEnd: DateTime(2025, 2, 20, 16, 0),
-      eventName: "Fire Safety Training", // Changed from name to eventName
-      eventDescription: // Changed from description to eventDescription
-          "Comprehensive fire safety and prevention training with live demonstrations.",
-      status: "Completed",
-      action: "Report Generated",
-      category: "Training",
-      eventIntroduction: // Changed from eventIntro to eventIntroduction
-          "Hands-on fire safety training including fire extinguisher usage and evacuation protocols.",
-      eventObservations: [
-        // Changed from observations to eventObservations
-        "All participants practiced with fire extinguishers",
-        "Evacuation routes clearly marked and followed",
-        "Emergency exits unobstructed",
-      ],
-      eventScenario:
-          "Multi-story building fire simulation with smoke and heat elements",
-      factSheet: "Conducted in partnership with Manila Fire Department",
-      incidentCommander: "Engr. Robert Tan",
-      liasonOfficer: "Ms. Sarah Lim",
-      publicInformationOfficer: "Mr. Michael Chen",
-      safetySecurityOfficer: "Officer Mark Dela Cruz",
-      location: "UP Manila Engineering Building",
-    ),
-    Event(
-      eventID: "EVT003", // Changed from eventId to eventID
-      timeStampStart: DateTime(2025, 3, 10, 10, 0),
-      timeStampEnd: DateTime(2025, 3, 10, 15, 30),
-      eventName: "Flood Preparedness Seminar", // Changed from name to eventName
-      eventDescription: // Changed from description to eventDescription
-          "Educational seminar on flood risks and emergency response during monsoon season.",
-      status: "Ongoing",
-      action: "Monitoring",
-      category: "Seminar",
-      eventIntroduction: // Changed from eventIntro to eventIntroduction
-          "Focus on flood preparedness, early warning systems, and community response coordination.",
-      eventObservations: [
-        // Changed from observations to eventObservations
-        "High attendance from coastal community representatives",
-        "Interactive Q&A session generated valuable insights",
-        "Resource materials distributed to all participants",
-      ],
-      eventScenario: "Simulated heavy monsoon rainfall and rising water levels",
-      factSheet: "Developed with PAGASA and MMDA collaboration",
-      incidentCommander: "Dr. Elena Cruz",
-      liasonOfficer: "Prof. David Martinez",
-      publicInformationOfficer: "Ms. Patricia Garcia",
-      safetySecurityOfficer: "Mr. Antonio Silva",
-      location: "UP Manila Conference Hall A",
-    ),
-    Event(
-      eventID: "EVT004",
-      timeStampStart: DateTime(2025, 4, 5, 7, 0),
-      timeStampEnd: DateTime(2025, 4, 5, 19, 0),
-      eventName: "Medical Emergency Response Drill",
-      eventDescription:
-          "Full-scale medical emergency simulation with triage and first aid components.",
-      status: "Completed",
-      action: "Evaluation Pending",
-      category: "Medical Drill",
-      eventIntroduction:
-          "Comprehensive medical emergency response testing hospital and field capabilities.",
-      eventObservations: [
-        "Triage system implemented efficiently",
-        "Medical supplies adequately stocked",
-        "Coordination between departments effective",
-      ],
-      eventScenario:
-          "Mass casualty incident with varying injury severity levels",
-      factSheet: "Approved by Department of Health and Red Cross",
-      incidentCommander: "Dr. Susan Ngo",
-      liasonOfficer: "Dr. William Ong",
-      publicInformationOfficer: "Ms. Jennifer Wong",
-      safetySecurityOfficer: "Mr. Ricardo Santos",
-      location: "UP Manila Medical Center & Surrounding Areas",
-    ),
-    Event(
-      eventID: "EVT005", // Changed from eventId to eventID
-      timeStampStart: DateTime(2025, 5, 12, 9, 0),
-      timeStampEnd: DateTime(2025, 5, 12, 13, 0),
-      eventName:
-          "Cyclone Preparedness Workshop", // Changed from name to eventName
-      eventDescription: // Changed from description to eventDescription
-          "Workshop focusing on cyclone risks, shelter management, and post-storm assessment.",
-      status: "Upcoming",
-      action: "Planning Phase",
-      category: "Workshop",
-      eventIntroduction: // Changed from eventIntro to eventIntroduction
-          "Interactive workshop for cyclone preparedness and community resilience building.",
-      eventObservations: [
-        // Changed from observations to eventObservations
-        "Community leaders actively participating",
-        "Emergency shelter locations identified",
-        "Communication protocols established",
-      ],
-      eventScenario: "Category 3 cyclone approaching metropolitan area",
-      factSheet: "Based on latest PAGASA cyclone tracking data",
-      incidentCommander: "Prof. Amanda Reyes",
-      liasonOfficer: "Mr. Henry Tan",
-      publicInformationOfficer: "Ms. Christine Lim",
-      safetySecurityOfficer: "Officer Maria Gonzales",
-      location: "UP Manila Disaster Response Center",
+      location: "UP Manila Main Campus",
     ),
   ];
 
@@ -176,7 +66,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
       expectedData: 300,
       receivedData: 250,
       isActual: true,
-      reportsId: ["RPT001", "RPT002", "RPT003"],
+      reportsId: ["RPT001"],
       totalFaculty: 40,
       totalAdminMembers: 30,
       totalRepsMembers: 20,
@@ -193,139 +83,10 @@ class _GraphsScreenState extends State<GraphsScreen> {
       totalDistribution: {
         "Faculty": 40,
         "Admin Members": 30,
-        "Reps": 20,
         "Students": 120,
-        "Guests": 25,
-        "Health Workers": 20,
-        "Security": 12,
       },
-    ),
-    EventTotal(
-      eventId: "EVT002",
-      timeStampStart: DateTime(2025, 2, 20),
-      timeStampEnd: DateTime(2025, 2, 20),
-      expectedData: 200,
-      receivedData: 180,
-      isActual: true,
-      reportsId: ["RPT004", "RPT005"],
-      totalFaculty: 35,
-      totalAdminMembers: 25,
-      totalRepsMembers: 15,
-      totalCustodians: 10,
-      totalJoCosMembers: 8,
-      totalStudents: 80,
-      totalSecurity: 8,
-      totalConstructionWorkers: 5,
-      totalHealthWorkers: 15,
-      totalGuests: 20,
-      totalPatients: 12,
-      totalMissingPersons: 0,
-      totalCasualties: 0,
-      totalDistribution: {
-        "Faculty": 35,
-        "Admin Members": 25,
-        "Reps": 15,
-        "Students": 80,
-        "Guests": 20,
-        "Health Workers": 15,
-        "Security": 8,
-      },
-    ),
-    EventTotal(
-      eventId: "EVT003",
-      timeStampStart: DateTime(2025, 3, 10),
-      timeStampEnd: DateTime(2025, 3, 10),
-      expectedData: 150,
-      receivedData: 135,
-      isActual: true,
-      reportsId: ["RPT006", "RPT007", "RPT008"],
-      totalFaculty: 25,
-      totalAdminMembers: 20,
-      totalRepsMembers: 12,
-      totalCustodians: 8,
-      totalJoCosMembers: 6,
-      totalStudents: 50,
-      totalSecurity: 6,
-      totalConstructionWorkers: 4,
-      totalHealthWorkers: 10,
-      totalGuests: 15,
-      totalPatients: 8,
-      totalMissingPersons: 0,
-      totalCasualties: 0,
-      totalDistribution: {
-        "Faculty": 25,
-        "Admin Members": 20,
-        "Reps": 12,
-        "Students": 50,
-        "Guests": 15,
-        "Health Workers": 10,
-        "Security": 6,
-      },
-    ),
-    EventTotal(
-      eventId: "EVT004",
-      timeStampStart: DateTime(2025, 4, 5),
-      timeStampEnd: DateTime(2025, 4, 5),
-      expectedData: 400,
-      receivedData: 380,
-      isActual: true,
-      reportsId: ["RPT009", "RPT010", "RPT011", "RPT012"],
-      totalFaculty: 50,
-      totalAdminMembers: 35,
-      totalRepsMembers: 25,
-      totalCustodians: 18,
-      totalJoCosMembers: 12,
-      totalStudents: 150,
-      totalSecurity: 15,
-      totalConstructionWorkers: 10,
-      totalHealthWorkers: 35,
-      totalGuests: 30,
-      totalPatients: 25,
-      totalMissingPersons: 1,
-      totalCasualties: 0,
-      totalDistribution: {
-        "Faculty": 50,
-        "Admin Members": 35,
-        "Reps": 25,
-        "Students": 150,
-        "Guests": 30,
-        "Health Workers": 35,
-        "Security": 15,
-        "Patients": 25,
-      },
-    ),
-    EventTotal(
-      eventId: "EVT005",
-      timeStampStart: DateTime(2025, 5, 12),
-      timeStampEnd: DateTime(2025, 5, 12),
-      expectedData: 120,
-      receivedData: 0, // Upcoming event, no data yet
-      isActual: false,
-      reportsId: [],
-      totalFaculty: 0,
-      totalAdminMembers: 0,
-      totalRepsMembers: 0,
-      totalCustodians: 0,
-      totalJoCosMembers: 0,
-      totalStudents: 0,
-      totalSecurity: 0,
-      totalConstructionWorkers: 0,
-      totalHealthWorkers: 0,
-      totalGuests: 0,
-      totalPatients: 0,
-      totalMissingPersons: 0,
-      totalCasualties: 0,
-      totalDistribution: {},
     ),
   ];
-
-  void initState() {
-    
-    super.initState();
-  }
-
-  Event get currentEvent => dummyEvents[_currentEventIndex];
-  EventTotal get currentEventTotal => dummyEventTotals[_currentEventIndex];
 
   void _nextChart() {
     setState(() {
@@ -384,15 +145,48 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Event Selector
-            EventSelector(
-              currentEvent: currentEvent,
-              onPrevious: _previousEvent,
-              onNext: _nextEvent,
-              surfaceColor: surfaceColor,
-              textPrimary: textPrimary,
-              textSecondary: textSecondary,
-              primaryColor: primaryColor,
+            // StreamBuilder for Events
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: context.watch<Events>().events,
+              builder: (context, eventsSnapshot) {
+                if (eventsSnapshot.connectionState == ConnectionState.waiting) {
+                  return _buildLoadingIndicator();
+                }
+
+                if (eventsSnapshot.hasError) {
+                  return _buildErrorWidget(eventsSnapshot.error.toString());
+                }
+
+                if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                  return _buildEmptyEventsState();
+                }
+
+                final events = eventsSnapshot.data!.docs.map((doc) {
+                  return Event.fromFirestore(doc);
+                }).toList();
+
+                // Now build the EventSelector with real events
+                return EventSelector(
+                  currentEvent: _currentEventIndex < events.length 
+                      ? events[_currentEventIndex] 
+                      : events.first,
+                  onPrevious: () {
+                    setState(() {
+                      _currentEventIndex = (_currentEventIndex - 1) % events.length;
+                      if (_currentEventIndex < 0) _currentEventIndex = events.length - 1;
+                    });
+                  },
+                  onNext: () {
+                    setState(() {
+                      _currentEventIndex = (_currentEventIndex + 1) % events.length;
+                    });
+                  },
+                  surfaceColor: surfaceColor,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                  primaryColor: primaryColor,
+                );
+              },
             ),
             const SizedBox(height: 8),
 
@@ -400,7 +194,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ChartTypeSelector(
               currentChartType: _chartTypes[_currentChartIndex],
               currentEventIndex: _currentEventIndex,
-              totalEvents: dummyEvents.length,
+              totalEvents: dummyEvents.length, // This will be updated with real count
               onPrevious: _previousChart,
               onNext: _nextChart,
               surfaceColor: surfaceColor,
@@ -409,35 +203,294 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Main Chart Card
+            // Main Content with both streams
             Expanded(
               flex: 5,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ChartCard(
-                  currentEvent: currentEvent,
-                  currentEventTotal: currentEventTotal,
-                  surfaceColor: surfaceColor,
-                  primaryColor: primaryColor,
-                  backgroundColor: backgroundColor,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
-                  getStatusColor: _getStatusColor,
-                  chartType: _chartTypes[_currentChartIndex],
+                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: context.watch<Events>().events,
+                  builder: (context, eventsSnapshot) {
+                    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: context.watch<EventTotals>().eventTotals,
+                      builder: (context, eventTotalsSnapshot) {
+                        // Handle loading states
+                        if (eventsSnapshot.connectionState == ConnectionState.waiting ||
+                            eventTotalsSnapshot.connectionState == ConnectionState.waiting) {
+                          return _buildChartLoading();
+                        }
+
+                        // Handle errors
+                        if (eventsSnapshot.hasError || eventTotalsSnapshot.hasError) {
+                          return _buildChartError(
+                            eventsSnapshot.error?.toString() ?? eventTotalsSnapshot.error.toString()
+                          );
+                        }
+
+                        // Handle empty states
+                        if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                          return _buildChartEmpty();
+                        }
+
+                        // Process events data
+                        final events = eventsSnapshot.data!.docs.map((doc) {
+                          return Event.fromFirestore(doc);
+                        }).toList();
+
+                        final currentEvent = _currentEventIndex < events.length 
+                            ? events[_currentEventIndex] 
+                            : events.first;
+
+                        // Process event totals data
+                        EventTotal? currentEventTotal;
+                        if (eventTotalsSnapshot.hasData) {
+                          final eventTotals = eventTotalsSnapshot.data!.docs.map((doc) {
+                            return EventTotal.fromFirestore(doc);
+                          }).toList();
+
+                          currentEventTotal = eventTotals.firstWhere(
+                            (total) => total.eventId == currentEvent.eventID,
+                            orElse: () => EventTotal.empty(),
+                          );
+                        } else {
+                          currentEventTotal = EventTotal.empty();
+                        }
+
+                        return ChartCard(
+                          currentEvent: currentEvent,
+                          currentEventTotal: currentEventTotal,
+                          surfaceColor: surfaceColor,
+                          primaryColor: primaryColor,
+                          backgroundColor: backgroundColor,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          getStatusColor: _getStatusColor,
+                          chartType: _chartTypes[_currentChartIndex],
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ),
 
-            // Statistics Cards
+            // Statistics Cards with real data
             const SizedBox(height: 12),
-            StatisticsCards(
-              currentEventTotal: currentEventTotal,
-              surfaceColor: surfaceColor,
-              textPrimary: textPrimary,
-              textSecondary: textSecondary,
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: context.watch<EventTotals>().eventTotals,
+              builder: (context, eventTotalsSnapshot) {
+                if (eventTotalsSnapshot.connectionState == ConnectionState.waiting) {
+                  return _buildStatisticsLoading();
+                }
+
+                if (eventTotalsSnapshot.hasError || !eventTotalsSnapshot.hasData) {
+                  return _buildStatisticsError();
+                }
+
+                return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: context.watch<Events>().events,
+                  builder: (context, eventsSnapshot) {
+                    if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                      return SizedBox(); // Return empty if no events
+                    }
+
+                    final events = eventsSnapshot.data!.docs.map((doc) {
+                      return Event.fromFirestore(doc);
+                    }).toList();
+
+                    final currentEvent = _currentEventIndex < events.length 
+                        ? events[_currentEventIndex] 
+                        : events.first;
+
+                    final eventTotals = eventTotalsSnapshot.data!.docs.map((doc) {
+                      return EventTotal.fromFirestore(doc);
+                    }).toList();
+
+                    final currentEventTotal = eventTotals.firstWhere(
+                      (total) => total.eventId == currentEvent.eventID,
+                      orElse: () => EventTotal.empty(),
+                    );
+
+                    // Use your StatisticsCards widget here
+                    return StatisticsCards(
+                      currentEventTotal: currentEventTotal,
+                      surfaceColor: surfaceColor,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 16),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Loading and error helper widgets
+  Widget _buildLoadingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: CircularProgressIndicator(color: primaryColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(String error) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'Error loading events',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyEventsState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'No events found',
+            style: TextStyle(color: textSecondary),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartLoading() {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: primaryColor),
+            SizedBox(height: 16),
+            Text(
+              'Loading chart data...',
+              style: TextStyle(color: textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartError(String error) {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.red, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'Error loading chart',
+              style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartEmpty() {
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.bar_chart_rounded, color: textSecondary, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'No data available',
+              style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Create events to see analytics',
+              style: TextStyle(color: textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatisticsLoading() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        height: 70, // Match the height of your StatisticsCards
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: CircularProgressIndicator(color: primaryColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatisticsError() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        height: 70, // Match the height of your StatisticsCards
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'Error loading statistics',
+            style: TextStyle(color: Colors.red),
+          ),
         ),
       ),
     );
