@@ -15,6 +15,7 @@ class ChartCard extends StatelessWidget {
   final Color textSecondary;
   final Color Function(String) getStatusColor;
   final String chartType;
+  final VoidCallback? onAddReport; // Add this line
 
   const ChartCard({
     super.key,
@@ -27,6 +28,7 @@ class ChartCard extends StatelessWidget {
     required this.textSecondary,
     required this.getStatusColor,
     required this.chartType,
+    this.onAddReport, // Add this line
   });
 
   @override
@@ -154,36 +156,7 @@ class ChartCard extends StatelessWidget {
                             eventTotal: currentEventTotal,
                             isTop3: true,
                           )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.bar_chart_rounded,
-                          size: 60,
-                          color: textSecondary.withOpacity(0.3),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "No Data Available",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Data will be available after the event",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: textSecondary.withOpacity(0.7),
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                        ),
-                      ],
-                    ),
+                  : _buildEmptyStateWithAddButton(), // Change this line
             ),
           ),
 
@@ -213,6 +186,88 @@ class ChartCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Add this new method for empty state with Add Report button
+  Widget _buildEmptyStateWithAddButton() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.bar_chart_rounded,
+          size: 60,
+          color: textSecondary.withOpacity(0.3),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "No Data Available",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: textSecondary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "Data will be available after the event",
+          style: TextStyle(
+            fontSize: 12,
+            color: textSecondary.withOpacity(0.7),
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+        ),
+        const SizedBox(height: 20),
+        
+        // Add Report Button - Only shown when onAddReport is provided
+        if (onAddReport != null)
+          _buildAddReportButton(),
+      ],
+    );
+  }
+
+  // Add this method to build the Add Report button
+  Widget _buildAddReportButton() {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onAddReport,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: primaryColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.add_chart_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Add Report',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

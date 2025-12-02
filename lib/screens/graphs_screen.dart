@@ -5,6 +5,7 @@ import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
 import 'package:upm_drrm_irs_mobile/widgets/chart_card.dart';
 import 'package:upm_drrm_irs_mobile/widgets/chart_type_selector.dart';
 import 'package:upm_drrm_irs_mobile/widgets/event_selector.dart';
@@ -38,10 +39,10 @@ class _GraphsScreenState extends State<GraphsScreen> {
   // Dummy data as fallback (you can remove this once everything works)
   final List<Event> dummyEvents = [
     Event(
-      eventID: "EVT001", 
+      eventID: "EVT001",
       timeStampStart: DateTime(2025, 1, 15, 9, 0),
       timeStampEnd: DateTime(2025, 1, 15, 17, 0),
-      eventName: "Earthquake Drill", 
+      eventName: "Earthquake Drill",
       eventDescription: "University-wide earthquake preparedness drill.",
       status: "Completed",
       action: "Filed Report",
@@ -80,13 +81,24 @@ class _GraphsScreenState extends State<GraphsScreen> {
       totalPatients: 18,
       totalMissingPersons: 2,
       totalCasualties: 1,
-      totalDistribution: {
-        "Faculty": 40,
-        "Admin Members": 30,
-        "Students": 120,
-      },
+      totalDistribution: {"Faculty": 40, "Admin Members": 30, "Students": 120},
     ),
   ];
+
+  void _navigateToAddReport(Event event) {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context) => AddReportScreen(currentEvent: event,),
+    ));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navigate to add report for ${event.eventName}'),
+        backgroundColor: primaryColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
 
   void _nextChart() {
     setState(() {
@@ -157,7 +169,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
                   return _buildErrorWidget(eventsSnapshot.error.toString());
                 }
 
-                if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                if (!eventsSnapshot.hasData ||
+                    eventsSnapshot.data!.docs.isEmpty) {
                   return _buildEmptyEventsState();
                 }
 
@@ -167,18 +180,21 @@ class _GraphsScreenState extends State<GraphsScreen> {
 
                 // Now build the EventSelector with real events
                 return EventSelector(
-                  currentEvent: _currentEventIndex < events.length 
-                      ? events[_currentEventIndex] 
+                  currentEvent: _currentEventIndex < events.length
+                      ? events[_currentEventIndex]
                       : events.first,
                   onPrevious: () {
                     setState(() {
-                      _currentEventIndex = (_currentEventIndex - 1) % events.length;
-                      if (_currentEventIndex < 0) _currentEventIndex = events.length - 1;
+                      _currentEventIndex =
+                          (_currentEventIndex - 1) % events.length;
+                      if (_currentEventIndex < 0)
+                        _currentEventIndex = events.length - 1;
                     });
                   },
                   onNext: () {
                     setState(() {
-                      _currentEventIndex = (_currentEventIndex + 1) % events.length;
+                      _currentEventIndex =
+                          (_currentEventIndex + 1) % events.length;
                     });
                   },
                   surfaceColor: surfaceColor,
@@ -194,7 +210,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ChartTypeSelector(
               currentChartType: _chartTypes[_currentChartIndex],
               currentEventIndex: _currentEventIndex,
-              totalEvents: dummyEvents.length, // This will be updated with real count
+              totalEvents:
+                  dummyEvents.length, // This will be updated with real count
               onPrevious: _previousChart,
               onNext: _nextChart,
               surfaceColor: surfaceColor,
@@ -215,20 +232,25 @@ class _GraphsScreenState extends State<GraphsScreen> {
                       stream: context.watch<EventTotals>().eventTotals,
                       builder: (context, eventTotalsSnapshot) {
                         // Handle loading states
-                        if (eventsSnapshot.connectionState == ConnectionState.waiting ||
-                            eventTotalsSnapshot.connectionState == ConnectionState.waiting) {
+                        if (eventsSnapshot.connectionState ==
+                                ConnectionState.waiting ||
+                            eventTotalsSnapshot.connectionState ==
+                                ConnectionState.waiting) {
                           return _buildChartLoading();
                         }
 
                         // Handle errors
-                        if (eventsSnapshot.hasError || eventTotalsSnapshot.hasError) {
+                        if (eventsSnapshot.hasError ||
+                            eventTotalsSnapshot.hasError) {
                           return _buildChartError(
-                            eventsSnapshot.error?.toString() ?? eventTotalsSnapshot.error.toString()
+                            eventsSnapshot.error?.toString() ??
+                                eventTotalsSnapshot.error.toString(),
                           );
                         }
 
                         // Handle empty states
-                        if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                        if (!eventsSnapshot.hasData ||
+                            eventsSnapshot.data!.docs.isEmpty) {
                           return _buildChartEmpty();
                         }
 
@@ -237,16 +259,18 @@ class _GraphsScreenState extends State<GraphsScreen> {
                           return Event.fromFirestore(doc);
                         }).toList();
 
-                        final currentEvent = _currentEventIndex < events.length 
-                            ? events[_currentEventIndex] 
+                        final currentEvent = _currentEventIndex < events.length
+                            ? events[_currentEventIndex]
                             : events.first;
 
                         // Process event totals data
                         EventTotal? currentEventTotal;
                         if (eventTotalsSnapshot.hasData) {
-                          final eventTotals = eventTotalsSnapshot.data!.docs.map((doc) {
-                            return EventTotal.fromFirestore(doc);
-                          }).toList();
+                          final eventTotals = eventTotalsSnapshot.data!.docs
+                              .map((doc) {
+                                return EventTotal.fromFirestore(doc);
+                              })
+                              .toList();
 
                           currentEventTotal = eventTotals.firstWhere(
                             (total) => total.eventId == currentEvent.eventID,
@@ -266,6 +290,9 @@ class _GraphsScreenState extends State<GraphsScreen> {
                           textSecondary: textSecondary,
                           getStatusColor: _getStatusColor,
                           chartType: _chartTypes[_currentChartIndex],
+                          onAddReport: () => _navigateToAddReport(
+                            currentEvent,
+                          ), // Add this line
                         );
                       },
                     );
@@ -279,18 +306,21 @@ class _GraphsScreenState extends State<GraphsScreen> {
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: context.watch<EventTotals>().eventTotals,
               builder: (context, eventTotalsSnapshot) {
-                if (eventTotalsSnapshot.connectionState == ConnectionState.waiting) {
+                if (eventTotalsSnapshot.connectionState ==
+                    ConnectionState.waiting) {
                   return _buildStatisticsLoading();
                 }
 
-                if (eventTotalsSnapshot.hasError || !eventTotalsSnapshot.hasData) {
+                if (eventTotalsSnapshot.hasError ||
+                    !eventTotalsSnapshot.hasData) {
                   return _buildStatisticsError();
                 }
 
                 return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: context.watch<Events>().events,
                   builder: (context, eventsSnapshot) {
-                    if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
+                    if (!eventsSnapshot.hasData ||
+                        eventsSnapshot.data!.docs.isEmpty) {
                       return SizedBox(); // Return empty if no events
                     }
 
@@ -298,11 +328,13 @@ class _GraphsScreenState extends State<GraphsScreen> {
                       return Event.fromFirestore(doc);
                     }).toList();
 
-                    final currentEvent = _currentEventIndex < events.length 
-                        ? events[_currentEventIndex] 
+                    final currentEvent = _currentEventIndex < events.length
+                        ? events[_currentEventIndex]
                         : events.first;
 
-                    final eventTotals = eventTotalsSnapshot.data!.docs.map((doc) {
+                    final eventTotals = eventTotalsSnapshot.data!.docs.map((
+                      doc,
+                    ) {
                       return EventTotal.fromFirestore(doc);
                     }).toList();
 
@@ -339,9 +371,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
           color: surfaceColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Center(
-          child: CircularProgressIndicator(color: primaryColor),
-        ),
+        child: Center(child: CircularProgressIndicator(color: primaryColor)),
       ),
     );
   }
@@ -470,9 +500,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
           color: surfaceColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Center(
-          child: CircularProgressIndicator(color: primaryColor),
-        ),
+        child: Center(child: CircularProgressIndicator(color: primaryColor)),
       ),
     );
   }
