@@ -626,8 +626,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
-                        // Implement logout logic
+                        Navigator.pushReplacementNamed(context, "/");
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,
