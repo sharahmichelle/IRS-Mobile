@@ -147,11 +147,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.security_rounded,
-                  size: 50,
-                  color: primaryColor,
-                ),
+                Center(
+              child: Image.asset(
+                'assets/favicon.png',
+                width: 100,
+                height: 100,
+              ),
+            ),
               ],
             ),
           ),

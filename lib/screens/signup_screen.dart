@@ -258,11 +258,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.person_add_alt_1_rounded,
-                  size: 50,
-                  color: primaryColor,
-                ),
+                Center(
+              child: Image.asset(
+                'assets/favicon.png',
+                width: 100,
+                height: 100,
+              ),
+            ),
               ],
             ),
           ),
