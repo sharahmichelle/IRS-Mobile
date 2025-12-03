@@ -5,6 +5,7 @@ import 'package:upm_drrm_irs_mobile/firebase_options.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/login_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => Events()),
         ChangeNotifierProvider(create: (context) => ActivityLogs()),
         ChangeNotifierProvider(create: (context) => EventTotals()),
+        ChangeNotifierProvider(create: (context) => Reports()),
       ],
       child: const MyApp(),
     ),

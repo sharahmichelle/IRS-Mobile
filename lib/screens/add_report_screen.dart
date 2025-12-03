@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
+import 'package:upm_drrm_irs_mobile/models/report_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/text_input.dart';
@@ -116,25 +121,29 @@ class _AddReportScreenState extends State<AddReportScreen> {
 
   void _updateLocationSuggestions(String query) {
     if (query.length > 2) {
-      final localSuggestions = [
-        'UP Manila Main Building',
-        'UP Manila College of Medicine',
-        'UP Manila College of Nursing',
-        'UP Manila College of Public Health',
-        'UP Manila Philippine General Hospital',
-        'UP Manila Calderon Hall',
-        'UP Manila Lara Hall',
-        'UP Manila Sports Center',
-        'UP Manila Library',
-        'UP Manila Student Center',
-        'UP Manila Paz Mendoza Building',
-        'UP Manila Central Administration Building',
-        'UP Manila Museum of a History of Ideas',
-        'UP Manila Chapel',
-        'UP Manila Gymnasium',
-      ].where((location) =>
-          location.toLowerCase().contains(query.toLowerCase()),
-        ).toList();
+      final localSuggestions =
+          [
+                'UP Manila Main Building',
+                'UP Manila College of Medicine',
+                'UP Manila College of Nursing',
+                'UP Manila College of Public Health',
+                'UP Manila Philippine General Hospital',
+                'UP Manila Calderon Hall',
+                'UP Manila Lara Hall',
+                'UP Manila Sports Center',
+                'UP Manila Library',
+                'UP Manila Student Center',
+                'UP Manila Paz Mendoza Building',
+                'UP Manila Central Administration Building',
+                'UP Manila Museum of a History of Ideas',
+                'UP Manila Chapel',
+                'UP Manila Gymnasium',
+              ]
+              .where(
+                (location) =>
+                    location.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
 
       setState(() {
         _locationSuggestions = localSuggestions;
@@ -143,6 +152,68 @@ class _AddReportScreenState extends State<AddReportScreen> {
       _showSuggestionOverlay();
     } else {
       _removeOverlay();
+    }
+  }
+
+  void _onSubmit() {
+    if (_formKey.currentState!.validate()) {
+      final String reportId;
+      reportId =
+          context.read<Reports>().addReport(
+                Report(
+                  encoderId: "encoder123",
+                  reportId: "reportId456",
+                  upSystem: "UP System A",
+                  office: "Some Office",
+                  encoderPosition: _positionController.text,
+                  headCountFaculty: int.parse(_headcountFacultyController.text),
+                  headCountadminMember: int.parse(
+                    _headcountAdminController.text,
+                  ),
+                  headCountRepsMember: int.parse(_headcountREPSController.text),
+                  headCountCustodian: int.parse(_headcountRAController.text),
+                  headCountStudent: int.parse(_headcountStudentController.text),
+                  headCountSecurity: int.parse(
+                    _headcountSecurityController.text,
+                  ),
+                  headCountConstructionWorker: int.parse(
+                    _headcountConstructionController.text,
+                  ),
+                  headCountHealthWorker: int.parse(
+                    _headcountHealthWorkerController.text,
+                  ),
+                  headCountGuest: int.parse(_headcountGuestsController.text),
+                  headCountPatient: 0,
+                  numMissingPerson: int.parse(_numberMissingController.text),
+                  numCasualty: int.parse(_numberCasualtyController.text),
+                ),
+              )
+              as String;
+
+      context.read<EventTotals>().addReportToEventTotal(
+        widget.currentEvent.eventID,
+        "UP System A",
+        reportId,
+        {
+          "headCountFaculty": int.parse(_headcountFacultyController.text),
+          "headCountadminMember": int.parse(_headcountAdminController.text),
+          "headCountRepsMember": int.parse(_headcountREPSController.text),
+          "headCountCustodian": int.parse(_headcountRAController.text),
+          "headCountStudent": int.parse(_headcountStudentController.text),
+          "headCountSecurity": int.parse(_headcountSecurityController.text),
+          "headCountConstructionWorker": int.parse(
+            _headcountConstructionController.text,
+          ),
+          "headCountHealthWorker": int.parse(
+            _headcountHealthWorkerController.text,
+          ),
+          "headCountGuest": int.parse(_headcountGuestsController.text),
+          "numMissingPerson": int.parse(_numberMissingController.text),
+          "numCasualty": int.parse(_numberCasualtyController.text),
+        },
+      );
+
+      _showSuccessDialog();
     }
   }
 
@@ -180,10 +251,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
                 itemBuilder: (context, index) {
                   final suggestion = _locationSuggestions[index];
                   return ListTile(
-                    title: Text(
-                      suggestion,
-                      style: TextStyle(fontSize: 14),
-                    ),
+                    title: Text(suggestion, style: TextStyle(fontSize: 14)),
                     onTap: () {
                       _locationController.text = suggestion;
                       _removeOverlay();
@@ -259,10 +327,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
         backgroundColor: surfaceColor,
         elevation: 1,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: textPrimary,
-          ),
+          icon: Icon(Icons.arrow_back_rounded, color: textPrimary),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -319,7 +384,8 @@ class _AddReportScreenState extends State<AddReportScreen> {
                           FormSectionHeader(
                             icon: Icons.person_outline_rounded,
                             title: "Basic Information",
-                            subtitle: "Your personal and organizational details",
+                            subtitle:
+                                "Your personal and organizational details",
                             primaryColor: primaryColor,
                             textPrimary: textPrimary,
                             textSecondary: textSecondary,
@@ -487,7 +553,8 @@ class _AddReportScreenState extends State<AddReportScreen> {
                           TextInput(
                             label: "Names of Missing Persons",
                             controller: _missingPeopleNamesController,
-                            hintText: "Enter names separated by commas (if any)",
+                            hintText:
+                                "Enter names separated by commas (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -495,7 +562,8 @@ class _AddReportScreenState extends State<AddReportScreen> {
                           TextInput(
                             label: "Identity and Condition of Casualties",
                             controller: _identityConditionController,
-                            hintText: "Provide details about casualties (if any)",
+                            hintText:
+                                "Provide details about casualties (if any)",
                             validator: (val) => null,
                           ),
                           const SizedBox(height: 16),
@@ -577,11 +645,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
 
                   // Submit Button
                   FormSubmitButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _showSuccessDialog();
-                      }
-                    },
+                    onPressed: _onSubmit,
                     primaryColor: primaryColor,
                   ),
                 ],
