@@ -11,7 +11,9 @@ class FirebaseEventTotalAPI {
     return FirebaseFirestore.instance.collection('event-totals').doc(id).get();
   }
 
-  Future<QuerySnapshot<Map<String, dynamic>>> getEventTotalByEventId(String id) {
+  Future<QuerySnapshot<Map<String, dynamic>>> getEventTotalByEventId(
+    String id,
+  ) {
     return db.collection('event-totals').where('eventID', isEqualTo: id).get();
   }
 
@@ -45,11 +47,27 @@ class FirebaseEventTotalAPI {
   Future<String> addReport(
     String reportId,
     String upSystem,
-    String id,
+    String eventId, // Change parameter name to clarify it's eventId, not docId
     Map<String, int> data,
   ) async {
     try {
-      await db.collection("event-totals").doc(id).update({
+      // First, find the event total document by eventId
+      final querySnapshot = await db
+          .collection("event-totals")
+          .where(
+            'eventId',
+            isEqualTo: eventId,
+          ) // Assuming you have eventId field
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        return "No event total found for event ID: $eventId";
+      }
+
+      final docId = querySnapshot.docs.first.id;
+
+      await db.collection("event-totals").doc(docId).update({
         'reportsId': FieldValue.arrayUnion([reportId]),
         'receivedData': FieldValue.increment(1),
         'totalFaculty': FieldValue.increment(data['headCountFaculty'] ?? 0),
@@ -79,22 +97,26 @@ class FirebaseEventTotalAPI {
         'totalMissingPersons': FieldValue.increment(
           data['numMissingPerson'] ?? 0,
         ),
-        'totalDistribution.$upSystem': FieldValue.increment(data.values.reduce((a, b) => a + b)),
+        'totalDistribution.$upSystem': FieldValue.increment(
+          data.values.fold<int>(0, (prev, value) => prev + (value ?? 0)),
+        ),
       });
 
       await db.runTransaction((transaction) async {
-        final snapshot = await transaction.get(db.collection('event-totals').doc(id));
+        final snapshot = await transaction.get(
+          db.collection('event-totals').doc(docId),
+        );
 
         if (!snapshot.exists) throw Exception("Event does not exist!");
 
         if (snapshot['receivedData'] >= snapshot['expectedData']) {
-          transaction.update(db.collection('event-totals').doc(id), {
+          transaction.update(db.collection('event-totals').doc(docId), {
             'status': 'Completed',
           });
         }
       });
 
-      return "Report added";
+      return "Report added successfully to event: $eventId";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}";
     }

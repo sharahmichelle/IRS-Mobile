@@ -155,11 +155,11 @@ class _AddReportScreenState extends State<AddReportScreen> {
     }
   }
 
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (_formKey.currentState!.validate()) {
       final String reportId;
       reportId =
-          context.read<Reports>().addReport(
+          await context.read<Reports>().addReport(
                 Report(
                   encoderId: "encoder123",
                   reportId: "reportId456",
@@ -187,8 +187,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
                   numMissingPerson: int.parse(_numberMissingController.text),
                   numCasualty: int.parse(_numberCasualtyController.text),
                 ),
-              )
-              as String;
+              );
 
       context.read<EventTotals>().addReportToEventTotal(
         widget.currentEvent.eventID,
