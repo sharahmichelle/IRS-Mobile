@@ -75,15 +75,6 @@ class EventTotal {
   factory EventTotal.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    DateTime parseDate(Map<String, dynamic>? dateMap) {
-      if (dateMap == null) {
-        return DateTime.now();
-      }
-      final year = _parseInt(dateMap['year']);
-      final month = _monthToInt(dateMap['month']);
-      final day = _parseInt(dateMap['day']);
-      return DateTime(year, month, day);
-    }
 
     return EventTotal(
       eventId: doc.id.toString(),
@@ -112,23 +103,6 @@ class EventTotal {
     );
   }
 
-  static int _monthToInt(String? month) {
-    const months = {
-      "JAN": 1,
-      "FEB": 2,
-      "MAR": 3,
-      "APR": 4,
-      "MAY": 5,
-      "JUN": 6,
-      "JUL": 7,
-      "AUG": 8,
-      "SEPT": 9,
-      "OCT": 10,
-      "NOV": 11,
-      "DEC": 12,
-    };
-    return months[month] ?? DateTime.now().month;
-  }
 
   static int _parseInt(dynamic value) {
     if (value == null) return 0;
@@ -141,20 +115,6 @@ class EventTotal {
   DateTime get getEndDate => DateTime(timeStampEnd.year, timeStampEnd.month, timeStampEnd.day);
 
   Map<String, dynamic> toJson() {
-    final intToMonth = {
-      1: "JAN",
-      2: "FEB",
-      3: "MAR",
-      4: "APR",
-      5: "MAY",
-      6: "JUN",
-      7: "JUL",
-      8: "AUG",
-      9: "SEPT",
-      10: "OCT",
-      11: "NOV",
-      12: "DEC",
-    };
 
     return {
       'eventId': eventId,

@@ -98,7 +98,7 @@ class FirebaseEventTotalAPI {
           data['numMissingPerson'] ?? 0,
         ),
         'totalDistribution.$upSystem': FieldValue.increment(
-          data.values.fold<int>(0, (prev, value) => prev + (value ?? 0)),
+          data.values.fold<int>(0, (prev, value) => prev + (value)),
         ),
       });
 

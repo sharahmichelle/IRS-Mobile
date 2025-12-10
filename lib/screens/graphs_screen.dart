@@ -154,11 +154,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
     if (_isFetchingEventTotal) return;
     
     _isFetchingEventTotal = true;
-    
-    // Use a temporary variable to avoid calling setState during build
-    bool isLoading = true;
-    String? error = null;
-    
+
     // Update state immediately to show loading
     if (mounted) {
       setState(() {

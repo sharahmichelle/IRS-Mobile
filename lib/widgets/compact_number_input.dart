@@ -19,7 +19,6 @@ class CompactNumberInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Color(0xFFA11D1C);
     final borderColor = Color(0xFFE2E8F0);
     
     return Container(

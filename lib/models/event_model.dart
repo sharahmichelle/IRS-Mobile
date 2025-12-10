@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 
 class Event {
   final String eventID;
@@ -112,31 +111,6 @@ class Event {
       location: '',
       eventStarted: false,
     );
-  }
-
-  static int _monthToInt(String? month) {
-    const months = {
-      "JAN": 1,
-      "FEB": 2,
-      "MAR": 3,
-      "APR": 4,
-      "MAY": 5,
-      "JUN": 6,
-      "JUL": 7,
-      "AUG": 8,
-      "SEPT": 9,
-      "OCT": 10,
-      "NOV": 11,
-      "DEC": 12,
-    };
-    return months[month] ?? DateTime.now().month;
-  }
-
-  static int _parseInt(dynamic value) {
-    if (value == null) return 0;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
   }
 
   DateTime get getStartDate =>

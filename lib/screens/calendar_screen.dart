@@ -414,11 +414,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildEventDetailRow(Icons.category_rounded, 'Category', appointment.category ?? 'N/A'),
+            _buildEventDetailRow(Icons.category_rounded, 'Category', appointment.category),
             _buildEventDetailRow(Icons.access_time_rounded, 'Time', 
                 '${_formatDateTime(appointment.timeStampStart)} - ${_formatDateTime(appointment.timeStampEnd)}'),
-            _buildEventDetailRow(Icons.description_rounded, 'Description', appointment.eventDescription ?? 'No description'),
-            _buildEventDetailRow(Icons.star_rounded, 'Status', appointment.status ?? 'N/A'),
+            _buildEventDetailRow(Icons.description_rounded, 'Description', appointment.eventDescription),
+            _buildEventDetailRow(Icons.star_rounded, 'Status', appointment.status),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -482,7 +482,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Color _getEventColor(Event appointment) {
     // Customize event colors based on category or status
-    switch (appointment.category?.toLowerCase()) {
+    switch (appointment.category.toLowerCase()) {
       case 'flood':
         return Color(0xFF0EA5E9); // Blue
       case 'earthquake':

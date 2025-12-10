@@ -1162,7 +1162,6 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
 /// DataGrid source for Reports using actual Report model
 class ReportsDataSource extends DataGridSource {
   ReportsDataSource(List<Report> reports) {
-    _reports = reports;
     _reportsData = reports
         .map<DataGridRow>(
           (e) => DataGridRow(
@@ -1180,8 +1179,7 @@ class ReportsDataSource extends DataGridSource {
         )
         .toList();
   }
-
-  late List<Report> _reports;
+  
   late List<DataGridRow> _reportsData;
 
   int _calculateTotalHeadCount(Report report) {
