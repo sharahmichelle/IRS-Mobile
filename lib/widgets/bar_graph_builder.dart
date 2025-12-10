@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/detailed_view_screen.dart';
 
 class BarGraphBuilder extends StatefulWidget {
   final Event eventData;
@@ -243,15 +244,15 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
                           icon: Icons.analytics_rounded,
                           isPrimary: false,
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder:
-                            //         (context) => DetailedViewScreen(
-                            //           currentEvent: widget.eventData,
-                            //         ),
-                            //   ),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => DetailedViewScreen(
+                                      currentEvent: widget.eventData, currentEventTotal: widget.eventTotal,
+                                    ),
+                              ),
+                            );
                           },
                         ),
                       ),

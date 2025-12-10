@@ -144,6 +144,8 @@ class Event {
   DateTime get getEndDate =>
       DateTime(timeStampEnd.year, timeStampEnd.month, timeStampEnd.day);
 
+  get reportsIds => null;
+
   Map<String, dynamic> toJson() {
     return {
       'eventID': eventID,
