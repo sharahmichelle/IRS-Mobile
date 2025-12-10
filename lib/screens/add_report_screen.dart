@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
-import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
@@ -213,6 +212,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
       );
 
       _showSuccessDialog();
+      Navigator.of(context).pop();
     }
   }
 

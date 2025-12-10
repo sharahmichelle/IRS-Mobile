@@ -35,6 +35,10 @@ class _GraphsScreenState extends State<GraphsScreen> {
     'Distribution',
     'Trend Analysis',
   ];
+  
+  // Cache for fetched event totals
+  final Map<String, EventTotal> _eventTotalsCache = {};
+  bool _isFetchingEventTotal = false;
 
   // Dummy data as fallback (you can remove this once everything works)
   final List<Event> dummyEvents = [
@@ -59,35 +63,9 @@ class _GraphsScreenState extends State<GraphsScreen> {
     ),
   ];
 
-  final List<EventTotal> dummyEventTotals = [
-    EventTotal(
-      eventId: "EVT001",
-      timeStampStart: DateTime(2025, 1, 15),
-      timeStampEnd: DateTime(2025, 1, 16),
-      expectedData: 300,
-      receivedData: 250,
-      isActual: true,
-      reportsId: ["RPT001"],
-      totalFaculty: 40,
-      totalAdminMembers: 30,
-      totalRepsMembers: 20,
-      totalCustodians: 15,
-      totalJoCosMembers: 10,
-      totalStudents: 120,
-      totalSecurity: 12,
-      totalConstructionWorkers: 8,
-      totalHealthWorkers: 20,
-      totalGuests: 25,
-      totalPatients: 18,
-      totalMissingPersons: 2,
-      totalCasualties: 1,
-      totalDistribution: {"Faculty": 40, "Admin Members": 30, "Students": 120},
-    ),
-  ];
-
   void _navigateToAddReport(Event event) {
     Navigator.push(context, MaterialPageRoute(
-      builder: (context) => AddReportScreen(currentEvent: event,),
+      builder: (context) => AddReportScreen(currentEvent: event),
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -115,14 +93,14 @@ class _GraphsScreenState extends State<GraphsScreen> {
 
   void _nextEvent() {
     setState(() {
-      _currentEventIndex = (_currentEventIndex + 1) % dummyEvents.length;
+      _currentEventIndex = (_currentEventIndex + 1) % _events.length;
     });
   }
 
   void _previousEvent() {
     setState(() {
-      _currentEventIndex = (_currentEventIndex - 1) % dummyEvents.length;
-      if (_currentEventIndex < 0) _currentEventIndex = dummyEvents.length - 1;
+      _currentEventIndex = (_currentEventIndex - 1) % _events.length;
+      if (_currentEventIndex < 0) _currentEventIndex = _events.length - 1;
     });
   }
 
@@ -136,6 +114,81 @@ class _GraphsScreenState extends State<GraphsScreen> {
         return Colors.blue;
       default:
         return Colors.grey;
+    }
+  }
+
+  // Variables to store events
+  List<Event> _events = [];
+  EventTotal? _currentEventTotal;
+  bool _isLoadingEventTotal = false;
+  String? _eventTotalError;
+
+  // Helper method to create an empty EventTotal with specific eventId
+  EventTotal _createEmptyEventTotal(String eventId) {
+    return EventTotal(
+      eventId: eventId,
+      timeStampStart: DateTime.now(),
+      timeStampEnd: DateTime.now(),
+      expectedData: 0,
+      receivedData: 0,
+      isActual: false,
+      reportsId: [],
+      totalFaculty: 0,
+      totalAdminMembers: 0,
+      totalRepsMembers: 0,
+      totalCustodians: 0,
+      totalJoCosMembers: 0,
+      totalStudents: 0,
+      totalSecurity: 0,
+      totalConstructionWorkers: 0,
+      totalHealthWorkers: 0,
+      totalGuests: 0,
+      totalPatients: 0,
+      totalMissingPersons: 0,
+      totalCasualties: 0,
+      totalDistribution: {},
+    );
+  }
+
+  // Fetch event total for the current event
+  Future<void> _fetchEventTotalForEvent(String eventId) async {
+    if (_isFetchingEventTotal) return;
+    
+    _isFetchingEventTotal = true;
+    setState(() {
+      _isLoadingEventTotal = true;
+      _eventTotalError = null;
+    });
+
+    try {
+      // Check cache first
+      if (_eventTotalsCache.containsKey(eventId)) {
+        _currentEventTotal = _eventTotalsCache[eventId];
+      } else {
+        // Fetch from provider
+        final eventTotalsProvider = Provider.of<EventTotals>(context, listen: false);
+        final eventTotal = await eventTotalsProvider.getEventTotalByEventId(eventId);
+        
+        if (eventTotal != null) {
+          _currentEventTotal = eventTotal;
+          _eventTotalsCache[eventId] = eventTotal;
+        } else {
+          // If no event total found, create an empty one with the eventId
+          _currentEventTotal = _createEmptyEventTotal(eventId);
+        }
+      }
+      
+      _eventTotalError = null;
+    } catch (e) {
+      _eventTotalError = e.toString();
+      debugPrint('Error fetching event total: $e');
+      // Create an empty event total with the eventId
+      _currentEventTotal = _createEmptyEventTotal(eventId);
+    } finally {
+      setState(() {
+        _isLoadingEventTotal = false;
+        _isFetchingEventTotal = false;
+      });
     }
   }
 
@@ -157,45 +210,64 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // StreamBuilder for Events
+            // StreamBuilder for Events - Single Stream Approach
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: context.watch<Events>().events,
               builder: (context, eventsSnapshot) {
+                // Handle loading states
                 if (eventsSnapshot.connectionState == ConnectionState.waiting) {
                   return _buildLoadingIndicator();
                 }
 
+                // Handle errors
                 if (eventsSnapshot.hasError) {
                   return _buildErrorWidget(eventsSnapshot.error.toString());
                 }
 
-                if (!eventsSnapshot.hasData ||
-                    eventsSnapshot.data!.docs.isEmpty) {
+                // Handle empty states
+                if (!eventsSnapshot.hasData || eventsSnapshot.data!.docs.isEmpty) {
                   return _buildEmptyEventsState();
                 }
 
+                // Process events data
                 final events = eventsSnapshot.data!.docs.map((doc) {
                   return Event.fromFirestore(doc);
                 }).toList();
 
-                // Now build the EventSelector with real events
+                // Update local events list
+                if (_events.isEmpty || _events.length != events.length) {
+                  setState(() {
+                    _events = events;
+                  });
+                  // If we have events but no current event total, fetch for the first event
+                  if (_currentEventTotal == null && events.isNotEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _fetchEventTotalForEvent(events[_currentEventIndex].eventID);
+                    });
+                  }
+                }
+
+                final currentEvent = _currentEventIndex < _events.length
+                    ? _events[_currentEventIndex]
+                    : _events.first;
+
+                // Build EventSelector
                 return EventSelector(
-                  currentEvent: _currentEventIndex < events.length
-                      ? events[_currentEventIndex]
-                      : events.first,
+                  currentEvent: currentEvent,
                   onPrevious: () {
                     setState(() {
-                      _currentEventIndex =
-                          (_currentEventIndex - 1) % events.length;
-                      if (_currentEventIndex < 0)
-                        _currentEventIndex = events.length - 1;
+                      _currentEventIndex = (_currentEventIndex - 1) % _events.length;
+                      if (_currentEventIndex < 0) _currentEventIndex = _events.length - 1;
                     });
+                    // Fetch event total for the new current event
+                    _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
                   },
                   onNext: () {
                     setState(() {
-                      _currentEventIndex =
-                          (_currentEventIndex + 1) % events.length;
+                      _currentEventIndex = (_currentEventIndex + 1) % _events.length;
                     });
+                    // Fetch event total for the new current event
+                    _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
                   },
                   surfaceColor: surfaceColor,
                   textPrimary: textPrimary,
@@ -210,8 +282,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ChartTypeSelector(
               currentChartType: _chartTypes[_currentChartIndex],
               currentEventIndex: _currentEventIndex,
-              totalEvents:
-                  dummyEvents.length, // This will be updated with real count
+              totalEvents: _events.length,
               onPrevious: _previousChart,
               onNext: _nextChart,
               surfaceColor: surfaceColor,
@@ -220,137 +291,83 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Main Content with both streams
+            // Main Content Area
             Expanded(
               flex: 5,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: context.watch<Events>().events,
-                  builder: (context, eventsSnapshot) {
-                    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: context.watch<EventTotals>().eventTotals,
-                      builder: (context, eventTotalsSnapshot) {
-                        // Handle loading states
-                        if (eventsSnapshot.connectionState ==
-                                ConnectionState.waiting ||
-                            eventTotalsSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                          return _buildChartLoading();
-                        }
+                child: Builder(
+                  builder: (context) {
+                    // If no events yet, show loading
+                    if (_events.isEmpty) {
+                      return _buildChartLoading();
+                    }
 
-                        // Handle errors
-                        if (eventsSnapshot.hasError ||
-                            eventTotalsSnapshot.hasError) {
-                          return _buildChartError(
-                            eventsSnapshot.error?.toString() ??
-                                eventTotalsSnapshot.error.toString(),
-                          );
-                        }
+                    final currentEvent = _currentEventIndex < _events.length
+                        ? _events[_currentEventIndex]
+                        : _events.first;
 
-                        // Handle empty states
-                        if (!eventsSnapshot.hasData ||
-                            eventsSnapshot.data!.docs.isEmpty) {
-                          return _buildChartEmpty();
-                        }
+                    // Show loading while fetching event total
+                    if (_isLoadingEventTotal) {
+                      return _buildChartLoading();
+                    }
 
-                        // Process events data
-                        final events = eventsSnapshot.data!.docs.map((doc) {
-                          return Event.fromFirestore(doc);
-                        }).toList();
+                    // Show error if event total fetch failed
+                    if (_eventTotalError != null) {
+                      return _buildChartError(_eventTotalError!);
+                    }
 
-                        final currentEvent = _currentEventIndex < events.length
-                            ? events[_currentEventIndex]
-                            : events.first;
+                    // Use cached or fetched event total
+                    final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
 
-                        // Process event totals data
-                        EventTotal? currentEventTotal;
-                        if (eventTotalsSnapshot.hasData) {
-                          final eventTotals = eventTotalsSnapshot.data!.docs
-                              .map((doc) {
-                                return EventTotal.fromFirestore(doc);
-                              })
-                              .toList();
-
-                          currentEventTotal = eventTotals.firstWhere(
-                            (total) => total.eventId == currentEvent.eventID,
-                            orElse: () => EventTotal.empty(),
-                          );
-                        } else {
-                          currentEventTotal = EventTotal.empty();
-                        }
-
-                        return ChartCard(
-                          currentEvent: currentEvent,
-                          currentEventTotal: currentEventTotal,
-                          surfaceColor: surfaceColor,
-                          primaryColor: primaryColor,
-                          backgroundColor: backgroundColor,
-                          textPrimary: textPrimary,
-                          textSecondary: textSecondary,
-                          getStatusColor: _getStatusColor,
-                          chartType: _chartTypes[_currentChartIndex],
-                          onAddReport: () => _navigateToAddReport(
-                            currentEvent,
-                          ), // Add this line
-                        );
-                      },
+                    return ChartCard(
+                      currentEvent: currentEvent,
+                      currentEventTotal: displayEventTotal,
+                      surfaceColor: surfaceColor,
+                      primaryColor: primaryColor,
+                      backgroundColor: backgroundColor,
+                      textPrimary: textPrimary,
+                      textSecondary: textSecondary,
+                      getStatusColor: _getStatusColor,
+                      chartType: _chartTypes[_currentChartIndex],
+                      onAddReport: () => _navigateToAddReport(currentEvent),
                     );
                   },
                 ),
               ),
             ),
 
-            // Statistics Cards with real data
+            // Statistics Cards
             const SizedBox(height: 12),
-            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: context.watch<EventTotals>().eventTotals,
-              builder: (context, eventTotalsSnapshot) {
-                if (eventTotalsSnapshot.connectionState ==
-                    ConnectionState.waiting) {
+            Builder(
+              builder: (context) {
+                // If no events yet, show loading
+                if (_events.isEmpty) {
                   return _buildStatisticsLoading();
                 }
 
-                if (eventTotalsSnapshot.hasError ||
-                    !eventTotalsSnapshot.hasData) {
+                final currentEvent = _currentEventIndex < _events.length
+                    ? _events[_currentEventIndex]
+                    : _events.first;
+
+                // Show loading while fetching event total
+                if (_isLoadingEventTotal) {
+                  return _buildStatisticsLoading();
+                }
+
+                // Show error if event total fetch failed
+                if (_eventTotalError != null) {
                   return _buildStatisticsError();
                 }
 
-                return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: context.watch<Events>().events,
-                  builder: (context, eventsSnapshot) {
-                    if (!eventsSnapshot.hasData ||
-                        eventsSnapshot.data!.docs.isEmpty) {
-                      return SizedBox(); // Return empty if no events
-                    }
+                // Use cached or fetched event total
+                final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
 
-                    final events = eventsSnapshot.data!.docs.map((doc) {
-                      return Event.fromFirestore(doc);
-                    }).toList();
-
-                    final currentEvent = _currentEventIndex < events.length
-                        ? events[_currentEventIndex]
-                        : events.first;
-
-                    final eventTotals = eventTotalsSnapshot.data!.docs.map((
-                      doc,
-                    ) {
-                      return EventTotal.fromFirestore(doc);
-                    }).toList();
-
-                    final currentEventTotal = eventTotals.firstWhere(
-                      (total) => total.eventId == currentEvent.eventID,
-                      orElse: () => EventTotal.empty(),
-                    );
-
-                    // Use your StatisticsCards widget here
-                    return StatisticsCards(
-                      currentEventTotal: currentEventTotal,
-                      surfaceColor: surfaceColor,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                    );
-                  },
+                return StatisticsCards(
+                  currentEventTotal: displayEventTotal,
+                  surfaceColor: surfaceColor,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
                 );
               },
             ),
@@ -386,9 +403,18 @@ class _GraphsScreenState extends State<GraphsScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
-          child: Text(
-            'Error loading events',
-            style: TextStyle(color: Colors.red),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Error loading events',
+                style: TextStyle(color: Colors.red),
+              ),
+              Text(
+                error,
+                style: TextStyle(color: Colors.red, fontSize: 10),
+              ),
+            ],
           ),
         ),
       ),
@@ -449,14 +475,17 @@ class _GraphsScreenState extends State<GraphsScreen> {
             Icon(Icons.error_outline, color: Colors.red, size: 48),
             SizedBox(height: 16),
             Text(
-              'Error loading chart',
+              'Error loading chart data',
               style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: textSecondary),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                error.length > 100 ? '${error.substring(0, 100)}...' : error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: textSecondary, fontSize: 12),
+              ),
             ),
           ],
         ),
@@ -495,7 +524,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        height: 70, // Match the height of your StatisticsCards
+        height: 70,
         decoration: BoxDecoration(
           color: surfaceColor,
           borderRadius: BorderRadius.circular(12),
@@ -509,7 +538,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        height: 70, // Match the height of your StatisticsCards
+        height: 70,
         decoration: BoxDecoration(
           color: surfaceColor,
           borderRadius: BorderRadius.circular(12),

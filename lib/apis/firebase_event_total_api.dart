@@ -14,7 +14,7 @@ class FirebaseEventTotalAPI {
   Future<QuerySnapshot<Map<String, dynamic>>> getEventTotalByEventId(
     String id,
   ) {
-    return db.collection('event-totals').where('eventID', isEqualTo: id).get();
+    return db.collection('event-totals').where('eventId', isEqualTo: id).get();
   }
 
   Future<String> addEventTotal(Map<String, dynamic> eventTotal) async {
