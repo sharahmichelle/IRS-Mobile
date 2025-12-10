@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -9,6 +10,7 @@ import 'package:upm_drrm_irs_mobile/models/report_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
 
 class TableScreen extends StatefulWidget {
@@ -56,15 +58,15 @@ class _TableScreenState extends State<TableScreen> {
   void initState() {
     super.initState();
 
-    // Temporary dummy report data
-    _reportData = List.generate(25, (index) {
-      return Report(
-        encoderId: 'Encoder${index + 1}',
-        reportId: 'Report${index + 1}',
-        upSystem: 'UP System ${(index % 3) + 1}',
-        office: 'Office ${(index % 5) + 1}',
-      );
-    });
+    // // Temporary dummy report data
+    // _reportData = List.generate(25, (index) {
+    //   return Report(
+    //     encoderId: 'Encoder${index + 1}',
+    //     reportId: 'Report${index + 1}',
+    //     upSystem: 'UP System ${(index % 3) + 1}',
+    //     office: 'Office ${(index % 5) + 1}',
+    //   );
+    // });
 
     // Initialize columns with modern styling
     dataListColumns = [
@@ -223,6 +225,29 @@ class _TableScreenState extends State<TableScreen> {
           );
         },
       );
+    } else if (_currentIndex == 2) {
+          return Consumer<Reports>(
+            builder: (context, reportProvider, _) {
+              return StreamBuilder(
+                stream: reportProvider.reports,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return _buildLoadingState();
+                  }
+
+                  final docs = snapshot.data!.docs;
+                  _reportData = docs.map((d) => Report.fromFirestore(d)).toList();
+                  _totalPages = _getCurrentListLength();
+                  
+                  final startIndex = (_currentPage - 1) * _rowsPerPage;
+                  final end = (_currentPage * _rowsPerPage).clamp(0, _reportData.length);
+                  _reportDataSource = ReportDataSource(_reportData.sublist(startIndex, end));
+
+                  return _buildTableBody();
+                },
+              );
+            },
+          );
     }
 
     _totalPages = _getCurrentListLength();
