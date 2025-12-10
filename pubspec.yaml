@@ -75,7 +75,10 @@ flutter:
   assets:
     - assets/favicon.ico
     - assets/favicon.png
-
+    - assets/fire.svg
+    - assets/earthquake.svg
+    - assets/flood.svg
+    - assets/tsunami.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

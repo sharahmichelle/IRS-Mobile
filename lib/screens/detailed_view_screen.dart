@@ -555,7 +555,7 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 16, // Reduced from 20
+                fontSize: 20, // Reduced from 20
                 color: textPrimary,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3, // Reduced from -0.5
