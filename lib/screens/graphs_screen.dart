@@ -40,28 +40,19 @@ class _GraphsScreenState extends State<GraphsScreen> {
   final Map<String, EventTotal> _eventTotalsCache = {};
   bool _isFetchingEventTotal = false;
 
-  // Dummy data as fallback (you can remove this once everything works)
-  final List<Event> dummyEvents = [
-    Event(
-      eventID: "EVT001",
-      timeStampStart: DateTime(2025, 1, 15, 9, 0),
-      timeStampEnd: DateTime(2025, 1, 15, 17, 0),
-      eventName: "Earthquake Drill",
-      eventDescription: "University-wide earthquake preparedness drill.",
-      status: "Completed",
-      action: "Filed Report",
-      category: "Drill",
-      eventIntroduction: "This drill simulates an earthquake scenario.",
-      eventObservations: ["Evacuation completed in 8 minutes"],
-      eventScenario: "Magnitude 6.5 simulated quake",
-      factSheet: "Prepared by Disaster Response Committee",
-      incidentCommander: "Dr. Maria Santos",
-      liasonOfficer: "Prof. James Rodriguez",
-      publicInformationOfficer: "Ms. Anna Lopez",
-      safetySecurityOfficer: "Mr. Carlos Reyes",
-      location: "UP Manila Main Campus",
-    ),
-  ];
+  // Variables to store events and event totals
+  List<Event> _events = [];
+  EventTotal? _currentEventTotal;
+  bool _isLoadingEventTotal = false;
+  String? _eventTotalError;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with empty state
+    _events = [];
+    _currentEventTotal = null;
+  }
 
   void _navigateToAddReport(Event event) {
     Navigator.push(context, MaterialPageRoute(
@@ -92,15 +83,29 @@ class _GraphsScreenState extends State<GraphsScreen> {
   }
 
   void _nextEvent() {
+    if (_events.isEmpty) return;
+    
     setState(() {
       _currentEventIndex = (_currentEventIndex + 1) % _events.length;
+    });
+    
+    // Fetch event total for the new event AFTER setState completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
     });
   }
 
   void _previousEvent() {
+    if (_events.isEmpty) return;
+    
     setState(() {
       _currentEventIndex = (_currentEventIndex - 1) % _events.length;
       if (_currentEventIndex < 0) _currentEventIndex = _events.length - 1;
+    });
+    
+    // Fetch event total for the new event AFTER setState completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
     });
   }
 
@@ -116,12 +121,6 @@ class _GraphsScreenState extends State<GraphsScreen> {
         return Colors.grey;
     }
   }
-
-  // Variables to store events
-  List<Event> _events = [];
-  EventTotal? _currentEventTotal;
-  bool _isLoadingEventTotal = false;
-  String? _eventTotalError;
 
   // Helper method to create an empty EventTotal with specific eventId
   EventTotal _createEmptyEventTotal(String eventId) {
@@ -155,39 +154,101 @@ class _GraphsScreenState extends State<GraphsScreen> {
     if (_isFetchingEventTotal) return;
     
     _isFetchingEventTotal = true;
-    setState(() {
-      _isLoadingEventTotal = true;
-      _eventTotalError = null;
-    });
+    
+    // Use a temporary variable to avoid calling setState during build
+    bool isLoading = true;
+    String? error = null;
+    
+    // Update state immediately to show loading
+    if (mounted) {
+      setState(() {
+        _isLoadingEventTotal = true;
+        _eventTotalError = null;
+      });
+    }
 
     try {
       // Check cache first
       if (_eventTotalsCache.containsKey(eventId)) {
-        _currentEventTotal = _eventTotalsCache[eventId];
+        if (mounted) {
+          setState(() {
+            _currentEventTotal = _eventTotalsCache[eventId];
+            _isLoadingEventTotal = false;
+            _eventTotalError = null;
+          });
+        }
+        return;
+      }
+
+      // Fetch from provider
+      final eventTotalsProvider = Provider.of<EventTotals>(context, listen: false);
+      final eventTotal = await eventTotalsProvider.getEventTotalByEventId(eventId);
+      
+      if (eventTotal != null) {
+        _eventTotalsCache[eventId] = eventTotal;
+        if (mounted) {
+          setState(() {
+            _currentEventTotal = eventTotal;
+            _isLoadingEventTotal = false;
+            _eventTotalError = null;
+          });
+        }
       } else {
-        // Fetch from provider
-        final eventTotalsProvider = Provider.of<EventTotals>(context, listen: false);
-        final eventTotal = await eventTotalsProvider.getEventTotalByEventId(eventId);
-        
-        if (eventTotal != null) {
-          _currentEventTotal = eventTotal;
-          _eventTotalsCache[eventId] = eventTotal;
-        } else {
-          // If no event total found, create an empty one with the eventId
-          _currentEventTotal = _createEmptyEventTotal(eventId);
+        // If no event total found, create an empty one with the eventId
+        final emptyTotal = _createEmptyEventTotal(eventId);
+        _eventTotalsCache[eventId] = emptyTotal;
+        if (mounted) {
+          setState(() {
+            _currentEventTotal = emptyTotal;
+            _isLoadingEventTotal = false;
+            _eventTotalError = null;
+          });
         }
       }
-      
-      _eventTotalError = null;
     } catch (e) {
-      _eventTotalError = e.toString();
       debugPrint('Error fetching event total: $e');
-      // Create an empty event total with the eventId
-      _currentEventTotal = _createEmptyEventTotal(eventId);
+      final emptyTotal = _createEmptyEventTotal(eventId);
+      if (mounted) {
+        setState(() {
+          _currentEventTotal = emptyTotal;
+          _isLoadingEventTotal = false;
+          _eventTotalError = e.toString();
+        });
+      }
     } finally {
-      setState(() {
-        _isLoadingEventTotal = false;
-        _isFetchingEventTotal = false;
+      _isFetchingEventTotal = false;
+    }
+  }
+
+  // Method to handle events data received from stream
+  void _handleEventsData(List<Event> events) {
+    if (_events.isEmpty && events.isNotEmpty) {
+      // First time loading events
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _events = events;
+            // Fetch event total for the first event
+            _fetchEventTotalForEvent(events[_currentEventIndex].eventID);
+          });
+        }
+      });
+    } else if (_events.length != events.length) {
+      // Events list changed
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _events = events;
+            // Make sure current index is valid
+            if (_currentEventIndex >= events.length) {
+              _currentEventIndex = 0;
+            }
+            // Fetch event total for current event
+            if (events.isNotEmpty) {
+              _fetchEventTotalForEvent(events[_currentEventIndex].eventID);
+            }
+          });
+        }
       });
     }
   }
@@ -234,41 +295,28 @@ class _GraphsScreenState extends State<GraphsScreen> {
                   return Event.fromFirestore(doc);
                 }).toList();
 
-                // Update local events list
+                // Handle events data update - DO NOT call setState here
                 if (_events.isEmpty || _events.length != events.length) {
-                  setState(() {
-                    _events = events;
+                  // Schedule the state update for after the current build
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _handleEventsData(events);
                   });
-                  // If we have events but no current event total, fetch for the first event
-                  if (_currentEventTotal == null && events.isNotEmpty) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _fetchEventTotalForEvent(events[_currentEventIndex].eventID);
-                    });
-                  }
                 }
 
-                final currentEvent = _currentEventIndex < _events.length
+                final currentEvent = _currentEventIndex < _events.length && _events.isNotEmpty
                     ? _events[_currentEventIndex]
-                    : _events.first;
+                    : (events.isNotEmpty ? events[0] : null);
+
+                // If no current event, return empty container
+                if (currentEvent == null) {
+                  return Container(height: 80);
+                }
 
                 // Build EventSelector
                 return EventSelector(
                   currentEvent: currentEvent,
-                  onPrevious: () {
-                    setState(() {
-                      _currentEventIndex = (_currentEventIndex - 1) % _events.length;
-                      if (_currentEventIndex < 0) _currentEventIndex = _events.length - 1;
-                    });
-                    // Fetch event total for the new current event
-                    _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
-                  },
-                  onNext: () {
-                    setState(() {
-                      _currentEventIndex = (_currentEventIndex + 1) % _events.length;
-                    });
-                    // Fetch event total for the new current event
-                    _fetchEventTotalForEvent(_events[_currentEventIndex].eventID);
-                  },
+                  onPrevious: _previousEvent,
+                  onNext: _nextEvent,
                   surfaceColor: surfaceColor,
                   textPrimary: textPrimary,
                   textSecondary: textSecondary,
@@ -291,90 +339,89 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Main Content Area
+            // Main Content Area - Fixed height to prevent overflow
             Expanded(
-              flex: 5,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Builder(
-                  builder: (context) {
-                    // If no events yet, show loading
-                    if (_events.isEmpty) {
-                      return _buildChartLoading();
-                    }
-
-                    final currentEvent = _currentEventIndex < _events.length
-                        ? _events[_currentEventIndex]
-                        : _events.first;
-
-                    // Show loading while fetching event total
-                    if (_isLoadingEventTotal) {
-                      return _buildChartLoading();
-                    }
-
-                    // Show error if event total fetch failed
-                    if (_eventTotalError != null) {
-                      return _buildChartError(_eventTotalError!);
-                    }
-
-                    // Use cached or fetched event total
-                    final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
-
-                    return ChartCard(
-                      currentEvent: currentEvent,
-                      currentEventTotal: displayEventTotal,
-                      surfaceColor: surfaceColor,
-                      primaryColor: primaryColor,
-                      backgroundColor: backgroundColor,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                      getStatusColor: _getStatusColor,
-                      chartType: _chartTypes[_currentChartIndex],
-                      onAddReport: () => _navigateToAddReport(currentEvent),
-                    );
-                  },
-                ),
+                child: _buildMainContent(),
               ),
             ),
 
             // Statistics Cards
             const SizedBox(height: 12),
-            Builder(
-              builder: (context) {
-                // If no events yet, show loading
-                if (_events.isEmpty) {
-                  return _buildStatisticsLoading();
-                }
-
-                final currentEvent = _currentEventIndex < _events.length
-                    ? _events[_currentEventIndex]
-                    : _events.first;
-
-                // Show loading while fetching event total
-                if (_isLoadingEventTotal) {
-                  return _buildStatisticsLoading();
-                }
-
-                // Show error if event total fetch failed
-                if (_eventTotalError != null) {
-                  return _buildStatisticsError();
-                }
-
-                // Use cached or fetched event total
-                final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
-
-                return StatisticsCards(
-                  currentEventTotal: displayEventTotal,
-                  surfaceColor: surfaceColor,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
-                );
-              },
-            ),
+            _buildStatisticsSection(),
             const SizedBox(height: 16),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    // If no events yet, show loading
+    if (_events.isEmpty) {
+      return _buildChartLoading();
+    }
+
+    final currentEvent = _currentEventIndex < _events.length
+        ? _events[_currentEventIndex]
+        : _events.first;
+
+    // Show loading while fetching event total
+    if (_isLoadingEventTotal) {
+      return _buildChartLoading();
+    }
+
+    // Show error if event total fetch failed
+    if (_eventTotalError != null) {
+      return _buildChartError(_eventTotalError!);
+    }
+
+    // Use cached or fetched event total
+    final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
+
+    return ChartCard(
+      currentEvent: currentEvent,
+      currentEventTotal: displayEventTotal,
+      surfaceColor: surfaceColor,
+      primaryColor: primaryColor,
+      backgroundColor: backgroundColor,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      getStatusColor: _getStatusColor,
+      chartType: _chartTypes[_currentChartIndex],
+      onAddReport: () => _navigateToAddReport(currentEvent),
+    );
+  }
+
+  Widget _buildStatisticsSection() {
+    // If no events yet, show loading
+    if (_events.isEmpty) {
+      return _buildStatisticsLoading();
+    }
+
+    final currentEvent = _currentEventIndex < _events.length
+        ? _events[_currentEventIndex]
+        : _events.first;
+
+    // Show loading while fetching event total
+    if (_isLoadingEventTotal) {
+      return _buildStatisticsLoading();
+    }
+
+    // Show error if event total fetch failed
+    if (_eventTotalError != null) {
+      return _buildStatisticsError();
+    }
+
+    // Use cached or fetched event total
+    final displayEventTotal = _currentEventTotal ?? _createEmptyEventTotal(currentEvent.eventID);
+
+    return StatisticsCards(
+      currentEventTotal: displayEventTotal,
+      surfaceColor: surfaceColor,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
     );
   }
 
@@ -486,33 +533,6 @@ class _GraphsScreenState extends State<GraphsScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: textSecondary, fontSize: 12),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChartEmpty() {
-    return Container(
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.bar_chart_rounded, color: textSecondary, size: 48),
-            SizedBox(height: 16),
-            Text(
-              'No data available',
-              style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Create events to see analytics',
-              style: TextStyle(color: textSecondary),
             ),
           ],
         ),
