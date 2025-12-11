@@ -32,7 +32,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       office: "Office of the Supreme Leader",
       bldgName: "CAS",
       position: "Security Guard",
-      userType: 1,
+      userType: 1, 
+      userName: '@emanestares',
     );
 
     final userDetails = [

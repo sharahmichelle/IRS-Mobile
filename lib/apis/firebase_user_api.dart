@@ -1,62 +1,157 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 
 class FirebaseUserAPI {
   static final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Stream<QuerySnapshot> getAllUsers() {
+  // Get all users as a stream
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
     return db.collection("users").snapshots();
   }
 
-  Stream<QuerySnapshot> getUserByAuthId(String authId) {
+  // Get user by authId as a stream
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUserByAuthId(String authId) {
     return db
         .collection('users')
         .where('authId', isEqualTo: authId)
         .snapshots();
   }
 
-  Future<List<Map<String, dynamic>>> getUsersByUserNames(List<String> userNames) async {
-    try{ 
-      QuerySnapshot snapshot = await db
+  // Get users by usernames (document IDs)
+  Future<List<User>> getUsersByUserNames(List<String> userNames) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db
         .collection('users')
         .where(FieldPath.documentId, whereIn: userNames)
         .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['userName'] = doc.id; // Add the username as the document ID
-        return data;
+      return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+        return User.fromFirestore(doc);
       }).toList();
-      
     } catch (e) {
       print('Error fetching users by usernames: $e');
       return [];
     }
   }
 
-  Future<String> addUser(String userName, Map<String, dynamic> user) async {
+  // Get a single user by userName (document ID)
+  Future<User> getUserById(String userName) async {
     try {
-      await db.collection("users").doc(userName).set(user);
+      DocumentSnapshot<Map<String, dynamic>> doc = await db.collection("users").doc(userName).get();
+      if (doc.exists) {
+        return User.fromFirestore(doc);
+      } else {
+        throw Exception('User not found');
+      }
+    } catch (e) {
+      print('Error fetching user by ID: $e');
+      throw Exception('Failed to fetch user: $e');
+    }
+  }
+
+  // Add a new user
+  Future<String> addUser(String userName, User user) async {
+    try {
+      await db.collection("users").doc(userName).set(user.toJson());
       return "Successfully added user!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}'";
+    } catch (e) {
+      return "Failed with error: $e";
     }
   }
 
-  Future<String> deleteUser(String? id) async {
+  // Delete a user
+  Future<String> deleteUser(String userName) async {
     try {
-      await db.collection("users").doc(id).delete();
+      await db.collection("users").doc(userName).delete();
       return "Successfully deleted user!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}'";
+    } catch (e) {
+      return "Failed with error: $e";
     }
   }
 
-  Future<String> editUser(String? id, Map<String, dynamic> edit) async {
+  // Edit/update a user
+  Future<String> editUser(String userName, Map<String, dynamic> edit) async {
     try {
-      await db.collection("users").doc(id).update(edit);
+      await db.collection("users").doc(userName).update(edit);
       return "Successfully edited user!";
     } on FirebaseException catch (e) {
       return "Failed with error '${e.code}: ${e.message}'";
+    } catch (e) {
+      return "Failed with error: $e";
+    }
+  }
+
+  // Get users by position
+  Future<List<User>> getUsersByPosition(String position) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db
+        .collection('users')
+        .where('position', isEqualTo: position)
+        .get();
+
+      return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+        return User.fromFirestore(doc);
+      }).toList();
+    } catch (e) {
+      print('Error fetching users by position: $e');
+      return [];
+    }
+  }
+
+  // Get users by office
+  Future<List<User>> getUsersByOffice(String office) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snapshot = await db
+        .collection('users')
+        .where('office', isEqualTo: office)
+        .get();
+
+      return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+        return User.fromFirestore(doc);
+      }).toList();
+    } catch (e) {
+      print('Error fetching users by office: $e');
+      return [];
+    }
+  }
+
+  // Get users by userType
+  Stream<List<User>> getUsersByType(int userType) {
+    return db
+        .collection('users')
+        .where('userType', isEqualTo: userType)
+        .snapshots()
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
+      return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+        return User.fromFirestore(doc);
+      }).toList();
+    });
+  }
+
+  // Check if username exists
+  Future<bool> usernameExists(String userName) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> doc = await db.collection("users").doc(userName).get();
+      return doc.exists;
+    } catch (e) {
+      print('Error checking username existence: $e');
+      return false;
+    }
+  }
+
+  // Update user profile
+  Future<String> updateUserProfile(String userName, User updatedUser) async {
+    try {
+      await db.collection("users").doc(userName).update(updatedUser.toJson());
+      return "Successfully updated user profile!";
+    } on FirebaseException catch (e) {
+      return "Failed with error '${e.code}: ${e.message}'";
+    } catch (e) {
+      return "Failed with error: $e";
     }
   }
 }
