@@ -695,8 +695,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        Navigator.pop(context);
                         await authProvider.signOut(context);
+                        Navigator.of(context).pushReplacementNamed('/');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,
