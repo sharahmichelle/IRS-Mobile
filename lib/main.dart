@@ -11,6 +11,7 @@ import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/login_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/signup_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/splash_screen.dart';
 
 // Firebase and Provider Initialization
 Future<void> main() async {
@@ -42,8 +43,9 @@ class MyApp extends StatelessWidget {
           seedColor: const Color.fromARGB(255, 1, 26, 253),
         ),
       ),
-      initialRoute: "/",
+      initialRoute: "/splash",
       routes: {
+        "/splash": (context) => const SplashScreenMinimal(),
         "/": (context) => const LoginScreen(),
         "/main": (context) => const MainScreen(),
         "/add_event": (context) => const AddEventScreen(),
