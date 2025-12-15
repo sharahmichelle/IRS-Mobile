@@ -40,7 +40,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           children: [
             // Header
-            ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Calendar", subtitle: "Monitor events and schedules", icon: Icons.calendar_month_rounded),
+            ScreenHeader(primaryColor: primaryColor, textPrimary: textPrimary, textSecondary: textSecondary, title: "Scheduled Events", subtitle: "Monitor events and schedules", icon: Icons.calendar_month_rounded),
             const SizedBox(height: 16),
             
             // View Selector
