@@ -10,12 +10,15 @@ class SplashScreenMinimal extends StatefulWidget {
   State<SplashScreenMinimal> createState() => _SplashScreenMinimalState();
 }
 
-class _SplashScreenMinimalState extends State<SplashScreenMinimal> with SingleTickerProviderStateMixin {
+class _SplashScreenMinimalState extends State<SplashScreenMinimal> 
+    with SingleTickerProviderStateMixin {
   final Color primaryColor = Color(0xFFA11D1C);
   final Color backgroundColor = Color(0xFFF8FAFC);
   
   late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
+  late Animation<double> _logoFadeAnimation;
+  late Animation<double> _textFadeAnimation;
+  late Animation<double> _loadingFadeAnimation;
 
   @override
   void initState() {
@@ -26,10 +29,25 @@ class _SplashScreenMinimalState extends State<SplashScreenMinimal> with SingleTi
       vsync: this,
     );
     
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Staggered fade animations for different elements
+    _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeInOut,
+        curve: Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+    
+    _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.3, 0.8, curve: Curves.easeIn),
+      ),
+    );
+    
+    _loadingFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.6, 1.0, curve: Curves.easeIn),
       ),
     );
     
@@ -73,79 +91,92 @@ class _SplashScreenMinimalState extends State<SplashScreenMinimal> with SingleTi
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 20,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [primaryColor.withOpacity(0.1), Color(0xFFC62828).withOpacity(0.05)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+              // Logo with fade animation
+              FadeTransition(
+                opacity: _logoFadeAnimation,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.95),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [primaryColor.withOpacity(0.1), Color(0xFFC62828).withOpacity(0.05)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                         ),
                       ),
-                    ),
-                    Image.asset(
-                      'assets/favicon.png',
-                      width: 120,
-                      height: 120,
-                    ),
-                  ],
+                      Image.asset(
+                        'assets/favicon.png',
+                        width: 120,
+                        height: 120,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
               
-              // App Name
-              Text(
-                'UPM DRRMO IRS',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
+              // App Name with fade animation
+              FadeTransition(
+                opacity: _textFadeAnimation,
+                child: Text(
+                  'UPM DRRMO IRS',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
               
-              // Tagline
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Incident Reporting System',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withOpacity(0.95),
+              // Tagline with fade animation
+              FadeTransition(
+                opacity: _textFadeAnimation,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Incident Reporting System',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.95),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 4),
               
-              Text(
-                'Loading...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.8),
+              // Loading text with fade animation
+              FadeTransition(
+                opacity: _loadingFadeAnimation,
+                child: Text(
+                  'Loading...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
                 ),
               ),
             ],
