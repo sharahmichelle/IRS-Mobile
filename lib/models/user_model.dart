@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel{
-  final String userName; // This should be the document ID
+  final String userName; 
   final String firstName;
   final String middleName;
   final String lastName;
@@ -128,6 +128,4 @@ class UserModel{
       userType: userType ?? this.userType,
     );
   }
-
-  toMap() {}
 }

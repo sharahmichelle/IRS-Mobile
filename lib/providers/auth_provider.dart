@@ -322,11 +322,9 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Check if user is admin (assuming userType 3 is admin)
-  bool get isAdmin => hasPermission(3);
+  bool get isAdmin => hasPermission(2);
 
   // Check if user is encoder (assuming userType 1 is encoder)
   bool get isEncoder => hasPermission(1);
 
-  // Check if user is manager (assuming userType 2 is manager)
-  bool get isManager => hasPermission(2);
 }

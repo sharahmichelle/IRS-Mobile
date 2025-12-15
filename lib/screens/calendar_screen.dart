@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:upm_drrm_irs_mobile/models/event_calendar_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
@@ -30,7 +31,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsProvider = Provider.of<Events>(context, listen: false);
-
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -163,12 +166,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: currentUser?.userType == 2
+      ? FloatingActionButton(
         onPressed: _addNewEvent,
         backgroundColor: primaryColor,
         child: Icon(Icons.add_rounded, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
+      )
+      : null 
     );
   }
 
