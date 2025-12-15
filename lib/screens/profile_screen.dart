@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/login');
+                  Navigator.of(context).pushReplacementNamed('/');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
@@ -271,9 +271,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           // Email with improved overflow handling
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.email_outlined,
@@ -281,8 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white.withOpacity(0.8),
                 ),
                 const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
+                Text(
                     user.email,
                     style: TextStyle(
                       fontSize: 14,
@@ -292,7 +292,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                   ),
-                ),
               ],
             ),
           ),

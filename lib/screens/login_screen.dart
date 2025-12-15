@@ -378,8 +378,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     GestureDetector(
                       onTap: () => setState(() => _remember = !_remember),
                       child: Container(
-                        width: 44,
-                        height: 44,
+                        width: 30,
+                        height: 30,
                         decoration: BoxDecoration(
                           color: _remember ? primaryColor.withOpacity(0.1) : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
