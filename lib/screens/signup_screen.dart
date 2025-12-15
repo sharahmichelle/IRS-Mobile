@@ -1,5 +1,7 @@
 // lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/register';
@@ -13,13 +15,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
+  final _middleNameCtrl = TextEditingController();
+  final _suffixCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
+  final _upCampusCtrl = TextEditingController();
+  final _officeCtrl = TextEditingController();
+  final _positionCtrl = TextEditingController();
+  final _bldgNameCtrl = TextEditingController();
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isLoading = false;
   bool _agreeToTerms = false;
   
   // Modern color scheme matching login screen
@@ -31,44 +38,280 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final Color accentColor = Color(0xFF0EA5E9);
   final Color successColor = Color(0xFF10B981);
   final Color warningColor = Color(0xFFF59E0B);
+  final Color errorColor = Color(0xFFEF4444);
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default values for dropdowns
+    _upCampusCtrl.text = 'UPM';
+    _officeCtrl.text = 'DRRMO';
+    _positionCtrl.text = 'Encoder';
+  }
 
   @override
   void dispose() {
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
+    _middleNameCtrl.dispose();
+    _suffixCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
+    _upCampusCtrl.dispose();
+    _officeCtrl.dispose();
+    _positionCtrl.dispose();
+    _bldgNameCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final form = _formKey.currentState;
-    if (form == null) return;
-    if (!form.validate()) return;
+    
+    if (form == null || !form.validate()) return;
 
     if (!_agreeToTerms) {
       _showTermsAlert();
       return;
     }
 
-    // dismiss keyboard
+    // Dismiss keyboard
     FocusScope.of(context).unfocus();
 
-    setState(() => _isLoading = true);
+    try {
+      // Call the sign-up API through the provider
+      final error = await authProvider.signUp(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+        middleName: _middleNameCtrl.text.trim(),
+        suffix: _suffixCtrl.text.trim(),
+        upCampus: _upCampusCtrl.text,
+        office: _officeCtrl.text,
+        position: _positionCtrl.text,
+        bldgName: _bldgNameCtrl.text.trim(),
+        userType: 1, // Default to Encoder role
+      );
 
-    // Simulate an API call. Replace with real registration.
-    await Future.delayed(const Duration(seconds: 2));
+      if (error == null) {
+        // Registration successful
+        _showSuccessDialog(context);
+      } else {
+        // Show error message
+        _showErrorDialog(context, error);
+      }
+    } catch (e) {
+      _showErrorDialog(context, 'An unexpected error occurred. Please try again.');
+    }
+  }
 
-    setState(() => _isLoading = false);
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: successColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  size: 40,
+                  color: successColor,
+                ),
+              ),
+              const SizedBox(height: 20),
 
-    // On success navigate to home
-    Navigator.of(context).pushReplacementNamed('/');
+              // Title
+              Text(
+                "Registration Successful!",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Description
+              Text(
+                "Your account has been created successfully. Please check your email for verification link before signing in.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                        authProvider.verifyEmail();
+                        Navigator.of(context).pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: primaryColor, width: 2),
+                      ),
+                      child: Text(
+                        "Resend Email",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context)
+                          ..pop()
+                          ..pop(); // Go back to login screen
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Sign In",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Error Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: errorColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_rounded,
+                  size: 40,
+                  color: errorColor,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                "Registration Failed",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Error Message
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    "Try Again",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   String? _validateName(String? v, String fieldName) {
-    if (v == null || v.trim().isEmpty) return 'Please enter $fieldName';
-    if (v.length < 2) return '$fieldName must be at least 2 characters';
+    if (fieldName == 'First Name' || fieldName == 'Last Name') {
+      if (v == null || v.trim().isEmpty) return 'Please enter $fieldName';
+      if (v.length < 2) return '$fieldName must be at least 2 characters';
+    }
+    // Middle name and suffix are optional, no validation needed
     return null;
   }
 
@@ -90,6 +333,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _validateConfirmPassword(String? v) {
     if (v == null || v.isEmpty) return 'Please confirm password';
     if (v != _passwordCtrl.text) return 'Passwords do not match';
+    return null;
+  }
+
+  String? _validateRequiredField(String? v, String fieldName) {
+    if (v == null || v.trim().isEmpty) return 'Please enter $fieldName';
     return null;
   }
 
@@ -178,36 +426,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  // Header with gradient matching login screen
-                  _buildSignUpHeader(),
-                  const SizedBox(height: 32),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final bool isLoading = authProvider.isLoading;
+        
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      // Header with gradient matching login screen
+                      _buildSignUpHeader(),
+                      const SizedBox(height: 32),
 
-                  // Sign Up Form Card
-                  _buildSignUpFormCard(),
-                  const SizedBox(height: 32),
-                ],
-              ),
+                      // Sign Up Form Card
+                      _buildSignUpFormCard(authProvider),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+
+                // Loading overlay
+                if (isLoading)
+                  Container(
+                    color: Colors.black38,
+                    alignment: Alignment.center,
+                    child: const CircularProgressIndicator(),
+                  ),
+              ],
             ),
-
-            // Loading overlay
-            if (_isLoading)
-              Container(
-                color: Colors.black38,
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator(),
-              ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -259,12 +513,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 Center(
-              child: Image.asset(
-                'assets/favicon.png',
-                width: 100,
-                height: 100,
-              ),
-            ),
+                  child: Image.asset(
+                    'assets/favicon.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
               ],
             ),
           ),
@@ -317,7 +571,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildSignUpFormCard() {
+  Widget _buildSignUpFormCard(AuthProvider authProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
@@ -409,7 +663,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Modern form fields
                 Column(
                   children: [
-                    // Name row
+                    // Name row - First Name and Last Name
                     Row(
                       children: [
                         Expanded(
@@ -419,6 +673,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             icon: Icons.person_outline_rounded,
                             textInputAction: TextInputAction.next,
                             validator: (v) => _validateName(v, 'First Name'),
+                            isRequired: true,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -429,6 +684,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             icon: Icons.person_outline_rounded,
                             textInputAction: TextInputAction.next,
                             validator: (v) => _validateName(v, 'Last Name'),
+                            isRequired: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Name row - Middle Name and Suffix (optional)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildModernFormField(
+                            controller: _middleNameCtrl,
+                            label: 'Middle Name (Optional)',
+                            icon: Icons.person_outline_rounded,
+                            textInputAction: TextInputAction.next,
+                            validator: (v) => _validateName(v, 'Middle Name'),
+                            isRequired: false,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildModernFormField(
+                            controller: _suffixCtrl,
+                            label: 'Suffix (Optional)',
+                            icon: Icons.credit_card_outlined,
+                            textInputAction: TextInputAction.next,
+                            validator: (v) => null, // No validation for optional field
+                            isRequired: false,
                           ),
                         ),
                       ],
@@ -443,6 +727,49 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       validator: _validateEmail,
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // UP Campus dropdown
+                    _buildDropdownField(
+                      controller: _upCampusCtrl,
+                      label: 'UP Campus',
+                      icon: Icons.school_rounded,
+                      options: ['UPM', 'UPLB', 'UPD', 'UPV', 'UPMIN'],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Office field
+                    _buildModernFormField(
+                      controller: _officeCtrl,
+                      label: 'Office/Department',
+                      icon: Icons.business_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _validateRequiredField(v, 'Office/Department'),
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Position field
+                    _buildModernFormField(
+                      controller: _positionCtrl,
+                      label: 'Position',
+                      icon: Icons.work_outline_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _validateRequiredField(v, 'Position'),
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Building Name field (optional)
+                    _buildModernFormField(
+                      controller: _bldgNameCtrl,
+                      label: 'Building Name (Optional)',
+                      icon: Icons.location_city_outlined,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => null, // Optional field
+                      isRequired: false,
                     ),
                     const SizedBox(height: 20),
 
@@ -454,6 +781,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.next,
                       validator: _validatePassword,
+                      isRequired: true,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
@@ -473,7 +801,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       obscureText: _obscureConfirmPassword,
                       textInputAction: TextInputAction.done,
                       validator: _validateConfirmPassword,
-                      onFieldSubmitted: (_) => _submit(),
+                      onFieldSubmitted: (_) => _submit(context),
+                      isRequired: true,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
@@ -503,7 +832,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        gradient: _isLoading 
+                        gradient: authProvider.isLoading 
                             ? null 
                             : LinearGradient(
                                 colors: [primaryColor, Color(0xFFC62828)],
@@ -511,7 +840,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 end: Alignment.bottomRight,
                               ),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: _isLoading
+                        boxShadow: authProvider.isLoading
                             ? []
                             : [
                                 BoxShadow(
@@ -522,9 +851,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ],
                       ),
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submit,
+                        onPressed: authProvider.isLoading ? null : () => _submit(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isLoading ? Color(0xFF94A3B8) : Colors.transparent,
+                          backgroundColor: authProvider.isLoading ? Color(0xFF94A3B8) : Colors.transparent,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -533,7 +862,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           shadowColor: Colors.transparent,
                         ),
-                        child: _isLoading
+                        child: authProvider.isLoading
                             ? SizedBox(
                                 width: 20,
                                 height: 20,
@@ -598,7 +927,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pop(  context);
+                      Navigator.pop(context);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -666,6 +995,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     TextInputAction textInputAction = TextInputAction.next,
     ValueChanged<String>? onFieldSubmitted,
     Widget? suffixIcon,
+    bool isRequired = true,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -754,7 +1084,120 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+          suffix: !isRequired
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Text(
+                    'Optional',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              : null,
         ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required List<String> options,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: controller.text.isNotEmpty ? controller.text : options.first,
+        items: options.map((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            controller.text = newValue;
+          }
+        },
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+          floatingLabelStyle: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+          prefixIcon: Container(
+            width: 20,
+            height: 20,
+            margin: const EdgeInsets.only(left: 20, right: 16),
+            child: Icon(
+              icon,
+              size: 20,
+              color: textSecondary,
+            ),
+          ),
+          filled: true,
+          fillColor: surfaceColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Color(0xFFE2E8F0),
+              width: 2,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Color(0xFFE2E8F0),
+              width: 2,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: primaryColor,
+              width: 2,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+        ),
+        style: TextStyle(
+          color: textPrimary,
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+        ),
+        dropdownColor: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        icon: Icon(Icons.arrow_drop_down_rounded, color: textSecondary),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select $label';
+          }
+          return null;
+        },
       ),
     );
   }

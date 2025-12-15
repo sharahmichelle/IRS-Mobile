@@ -1,5 +1,7 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -14,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscure = true;
-  bool _isLoading = false;
   bool _remember = false;
 
   // Modern color scheme matching profile page
@@ -33,28 +34,40 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final form = _formKey.currentState;
-    if (form == null) return;
-    if (!form.validate()) return;
-
+    if (!_formKey.currentState!.validate()) return;
+    
     // dismiss keyboard
     FocusScope.of(context).unfocus();
 
-    setState(() => _isLoading = true);
+    final authProvider = context.read<AuthProvider>();
+    final result = await authProvider.signIn(
+      _emailCtrl.text.trim(),
+      _passwordCtrl.text,
+    );
 
-    // Simulate an API call. Replace with real auth call.
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() => _isLoading = false);
-
-    // On success navigate to home (adjust route as needed)
-    Navigator.of(context).pushReplacementNamed('/main');
+    if (result == null) {
+      // Success - navigation will be handled by auth state listener
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login successful!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pushReplacementNamed('/main');
+    } else {
+      // Show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   String? _validateEmail(String? v) {
     if (v == null || v.trim().isEmpty) return 'Please enter email';
-    const pattern =
-        r'^[^@]+@[^@]+\.[^@]+$'; // simple email check, replace if needed
+    const pattern = r'^[^@]+@[^@]+\.[^@]+$';
     if (!RegExp(pattern).hasMatch(v.trim())) return 'Enter a valid email';
     return null;
   }
@@ -67,6 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
@@ -81,18 +96,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 32),
 
                   // Login Form Card
-                  _buildLoginFormCard(),
+                  _buildLoginFormCard(authProvider),
                   const SizedBox(height: 32),
                 ],
               ),
             ),
 
             // Loading overlay
-            if (_isLoading)
+            if (authProvider.isLoading)
               Container(
                 color: Colors.black38,
                 alignment: Alignment.center,
-                child: const CircularProgressIndicator(),
+                child: CircularProgressIndicator(color: primaryColor),
               ),
           ],
         ),
@@ -148,12 +163,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 Center(
-              child: Image.asset(
-                'assets/favicon.png',
-                width: 100,
-                height: 100,
-              ),
-            ),
+                  child: Image.asset(
+                    'assets/favicon.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
               ],
             ),
           ),
@@ -206,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginFormCard() {
+  Widget _buildLoginFormCard(AuthProvider authProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
@@ -295,6 +310,34 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
+                // Error message if any
+                if (authProvider.errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            authProvider.errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Modern form fields
                 Column(
                   children: [
@@ -368,7 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       cursor: SystemMouseCursors.click,
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pushNamed('/forgot-password');
+                          _showForgotPasswordDialog(context);
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -399,7 +442,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        gradient: _isLoading 
+                        gradient: authProvider.isLoading 
                             ? null 
                             : LinearGradient(
                                 colors: [primaryColor, Color(0xFFC62828)],
@@ -407,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 end: Alignment.bottomRight,
                               ),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: _isLoading
+                        boxShadow: authProvider.isLoading
                             ? []
                             : [
                                 BoxShadow(
@@ -418,9 +461,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                       ),
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submit,
+                        onPressed: authProvider.isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isLoading ? Color(0xFF94A3B8) : Colors.transparent,
+                          backgroundColor: authProvider.isLoading ? Color(0xFF94A3B8) : Colors.transparent,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -429,7 +472,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           shadowColor: Colors.transparent,
                         ),
-                        child: _isLoading
+                        child: authProvider.isLoading
                             ? SizedBox(
                                 width: 20,
                                 height: 20,
@@ -471,7 +514,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'New to UPM DRRMO?',
+                        'Need an account?',
                         style: TextStyle(
                           color: textSecondary,
                           fontWeight: FontWeight.w600,
@@ -651,6 +694,56 @@ class _LoginScreenState extends State<LoginScreen> {
           contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
         ),
       ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final emailCtrl = TextEditingController();
+    final authProvider = context.read<AuthProvider>();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Reset Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Enter your email address to reset your password.'),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: emailCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                validator: _validateEmail,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_validateEmail(emailCtrl.text) == null) {
+                  await authProvider.resetPassword(emailCtrl.text);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Password reset email sent!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              child: Text('Reset Password'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

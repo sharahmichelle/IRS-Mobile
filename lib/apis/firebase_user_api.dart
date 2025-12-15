@@ -18,7 +18,7 @@ class FirebaseUserAPI {
   }
 
   // Get users by usernames (document IDs)
-  Future<List<User>> getUsersByUserNames(List<String> userNames) async {
+  Future<List<UserModel>> getUsersByUserNames(List<String> userNames) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await db
         .collection('users')
@@ -26,7 +26,7 @@ class FirebaseUserAPI {
         .get();
 
       return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-        return User.fromFirestore(doc);
+        return UserModel.fromFirestore(doc);
       }).toList();
     } catch (e) {
       print('Error fetching users by usernames: $e');
@@ -35,11 +35,11 @@ class FirebaseUserAPI {
   }
 
   // Get a single user by userName (document ID)
-  Future<User> getUserById(String userName) async {
+  Future<UserModel> getUserById(String userName) async {
     try {
       DocumentSnapshot<Map<String, dynamic>> doc = await db.collection("users").doc(userName).get();
       if (doc.exists) {
-        return User.fromFirestore(doc);
+        return UserModel.fromFirestore(doc);
       } else {
         throw Exception('User not found');
       }
@@ -50,7 +50,7 @@ class FirebaseUserAPI {
   }
 
   // Add a new user
-  Future<String> addUser(String userName, User user) async {
+  Future<String> addUser(String userName, UserModel user) async {
     try {
       await db.collection("users").doc(userName).set(user.toJson());
       return "Successfully added user!";
@@ -86,7 +86,7 @@ class FirebaseUserAPI {
   }
 
   // Get users by position
-  Future<List<User>> getUsersByPosition(String position) async {
+  Future<List<UserModel>> getUsersByPosition(String position) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await db
         .collection('users')
@@ -94,7 +94,7 @@ class FirebaseUserAPI {
         .get();
 
       return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-        return User.fromFirestore(doc);
+        return UserModel.fromFirestore(doc);
       }).toList();
     } catch (e) {
       print('Error fetching users by position: $e');
@@ -103,7 +103,7 @@ class FirebaseUserAPI {
   }
 
   // Get users by office
-  Future<List<User>> getUsersByOffice(String office) async {
+  Future<List<UserModel>> getUsersByOffice(String office) async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot = await db
         .collection('users')
@@ -111,7 +111,7 @@ class FirebaseUserAPI {
         .get();
 
       return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-        return User.fromFirestore(doc);
+        return UserModel.fromFirestore(doc);
       }).toList();
     } catch (e) {
       print('Error fetching users by office: $e');
@@ -120,14 +120,14 @@ class FirebaseUserAPI {
   }
 
   // Get users by userType
-  Stream<List<User>> getUsersByType(int userType) {
+  Stream<List<UserModel>> getUsersByType(int userType) {
     return db
         .collection('users')
         .where('userType', isEqualTo: userType)
         .snapshots()
         .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
       return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-        return User.fromFirestore(doc);
+        return UserModel.fromFirestore(doc);
       }).toList();
     });
   }
@@ -144,7 +144,7 @@ class FirebaseUserAPI {
   }
 
   // Update user profile
-  Future<String> updateUserProfile(String userName, User updatedUser) async {
+  Future<String> updateUserProfile(String userName, UserModel updatedUser) async {
     try {
       await db.collection("users").doc(userName).update(updatedUser.toJson());
       return "Successfully updated user profile!";

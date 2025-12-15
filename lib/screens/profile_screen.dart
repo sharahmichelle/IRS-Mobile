@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,45 +19,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final Color textSecondary = Color(0xFF64748B);
   final Color accentColor = Color(0xFF0EA5E9);
 
-  late User currentUser;
-
   @override
   Widget build(BuildContext context) {
-    // Dummy data
-    final User currentUser = User(
-      firstName: "Emman",
-      middleName: "Sakay",
-      lastName: "Estares",
-      suffix: "II",
-      email: "emanestares0228@gmail.com",
-      upCampus: "UP Los Banos",
-      office: "Office of the Supreme Leader",
-      bldgName: "CAS",
-      position: "Security Guard",
-      userType: 1, 
-      userName: '@emanestares',
-    );
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    // Show loading if user data is not yet loaded
+    if (authProvider.isLoading) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+          ),
+        ),
+      );
+    }
+    
+    // Show error or empty state if no user
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.person_off_rounded,
+                size: 64,
+                color: textSecondary,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'No user data available',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please sign in again',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: textSecondary,
+                ),
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: Text(
+                  'Go to Login',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Build full name with optional middle name and suffix
+    String getFullName() {
+      final nameParts = [currentUser.firstName];
+      if (currentUser.middleName.isNotEmpty) {
+        nameParts.add('${currentUser.middleName[0]}.');
+      }
+      nameParts.add(currentUser.lastName);
+      if (currentUser.suffix.isNotEmpty) {
+        nameParts.add(currentUser.suffix);
+      }
+      return nameParts.join(' ');
+    }
 
     final userDetails = [
       {
         "icon": Icons.work_rounded,
         "label": "Position",
-        "value": currentUser.position,
+        "value": currentUser.position.isNotEmpty ? currentUser.position : "Not specified",
       },
       {
         "icon": Icons.school_rounded,
         "label": "UP Organization",
-        "value": currentUser.upCampus,
+        "value": currentUser.upCampus.isNotEmpty ? currentUser.upCampus : "Not specified",
       },
       {
         "icon": Icons.business_rounded,
         "label": "Office / College",
-        "value": currentUser.office,
+        "value": currentUser.office.isNotEmpty ? currentUser.office : "Not specified",
       },
       {
         "icon": Icons.location_city_rounded,
         "label": "Building Name",
-        "value": currentUser.bldgName,
+        "value": currentUser.bldgName.isNotEmpty ? currentUser.bldgName : "Not specified",
       },
     ];
 
@@ -67,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               // Header with gradient
-              _buildProfileHeader(currentUser),
+              _buildProfileHeader(currentUser, getFullName()),
               const SizedBox(height: 24),
 
               // User Info Card
@@ -75,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
 
               // Action Cards
-              _buildActionCards(),
+              _buildActionCards(context, authProvider),
               const SizedBox(height: 32),
             ],
           ),
@@ -84,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(User user) {
+  Widget _buildProfileHeader(UserModel user, String fullName) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -172,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              '${user.firstName} ${user.middleName[0]}. ${user.lastName} ${user.suffix}',
+              fullName,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
@@ -190,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              user.position,
+              user.position.isNotEmpty ? user.position : "No position specified",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -215,15 +281,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color: Colors.white.withOpacity(0.8),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  user.email,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                Expanded(
+                  child: Text(
+                    user.email,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -233,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildUserInfoCard(User user, List<Map<String, dynamic>> details) {
+  Widget _buildUserInfoCard(UserModel user, List<Map<String, dynamic>> details) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -356,7 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 6),
           Expanded(
             child: Text(
-              value.isNotEmpty ? value : "Not specified",
+              value,
               style: TextStyle(
                 fontSize: 14,
                 color: textPrimary,
@@ -371,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildActionCards() {
+  Widget _buildActionCards(BuildContext context, AuthProvider authProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -393,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: "Sign out of your account",
             color: Colors.redAccent,
             isLogout: true,
-            onTap: () => _showLogoutConfirmation(),
+            onTap: () => _showLogoutConfirmation(context, authProvider),
           ),
         ],
       ),
@@ -543,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     print("Navigate to FAQs");
   }
 
-  void _showLogoutConfirmation() {
+  void _showLogoutConfirmation(BuildContext context, AuthProvider authProvider) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -626,8 +694,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Logout Button
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, "/");
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await authProvider.signOut(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,

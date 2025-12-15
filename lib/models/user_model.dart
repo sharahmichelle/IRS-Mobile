@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User {
+class UserModel{
   final String userName; // This should be the document ID
   final String firstName;
   final String middleName;
@@ -14,7 +14,7 @@ class User {
   final String position; 
   final int userType;
 
-  User({
+  UserModel({
     required this.userName,
     this.firstName = "",
     this.middleName = "",
@@ -29,9 +29,9 @@ class User {
     this.userType = 0
   });
 
-  factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
-    return User(
+    return UserModel(
       userName: doc.id,
       firstName: data['firstName'] ?? '',
       middleName: data['middleName'] ?? '',
@@ -47,8 +47,8 @@ class User {
     );
   }
 
-  factory User.fromMap(Map<String, dynamic> data, String userName) {
-    return User(
+  factory UserModel.fromMap(Map<String, dynamic> data, String userName) {
+    return UserModel(
       userName: userName,
       firstName: data['firstName'] ?? '',
       middleName: data['middleName'] ?? '',
@@ -99,7 +99,7 @@ class User {
   }
 
   // Copy with method for immutability
-  User copyWith({
+  UserModel copyWith({
     String? userName,
     String? firstName,
     String? middleName,
@@ -113,7 +113,7 @@ class User {
     String? position,
     int? userType,
   }) {
-    return User(
+    return UserModel(
       userName: userName ?? this.userName,
       firstName: firstName ?? this.firstName,
       middleName: middleName ?? this.middleName,
@@ -128,4 +128,6 @@ class User {
       userType: userType ?? this.userType,
     );
   }
+
+  toMap() {}
 }
