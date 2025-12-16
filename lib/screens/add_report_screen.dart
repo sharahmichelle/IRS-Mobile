@@ -332,7 +332,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
           },
         ),
         title: Text(
-          "Add Status Report",
+          "Add Incident Report",
           style: TextStyle(
             color: textPrimary,
             fontSize: 18,

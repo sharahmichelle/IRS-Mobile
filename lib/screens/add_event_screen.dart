@@ -32,24 +32,32 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final _factSheetController = TextEditingController();
   final _incidentCommanderController = TextEditingController();
   final _liasonOfficerController = TextEditingController();
-  final _statusController = TextEditingController();
   final _actionController = TextEditingController();
   final _publicInformationOfficerController = TextEditingController();
   final _safetySecurityOfficerController = TextEditingController();
 
   String selectedCategory = "Drill";
+  String selectedStatus = "Upcoming";
   DateTime? _startDate;
   DateTime? _endDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
 
   final List<String> categories = ["Drill", "Emergency", "Training", "Meeting", "Assessment"];
+  final List<String> statuses = ["Upcoming", "Ongoing", "Completed", "Cancelled"];
   final List<Color> categoryColors = [
     Color(0xFF0EA5E9), // Blue
     Color(0xFFEF4444), // Red
     Color(0xFF10B981), // Green
     Color(0xFFF59E0B), // Amber
     Color(0xFF8B5CF6), // Purple
+  ];
+
+  final List<Color> statusColors = [
+    Color(0xFF3B82F6), // Blue
+    Color(0xFFF97316), // Orange
+    Color(0xFF10B981), // Green
+    Color(0xFF6B7280), // Gray
   ];
 
   @override
@@ -63,7 +71,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
     _factSheetController.dispose();
     _incidentCommanderController.dispose();
     _liasonOfficerController.dispose();
-    _statusController.dispose();
     _actionController.dispose();
     _publicInformationOfficerController.dispose();
     _safetySecurityOfficerController.dispose();
@@ -175,7 +182,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
         factSheet: _factSheetController.text,
         incidentCommander: _incidentCommanderController.text,
         liasonOfficer: _liasonOfficerController.text,
-        status: _statusController.text.isNotEmpty ? _statusController.text : "Upcoming",
+        status: selectedStatus,
         action: _actionController.text,
         publicInformationOfficer: _publicInformationOfficerController.text,
         safetySecurityOfficer: _safetySecurityOfficerController.text,
@@ -432,11 +439,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 // Status
                 _buildSectionHeader('Current Status', Icons.assessment_rounded),
                 const SizedBox(height: 12),
-                _buildTextFormField(
-                  controller: _statusController,
-                  hintText: 'Enter current event status',
-                  maxLines: 2,
-                ),
+                _buildStatusSelector(),
                 const SizedBox(height: 24),
 
                 // Action
@@ -643,6 +646,46 @@ class _AddEventScreenState extends State<AddEventScreen> {
               onSelected: (selected) {
                 setState(() {
                   selectedCategory = category;
+                });
+              },
+              backgroundColor: surfaceColor,
+              selectedColor: color,
+              side: BorderSide(color: color),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildStatusSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(statuses.length, (index) {
+          final status = statuses[index];
+          final isSelected = selectedStatus == status;
+          final color = statusColors[index];
+          
+          return Container(
+            margin: const EdgeInsets.only(right: 12),
+            child: ChoiceChip(
+              label: Text(
+                status,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? Colors.white : color,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  selectedStatus = status;
                 });
               },
               backgroundColor: surfaceColor,

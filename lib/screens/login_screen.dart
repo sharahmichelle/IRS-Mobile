@@ -178,9 +178,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Column(
             children: [
               Text(
-                'UPM - DRRMO IRS',
+                'University of the Philippines Manila - Disaster Risk Reduction and Management in Health',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                   letterSpacing: -0.5,

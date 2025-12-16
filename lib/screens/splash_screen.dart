@@ -136,7 +136,7 @@ class _SplashScreenMinimalState extends State<SplashScreenMinimal>
               FadeTransition(
                 opacity: _textFadeAnimation,
                 child: Text(
-                  'UPM DRRMO IRS',
+                  'UPM DRRM - H IRS',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
