@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
+import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
@@ -80,6 +81,11 @@ class _AddReportScreenState extends State<AddReportScreen> {
   @override
   void initState() {
     super.initState();
+      _locationFocusNode.addListener(() {
+        if (!_locationFocusNode.hasFocus) {
+          _onLocationUnfocus();
+        }
+      });
     // Initialize any required data
   }
 
@@ -155,15 +161,18 @@ class _AddReportScreenState extends State<AddReportScreen> {
   }
 
   Future<void> _onSubmit() async {
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
     if (_formKey.currentState!.validate()) {
       final String reportId;
       reportId =
           await context.read<Reports>().addReport(
                 Report(
-                  encoderId: "encoder123",
-                  reportId: "reportId456",
-                  upSystem: "UP System A",
-                  office: "Some Office",
+                  encoderId: currentUser != null ? currentUser.authId : "unknown",
+                  reportId: "",
+                  upSystem: currentUser != null ? currentUser.upCampus : "unknown",
+                  office: currentUser != null ? currentUser.office : "unknown",
                   encoderPosition: _positionController.text,
                   headCountFaculty: int.parse(_headcountFacultyController.text),
                   headCountadminMember: int.parse(
