@@ -26,7 +26,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final Color accentColor = Color(0xFF0EA5E9);
 
   CalendarView _currentView = CalendarView.month;
-  CalendarController _calendarController = CalendarController();
+  final CalendarController _calendarController = CalendarController();
 
   @override
   Widget build(BuildContext context) {

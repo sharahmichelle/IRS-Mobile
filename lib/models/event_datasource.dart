@@ -22,8 +22,6 @@ class EventDataSource extends DataGridSource {
 
   late List<DataGridRow> _eventData;
 
-
-
   @override
   List<DataGridRow> get rows => _eventData;
 
