@@ -167,11 +167,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
       floatingActionButton: currentUser?.userType == 2
-      ? FloatingActionButton(
+      ? FloatingActionButton.extended(
         onPressed: _addNewEvent,
         backgroundColor: primaryColor,
-        child: Icon(Icons.add_rounded, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        label: Text("Add Event", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)), 
+       
       )
       : null 
     );

@@ -31,11 +31,11 @@ class EventDataSource extends CalendarDataSource<Object?> {
   Color getColor(int index) {
     final status = appointments![index].status.toLowerCase();
     switch (status) {
-      case 'ongoing':
-        return const Color(0xFF4CAF50);
       case 'completed':
+        return const Color(0xFF4CAF50);
+      case 'upcoming':
         return const Color(0xFF2196F3);
-      case 'pending':
+      case 'ongoing':
         return const Color(0xFFFF9800);
       default:
         return const Color(0xFF9E9E9E);
