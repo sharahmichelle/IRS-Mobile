@@ -607,7 +607,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showFAQs() {
     // Implement FAQ screen navigation
-    print("Navigate to FAQs");
+    Navigator.of(context).pushNamed('/faq');
   }
 
   void _showLogoutConfirmation(BuildContext context, AuthProvider authProvider) {

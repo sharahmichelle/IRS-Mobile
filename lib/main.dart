@@ -8,6 +8,7 @@ import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/faq_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/login_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/signup_screen.dart';
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         "/main": (context) => const MainScreen(),
         "/add_event": (context) => const AddEventScreen(),
         "/signup": (context) => const SignUpScreen(), 
+        "/faq": (context) => const FaqScreen(),
       },
     );
   }
