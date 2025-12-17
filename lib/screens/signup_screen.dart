@@ -24,11 +24,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _officeCtrl = TextEditingController();
   final _positionCtrl = TextEditingController();
   final _bldgNameCtrl = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  
+
   // Modern color scheme matching login screen
   final Color primaryColor = Color(0xFFA11D1C);
   final Color backgroundColor = Color(0xFFF8FAFC);
@@ -45,7 +45,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.initState();
     // Set default values for dropdowns
     _upCampusCtrl.text = 'UPM';
-    _officeCtrl.text = 'DRRMO';
+    _officeCtrl.text = 'DRRM-H';
     _positionCtrl.text = 'Encoder';
   }
 
@@ -68,7 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _submit(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final form = _formKey.currentState;
-    
+
     if (form == null || !form.validate()) return;
 
     if (!_agreeToTerms) {
@@ -103,7 +103,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _showErrorDialog(context, error);
       }
     } catch (e) {
-      _showErrorDialog(context, 'An unexpected error occurred. Please try again.');
+      _showErrorDialog(
+        context,
+        'An unexpected error occurred. Please try again.',
+      );
     }
   }
 
@@ -168,7 +171,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                        final authProvider = Provider.of<AuthProvider>(
+                          context,
+                          listen: false,
+                        );
                         authProvider.verifyEmail();
                         Navigator.of(context).pop();
                       },
@@ -246,11 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   color: errorColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.error_rounded,
-                  size: 40,
-                  color: errorColor,
-                ),
+                child: Icon(Icons.error_rounded, size: 40, color: errorColor),
               ),
               const SizedBox(height: 20),
 
@@ -325,7 +327,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Please enter password';
     if (v.length < 8) return 'Password must be at least 8 characters';
-    if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Include at least one uppercase letter';
+    if (!RegExp(r'[A-Z]').hasMatch(v))
+      return 'Include at least one uppercase letter';
     if (!RegExp(r'[0-9]').hasMatch(v)) return 'Include at least one number';
     return null;
   }
@@ -429,7 +432,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final bool isLoading = authProvider.isLoading;
-        
+
         return Scaffold(
           backgroundColor: backgroundColor,
           body: SafeArea(
@@ -506,7 +509,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [primaryColor.withOpacity(0.1), Color(0xFFC62828).withOpacity(0.05)],
+                      colors: [
+                        primaryColor.withOpacity(0.1),
+                        Color(0xFFC62828).withOpacity(0.05),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -540,13 +546,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'Join UPM DRRMO IRS',
+                  'Join UPM DRRM-H IRS',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -597,10 +606,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   padding: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(
-                        color: Color(0xFFF1F5F9),
-                        width: 1,
-                      ),
+                      bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
                     ),
                   ),
                   child: Row(
@@ -663,59 +669,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Modern form fields
                 Column(
                   children: [
-                    // Name row - First Name and Last Name
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildModernFormField(
-                            controller: _firstNameCtrl,
-                            label: 'First Name',
-                            icon: Icons.person_outline_rounded,
-                            textInputAction: TextInputAction.next,
-                            validator: (v) => _validateName(v, 'First Name'),
-                            isRequired: true,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildModernFormField(
-                            controller: _lastNameCtrl,
-                            label: 'Last Name',
-                            icon: Icons.person_outline_rounded,
-                            textInputAction: TextInputAction.next,
-                            validator: (v) => _validateName(v, 'Last Name'),
-                            isRequired: true,
-                          ),
-                        ),
-                      ],
+                    _buildModernFormField(
+                      controller: _firstNameCtrl,
+                      label: 'First Name',
+                      icon: Icons.person_outline_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _validateName(v, 'First Name'),
+                      isRequired: true,
                     ),
                     const SizedBox(height: 20),
-
-                    // Name row - Middle Name and Suffix (optional)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildModernFormField(
-                            controller: _middleNameCtrl,
-                            label: 'Middle Name (Optional)',
-                            icon: Icons.person_outline_rounded,
-                            textInputAction: TextInputAction.next,
-                            validator: (v) => _validateName(v, 'Middle Name'),
-                            isRequired: false,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildModernFormField(
-                            controller: _suffixCtrl,
-                            label: 'Suffix (Optional)',
-                            icon: Icons.credit_card_outlined,
-                            textInputAction: TextInputAction.next,
-                            validator: (v) => null, // No validation for optional field
-                            isRequired: false,
-                          ),
-                        ),
-                      ],
+                    _buildModernFormField(
+                      controller: _lastNameCtrl,
+                      label: 'Last Name',
+                      icon: Icons.person_outline_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _validateName(v, 'Last Name'),
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildModernFormField(
+                      controller: _middleNameCtrl,
+                      label: 'Middle Name (Optional)',
+                      icon: Icons.person_outline_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) => _validateName(v, 'Middle Name'),
+                      isRequired: false,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildModernFormField(
+                      controller: _suffixCtrl,
+                      label: 'Suffix (Optional)',
+                      icon: Icons.credit_card_outlined,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) =>
+                          null, // No validation for optional field
+                      isRequired: false,
                     ),
                     const SizedBox(height: 20),
 
@@ -746,7 +734,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       label: 'Office/Department',
                       icon: Icons.business_rounded,
                       textInputAction: TextInputAction.next,
-                      validator: (v) => _validateRequiredField(v, 'Office/Department'),
+                      validator: (v) =>
+                          _validateRequiredField(v, 'Office/Department'),
                       isRequired: true,
                     ),
                     const SizedBox(height: 20),
@@ -784,11 +773,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       isRequired: true,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          _obscurePassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded,
                           color: textSecondary,
                           size: 20,
                         ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -805,11 +798,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       isRequired: true,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureConfirmPassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                          _obscureConfirmPassword
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded,
                           color: textSecondary,
                           size: 20,
                         ),
-                        onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
                       ),
                     ),
                   ],
@@ -832,8 +830,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        gradient: authProvider.isLoading 
-                            ? null 
+                        gradient: authProvider.isLoading
+                            ? null
                             : LinearGradient(
                                 colors: [primaryColor, Color(0xFFC62828)],
                                 begin: Alignment.topLeft,
@@ -851,9 +849,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ],
                       ),
                       child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : () => _submit(context),
+                        onPressed: authProvider.isLoading
+                            ? null
+                            : () => _submit(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: authProvider.isLoading ? Color(0xFF94A3B8) : Colors.transparent,
+                          backgroundColor: authProvider.isLoading
+                              ? Color(0xFF94A3B8)
+                              : Colors.transparent,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -896,10 +898,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Divider(
-                        color: Color(0xFFE2E8F0),
-                        thickness: 1,
-                      ),
+                      child: Divider(color: Color(0xFFE2E8F0), thickness: 1),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -913,10 +912,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     Expanded(
-                      child: Divider(
-                        color: Color(0xFFE2E8F0),
-                        thickness: 1,
-                      ),
+                      child: Divider(color: Color(0xFFE2E8F0), thickness: 1),
                     ),
                   ],
                 ),
@@ -930,14 +926,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Navigator.pop(context);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 24,
+                      ),
                       decoration: BoxDecoration(
                         color: Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Color(0xFFE2E8F0),
-                          width: 2,
-                        ),
+                        border: Border.all(color: Color(0xFFE2E8F0), width: 2),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1034,11 +1030,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             width: 20,
             height: 20,
             margin: const EdgeInsets.only(left: 20, right: 16),
-            child: Icon(
-              icon,
-              size: 20,
-              color: textSecondary,
-            ),
+            child: Icon(icon, size: 20, color: textSecondary),
           ),
           suffixIcon: suffixIcon != null
               ? Padding(
@@ -1050,40 +1042,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
           fillColor: surfaceColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Color(0xFFE2E8F0),
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 2),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Color(0xFFE2E8F0),
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 2),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: primaryColor,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: primaryColor, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Colors.red,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Colors.red, width: 2),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Colors.red,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Colors.red, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 18,
+            horizontal: 0,
+          ),
           suffix: !isRequired
               ? Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -1153,36 +1133,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
             width: 20,
             height: 20,
             margin: const EdgeInsets.only(left: 20, right: 16),
-            child: Icon(
-              icon,
-              size: 20,
-              color: textSecondary,
-            ),
+            child: Icon(icon, size: 20, color: textSecondary),
           ),
           filled: true,
           fillColor: surfaceColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Color(0xFFE2E8F0),
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 2),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: Color(0xFFE2E8F0),
-              width: 2,
-            ),
+            borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 2),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: primaryColor,
-              width: 2,
-            ),
+            borderSide: BorderSide(color: primaryColor, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 18,
+            horizontal: 0,
+          ),
         ),
         style: TextStyle(
           color: textPrimary,
@@ -1204,7 +1174,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildPasswordRequirements() {
     final password = _passwordCtrl.text;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1224,10 +1194,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildRequirementRow(
-            'At least 8 characters',
-            password.length >= 8,
-          ),
+          _buildRequirementRow('At least 8 characters', password.length >= 8),
           const SizedBox(height: 8),
           _buildRequirementRow(
             'At least one uppercase letter',
@@ -1241,8 +1208,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SizedBox(height: 8),
           _buildRequirementRow(
             'Passwords match',
-            _confirmPasswordCtrl.text.isNotEmpty && 
-            _confirmPasswordCtrl.text == _passwordCtrl.text,
+            _confirmPasswordCtrl.text.isNotEmpty &&
+                _confirmPasswordCtrl.text == _passwordCtrl.text,
           ),
         ],
       ),
@@ -1258,16 +1225,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           decoration: BoxDecoration(
             color: isMet ? successColor.withOpacity(0.1) : Color(0xFFF1F5F9),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: isMet ? successColor : Color(0xFFE2E8F0),
-            ),
+            border: Border.all(color: isMet ? successColor : Color(0xFFE2E8F0)),
           ),
           child: isMet
-              ? Icon(
-                  Icons.check_rounded,
-                  size: 12,
-                  color: successColor,
-                )
+              ? Icon(Icons.check_rounded, size: 12, color: successColor)
               : null,
         ),
         const SizedBox(width: 12),
@@ -1293,7 +1254,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _agreeToTerms ? successColor.withOpacity(0.05) : Color(0xFFF8FAFC),
+            color: _agreeToTerms
+                ? successColor.withOpacity(0.05)
+                : Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: _agreeToTerms ? successColor : Color(0xFFE2E8F0),
@@ -1316,11 +1279,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 child: _agreeToTerms
-                    ? Icon(
-                        Icons.check_rounded,
-                        size: 16,
-                        color: Colors.white,
-                      )
+                    ? Icon(Icons.check_rounded, size: 16, color: Colors.white)
                     : null,
               ),
               const SizedBox(width: 16),
@@ -1363,7 +1322,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       TextSpan(
-                        text: ' of UPM DRRMO IRS',
+                        text: ' of UPM DRRM-H IRS',
                         style: TextStyle(
                           color: textSecondary,
                           fontSize: 14,
