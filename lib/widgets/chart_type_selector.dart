@@ -69,7 +69,7 @@ class ChartTypeSelector extends StatelessWidget {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    'Event ${currentEventIndex + 1} of $totalEvents',
+                    'Incident ${currentEventIndex + 1} of $totalEvents',
                     style: TextStyle(
                       fontSize: 10,
                       color: textSecondary,

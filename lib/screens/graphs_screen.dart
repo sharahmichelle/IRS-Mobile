@@ -202,7 +202,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error fetching event total: $e');
+      debugPrint('Error fetching indcident total: $e');
       final emptyTotal = _createEmptyEventTotal(eventId);
       if (mounted) {
         setState(() {
@@ -262,7 +262,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
               textPrimary: textPrimary,
               textSecondary: textSecondary,
               title: "Analytics",
-              subtitle: "Compare statistics across different events",
+              subtitle: "Compare statistics across different incidents",
               icon: Icons.analytics_rounded,
             ),
             const SizedBox(height: 12),

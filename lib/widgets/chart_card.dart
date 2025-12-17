@@ -212,7 +212,7 @@ class ChartCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          "Data will be available after the event",
+          "Data will be available after the incident",
           style: TextStyle(
             fontSize: 12,
             color: textSecondary.withOpacity(0.7),
