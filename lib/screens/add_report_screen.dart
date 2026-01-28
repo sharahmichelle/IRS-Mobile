@@ -8,10 +8,7 @@ import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/widgets/compact_number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/number_input.dart';
 import 'package:upm_drrm_irs_mobile/widgets/text_input.dart';
-import 'package:upm_drrm_irs_mobile/widgets/screen_header.dart';
-import 'package:upm_drrm_irs_mobile/widgets/form_section_header.dart';
 import 'package:upm_drrm_irs_mobile/widgets/form_input_row.dart';
-import 'package:upm_drrm_irs_mobile/widgets/form_submit_button.dart';
 import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 
 class AddReportScreen extends StatefulWidget {
@@ -23,7 +20,7 @@ class AddReportScreen extends StatefulWidget {
   State<AddReportScreen> createState() => _AddReportScreenState();
 }
 
-class _AddReportScreenState extends State<AddReportScreen> {
+class _AddReportScreenState extends State<AddReportScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _clusterController = TextEditingController();
@@ -64,13 +61,38 @@ class _AddReportScreenState extends State<AddReportScreen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Modern color scheme
-  final Color primaryColor = Color(0xFFA11D1C);
-  final Color backgroundColor = Color(0xFFF8FAFC);
-  final Color surfaceColor = Colors.white;
-  final Color textPrimary = Color(0xFF1E293B);
-  final Color textSecondary = Color(0xFF64748B);
-  final Color borderColor = Color(0xFFE2E8F0);
+  // 2025 Modern Color Scheme
+  final Color _primaryRed = const Color(0xFFE63946); // Vibrant emergency red
+  final Color _darkRed = const Color(0xFF9D0208); // Deep emergency red
+  final Color _emergencyBlue = const Color(0xFF1D3557); // Dark blue for contrast
+  final Color _accentBlue = const Color(0xFF457B9D); // Medium blue
+  final Color _lightBlue = const Color(0xFFA8DADC); // Light blue accent
+  final Color _white = const Color(0xFFF8F9FA); // Pure white background
+  final Color _surfaceWhite = const Color(0xFFFFFFFF); // Card surface
+  final Color _textPrimary = const Color(0xFF212529); // Near black
+  final Color _textSecondary = const Color(0xFF6C757D); // Medium gray
+  final Color _successGreen = const Color(0xFF2A9D8F); // Teal green
+  final Color _warningOrange = const Color(0xFFE9C46A); // Amber
+  final Color _infoCyan = const Color(0xFF4CC9F0); // Bright cyan
+
+  final LinearGradient _headerGradient = const LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFE63946), Color(0xFF9D0208)],
+    stops: [0.0, 0.8],
+    transform: GradientRotation(0.5),
+  );
+
+  final LinearGradient _emergencyGradient = const LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFFE63946), Color(0xFFD00000)],
+  );
+
+  // Animation
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
 
   // Location auto-complete variables
   List<String> _locationSuggestions = [];
@@ -81,6 +103,29 @@ class _AddReportScreenState extends State<AddReportScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    
+    _animationController.forward();
+    
     _locationFocusNode.addListener(() {
       if (!_locationFocusNode.hasFocus) {
         _onLocationUnfocus();
@@ -90,6 +135,7 @@ class _AddReportScreenState extends State<AddReportScreen> {
 
   @override
   void dispose() {
+    _animationController.dispose();
     _locationFocusNode.dispose();
     _removeOverlay();
 
@@ -158,7 +204,6 @@ class _AddReportScreenState extends State<AddReportScreen> {
   }
 
   Future<void> _onSubmit() async {
-    // FIXED: Use context.read() instead of context.watch() in event handlers
     final authProvider = context.read<AuthProvider>();
     final currentUser = authProvider.currentUser;
     
@@ -231,16 +276,17 @@ class _AddReportScreenState extends State<AddReportScreen> {
           showWhenUnlinked: false,
           offset: Offset(0, 50),
           child: Material(
-            elevation: 4,
+            elevation: 8,
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                color: _surfaceWhite,
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -251,13 +297,41 @@ class _AddReportScreenState extends State<AddReportScreen> {
                 itemCount: _locationSuggestions.length,
                 itemBuilder: (context, index) {
                   final suggestion = _locationSuggestions[index];
-                  return ListTile(
-                    title: Text(suggestion, style: TextStyle(fontSize: 14)),
-                    onTap: () {
-                      _locationController.text = suggestion;
-                      _removeOverlay();
-                      _locationFocusNode.unfocus();
-                    },
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        _locationController.text = suggestion;
+                        _removeOverlay();
+                        _locationFocusNode.unfocus();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_rounded,
+                              color: _textSecondary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                suggestion,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -289,9 +363,9 @@ class _AddReportScreenState extends State<AddReportScreen> {
           Navigator.of(context).pop();
           _formKey.currentState!.reset();
         },
-        primaryColor: primaryColor,
-        textPrimary: textPrimary,
-        textSecondary: textSecondary,
+        primaryColor: _primaryRed,
+        textPrimary: _textPrimary,
+        textSecondary: _textSecondary,
       ),
     );
   }
@@ -308,350 +382,591 @@ class _AddReportScreenState extends State<AddReportScreen> {
     required TextEditingController controller,
     required IconData icon,
   }) {
-    return Container(
-      width: (MediaQuery.of(context).size.width - 80) / 2,
-      child: CompactNumberInput(
-        label: label,
-        controller: controller,
-        hintText: "0",
-        validator: _requiredNumber,
-        icon: icon,
-      ),
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, _slideAnimation.value),
+            child: SizedBox(
+              width: (MediaQuery.of(context).size.width - 80) / 2,
+              child: CompactNumberInput(
+                label: label,
+                controller: controller,
+                hintText: "0",
+                validator: _requiredNumber,
+                icon: icon,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: surfaceColor,
-        elevation: 1,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: textPrimary),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          "Add Incident Report",
-          style: TextStyle(
-            color: textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section
-                  ScreenHeader(
-                    primaryColor: primaryColor,
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                    title: widget.currentEvent.eventName,
-                    subtitle: widget.currentEvent.eventDescription,
-                    icon: Icons.assignment_rounded,
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Transform.translate(
+            offset: Offset(0, _slideAnimation.value),
+            child: Scaffold(
+              backgroundColor: _white,
+              appBar: AppBar(
+                backgroundColor: _surfaceWhite,
+                elevation: 0,
+                leading: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_rounded,
+                    color: _textPrimary,
                   ),
-                  const SizedBox(height: 24),
-
-                  // Form Content in Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: surfaceColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 16,
-                          offset: Offset(0, 4),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                title: Text(
+                  "Add Incident Report",
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+              body: SafeArea(
+                bottom: false,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Event Header Card with Emergency Styling
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: _headerGradient,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _primaryRed.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.emergency_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.currentEvent.eventName,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      widget.currentEvent.eventDescription,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Basic Information Section
-                          FormSectionHeader(
-                            icon: Icons.person_outline_rounded,
-                            title: "Basic Information",
-                            subtitle: "Your personal and organizational details",
-                            primaryColor: primaryColor,
-                            textPrimary: textPrimary,
-                            textSecondary: textSecondary,
-                          ),
-                          const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
-                          FormInputRow(
-                            children: [
-                              Expanded(
-                                child: TextInput(
-                                  label: "Full Name",
-                                  controller: _nameController,
-                                  hintText: "Enter your full name",
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Full name is required'
-                                      : null,
-                                ),
+                        // Form Content in Card
+                        Container(
+                          decoration: BoxDecoration(
+                            color: _surfaceWhite,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 32,
+                                offset: const Offset(0, 12),
                               ),
                             ],
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
+                            ),
                           ),
-                          const SizedBox(height: 16),
-
-                          FormInputRow(
-                            children: [
-                              Expanded(
-                                child: TextInput(
-                                  label: "Position",
-                                  controller: _positionController,
-                                  hintText: "Enter your position",
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Position is required'
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextInput(
-                                  label: "Cluster",
-                                  controller: _clusterController,
-                                  hintText: "Enter your cluster",
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Cluster is required'
-                                      : null,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Headcount Section
-                          FormSectionHeader(
-                            icon: Icons.people_outline_rounded,
-                            title: "Headcount Information",
-                            subtitle: "Number of people in each category",
-                            primaryColor: primaryColor,
-                            textPrimary: textPrimary,
-                            textSecondary: textSecondary,
-                          ),
-                          const SizedBox(height: 20),
-
-                          Wrap(
-                            spacing: 16,
-                            runSpacing: 16,
-                            children: [
-                              _buildCompactNumberInput(
-                                label: "Faculty Members",
-                                controller: _headcountFacultyController,
-                                icon: Icons.school_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Admin Members",
-                                controller: _headcountAdminController,
-                                icon: Icons.work_outline,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "REPS Members",
-                                controller: _headcountREPSController,
-                                icon: Icons.engineering_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "RA Members",
-                                controller: _headcountRAController,
-                                icon: Icons.science_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Students",
-                                controller: _headcountStudentController,
-                                icon: Icons.school_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Philcare Staff",
-                                controller: _headcountPhilcareController,
-                                icon: Icons.medical_services_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Security Personnel",
-                                controller: _headcountSecurityController,
-                                icon: Icons.security_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Construction Workers",
-                                controller: _headcountConstructionController,
-                                icon: Icons.construction_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Tenants",
-                                controller: _headcountTenantsController,
-                                icon: Icons.business_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Health Workers",
-                                controller: _headcountHealthWorkerController,
-                                icon: Icons.medical_information_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Non-Academic Staff",
-                                controller: _headcountNonAcadStaffController,
-                                icon: Icons.work_history_outlined,
-                              ),
-                              _buildCompactNumberInput(
-                                label: "Guests",
-                                controller: _headcountGuestsController,
-                                icon: Icons.person_outline,
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Incident Details Section
-                          FormSectionHeader(
-                            icon: Icons.warning_amber_rounded,
-                            title: "Incident Details",
-                            subtitle: "Critical information about the incident",
-                            primaryColor: primaryColor,
-                            textPrimary: textPrimary,
-                            textSecondary: textSecondary,
-                          ),
-                          const SizedBox(height: 20),
-
-                          FormInputRow(
-                            children: [
-                              Expanded(
-                                child: NumberInput(
-                                  label: "Missing Persons",
-                                  controller: _numberMissingController,
-                                  hintText: "Number of missing",
-                                  validator: _requiredNumber,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: NumberInput(
-                                  label: "Casualties",
-                                  controller: _numberCasualtyController,
-                                  hintText: "Number of casualties",
-                                  validator: _requiredNumber,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-
-                          TextInput(
-                            label: "Names of Missing Persons",
-                            controller: _missingPeopleNamesController,
-                            hintText: "Enter names separated by commas (if any)",
-                            validator: (val) => null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          TextInput(
-                            label: "Identity and Condition of Casualties",
-                            controller: _identityConditionController,
-                            hintText: "Provide details about casualties (if any)",
-                            validator: (val) => null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          TextInput(
-                            label: "Damage Assessment",
-                            controller: _damageAssessmentController,
-                            hintText: "Brief description of damage assessment",
-                            validator: (val) => val == null || val.isEmpty
-                                ? 'Damage assessment is required'
-                                : null,
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Location Field with Auto-complete
-                          CompositedTransformTarget(
-                            link: _layerLink,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "Location",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: textPrimary,
-                                  ),
+                                // Basic Information Section
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        gradient: _emergencyGradient,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.person_rounded,
+                                          color: _white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Basic Information",
+                                            style: TextStyle(
+                                              color: _textPrimary,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Your personal and organizational details",
+                                            style: TextStyle(
+                                              color: _textSecondary,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: _locationController,
-                                  focusNode: _locationFocusNode,
-                                  onChanged: _updateLocationSuggestions,
-                                  onTap: () {
-                                    if (_locationController.text.isNotEmpty &&
-                                        _locationSuggestions.isNotEmpty) {
-                                      _showSuggestionOverlay();
-                                    }
-                                  },
-                                  onTapOutside: (event) {
-                                    _onLocationUnfocus();
-                                  },
-                                  decoration: InputDecoration(
-                                    hintText: "Enter location of the incident",
-                                    hintStyle: TextStyle(color: textSecondary),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: Color(0xFFE2E8F0),
+                                const SizedBox(height: 24),
+
+                                FormInputRow(
+                                  children: [
+                                    Expanded(
+                                      child: TextInput(
+                                        label: "Full Name",
+                                        controller: _nameController,
+                                        hintText: "Enter your full name",
+                                        validator: (val) => val == null || val.isEmpty
+                                            ? 'Full name is required'
+                                            : null,
                                       ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 2,
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                FormInputRow(
+                                  children: [
+                                    Expanded(
+                                      child: TextInput(
+                                        label: "Position",
+                                        controller: _positionController,
+                                        hintText: "Enter your position",
+                                        validator: (val) => val == null || val.isEmpty
+                                            ? 'Position is required'
+                                            : null,
                                       ),
                                     ),
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextInput(
+                                        label: "Cluster",
+                                        controller: _clusterController,
+                                        hintText: "Enter your cluster",
+                                        validator: (val) => val == null || val.isEmpty
+                                            ? 'Cluster is required'
+                                            : null,
+                                      ),
                                     ),
-                                  ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 32),
+
+                                // Headcount Section
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [_accentBlue, _emergencyBlue],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.people_rounded,
+                                          color: _white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Headcount Information",
+                                            style: TextStyle(
+                                              color: _textPrimary,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Number of people in each category",
+                                            style: TextStyle(
+                                              color: _textSecondary,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 16,
+                                  children: [
+                                    _buildCompactNumberInput(
+                                      label: "Faculty Members",
+                                      controller: _headcountFacultyController,
+                                      icon: Icons.school_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Admin Members",
+                                      controller: _headcountAdminController,
+                                      icon: Icons.work_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "REPS Members",
+                                      controller: _headcountREPSController,
+                                      icon: Icons.engineering_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "RA Members",
+                                      controller: _headcountRAController,
+                                      icon: Icons.science_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Students",
+                                      controller: _headcountStudentController,
+                                      icon: Icons.school_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Philcare Staff",
+                                      controller: _headcountPhilcareController,
+                                      icon: Icons.medical_services_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Security Personnel",
+                                      controller: _headcountSecurityController,
+                                      icon: Icons.security_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Construction Workers",
+                                      controller: _headcountConstructionController,
+                                      icon: Icons.construction_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Tenants",
+                                      controller: _headcountTenantsController,
+                                      icon: Icons.business_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Health Workers",
+                                      controller: _headcountHealthWorkerController,
+                                      icon: Icons.medical_information_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Non-Academic Staff",
+                                      controller: _headcountNonAcadStaffController,
+                                      icon: Icons.work_history_rounded,
+                                    ),
+                                    _buildCompactNumberInput(
+                                      label: "Guests",
+                                      controller: _headcountGuestsController,
+                                      icon: Icons.person_rounded,
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 32),
+
+                                // Incident Details Section
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: _warningOrange.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: _warningOrange.withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: _warningOrange,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Incident Details",
+                                            style: TextStyle(
+                                              color: _textPrimary,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Critical information about the incident",
+                                            style: TextStyle(
+                                              color: _textSecondary,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+
+                                FormInputRow(
+                                  children: [
+                                    Expanded(
+                                      child: NumberInput(
+                                        label: "Missing Persons",
+                                        controller: _numberMissingController,
+                                        hintText: "Number of missing",
+                                        validator: _requiredNumber,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: NumberInput(
+                                        label: "Casualties",
+                                        controller: _numberCasualtyController,
+                                        hintText: "Number of casualties",
+                                        validator: _requiredNumber,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                TextInput(
+                                  label: "Names of Missing Persons",
+                                  controller: _missingPeopleNamesController,
+                                  hintText: "Enter names separated by commas (if any)",
+                                  validator: (val) => null,
+                                ),
+                                const SizedBox(height: 16),
+
+                                TextInput(
+                                  label: "Identity and Condition of Casualties",
+                                  controller: _identityConditionController,
+                                  hintText: "Provide details about casualties (if any)",
+                                  validator: (val) => null,
+                                ),
+                                const SizedBox(height: 16),
+
+                                TextInput(
+                                  label: "Damage Assessment",
+                                  controller: _damageAssessmentController,
+                                  hintText: "Brief description of damage assessment",
                                   validator: (val) => val == null || val.isEmpty
-                                      ? 'Location is required'
+                                      ? 'Damage assessment is required'
                                       : null,
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Location Field with Auto-complete
+                                CompositedTransformTarget(
+                                  link: _layerLink,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Location",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: _textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      TextFormField(
+                                        controller: _locationController,
+                                        focusNode: _locationFocusNode,
+                                        onChanged: _updateLocationSuggestions,
+                                        onTap: () {
+                                          if (_locationController.text.isNotEmpty &&
+                                              _locationSuggestions.isNotEmpty) {
+                                            _showSuggestionOverlay();
+                                          }
+                                        },
+                                        onTapOutside: (event) {
+                                          _onLocationUnfocus();
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: "Enter location of the incident",
+                                          hintStyle: TextStyle(color: _textSecondary),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                              color: _borderColor,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                              color: _primaryRed,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 14,
+                                          ),
+                                          prefixIcon: Icon(
+                                            Icons.location_on_rounded,
+                                            color: _textSecondary,
+                                          ),
+                                        ),
+                                        validator: (val) => val == null || val.isEmpty
+                                            ? 'Location is required'
+                                            : null,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Submit Button
+                        Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: _emergencyGradient,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _primaryRed.withOpacity(0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _onSubmit,
+                              borderRadius: BorderRadius.circular(16),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.check_circle_rounded,
+                                        color: _white, size: 22),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'SUBMIT INCIDENT REPORT',
+                                      style: TextStyle(
+                                        color: _white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Submit Button
-                  FormSubmitButton(
-                    onPressed: _onSubmit,
-                    primaryColor: primaryColor,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+
+  Color get _borderColor => const Color(0xFFE2E8F0);
 }

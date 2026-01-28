@@ -5,7 +5,7 @@ import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/register';
-  const SignUpScreen({Key? key}) : super(key: key);
+  const SignUpScreen({super.key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -327,8 +327,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Please enter password';
     if (v.length < 8) return 'Password must be at least 8 characters';
-    if (!RegExp(r'[A-Z]').hasMatch(v))
+    if (!RegExp(r'[A-Z]').hasMatch(v)) {
       return 'Include at least one uppercase letter';
+    }
     if (!RegExp(r'[0-9]').hasMatch(v)) return 'Include at least one number';
     return null;
   }
@@ -1100,7 +1101,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: controller.text.isNotEmpty ? controller.text : options.first,
+        initialValue: controller.text.isNotEmpty ? controller.text : options.first,
         items: options.map((String value) {
           return DropdownMenuItem<String>(
             value: value,

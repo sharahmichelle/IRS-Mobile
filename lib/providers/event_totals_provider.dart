@@ -1,21 +1,22 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart'; */
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:upm_drrm_irs_mobile/apis/firebase_event_total_api.dart';
+import 'package:upm_drrm_irs_mobile/apis/supabase_event_total_api.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
 
 class EventTotals with ChangeNotifier {
-  late final FirebaseEventTotalAPI firebaseService;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> _eventTotalsStream;
+  late final SupabaseEventTotalAPI firebaseService;
+  late Stream<List<Map<String, dynamic>>> _eventTotalsStream;
 
   EventTotals() {
-    firebaseService = FirebaseEventTotalAPI();
+    firebaseService = SupabaseEventTotalAPI();
     fetchEventTotals();
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> get eventTotals => _eventTotalsStream;
+  Stream<List<Map<String, dynamic>>> get eventTotals => _eventTotalsStream;
 
   void fetchEventTotals() {
-    _eventTotalsStream = firebaseService.getAllEventTotals().cast<QuerySnapshot<Map<String, dynamic>>>();
+    _eventTotalsStream = firebaseService.getAllEventTotals();
     notifyListeners();
   }
 
@@ -38,17 +39,16 @@ class EventTotals with ChangeNotifier {
   }
 
   Future<EventTotal> getEventTotalById(String id) async {
-    // Make sure this returns a DocumentSnapshot, not a Stream
-    final doc = await firebaseService.getEventTotalById(id);
-    return EventTotal.fromFirestore(doc);
+    final data = await firebaseService.getEventTotalById(id);
+    return EventTotal.fromSupabase(data);
   }
 
   Future<EventTotal?> getEventTotalByEventId(String eventId) async {
-    final querySnapshot = await firebaseService.getEventTotalByEventId(eventId);
-    if (querySnapshot.docs.isNotEmpty) {
-      return EventTotal.fromFirestore(querySnapshot.docs.first);
+    final dataList = await firebaseService.getEventTotalByEventId(eventId);
+    if (dataList.isNotEmpty) {
+      return EventTotal.fromSupabase(dataList.first);
     }
-    return null; // or handle the case where no document is found
+    return null;
   }
 
   Future<void> addReportToEventTotal(String eventId, String upSystem, String reportId, Map<String, int> data) async {

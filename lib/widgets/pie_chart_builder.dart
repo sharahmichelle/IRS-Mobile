@@ -224,7 +224,7 @@ class _PieChartBuilderState extends State<PieChartBuilder> {
     required bool isPrimary,
     required VoidCallback onTap,
   }) {
-    return Container(
+    return SizedBox(
       width: 110, // Same smaller width
       height: 36, // Same smaller height
       child: ElevatedButton(

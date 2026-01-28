@@ -179,17 +179,17 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
                       _buildEventDetailsGrid(totals),
                       const SizedBox(height: 20), // Reduced from 24
 
-                      // Chart Type Selector
+/*                       // Chart Type Selector
                       _buildChartTypeSelector(),
-                      const SizedBox(height: 16), // Reduced from 20
+                      const SizedBox(height: 16), // Reduced from 20 */
 
-                      // Chart Card
+/*                       // Chart Card
                       _buildChartCard(),
-                      const SizedBox(height: 20), // Reduced from 24
+                      const SizedBox(height: 20), // Reduced from 24 */
 
-                      // Reports Section
+/*                       // Reports Section
                       _buildReportsSection(),
-                      const SizedBox(height: 24), // Reduced from 32
+                      const SizedBox(height: 24), // Reduced from 32 */
                     ],
                   ),
                 ),
@@ -570,7 +570,7 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
     );
   }
 
-  Widget _buildChartTypeSelector() {
+ /*  Widget _buildChartTypeSelector() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6), // Reduced from 8
       decoration: BoxDecoration(
@@ -642,9 +642,9 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
         ],
       ),
     );
-  }
+  } */
 
-  Widget _buildChartCard() {
+/*   Widget _buildChartCard() {
     return Container(
       padding: const EdgeInsets.all(16), // Reduced from 20
       decoration: BoxDecoration(
@@ -716,9 +716,9 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
         ],
       ),
     );
-  }
+  } */
 
-  Widget _buildReportsSection() {
+/*   Widget _buildReportsSection() {
     return Container(
       decoration: BoxDecoration(
         color: surfaceColor,
@@ -803,10 +803,10 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
         ],
       ),
     );
-  }
+  } */
 
   Widget _buildLoadingIndicator() {
-    return Container(
+    return SizedBox(
       height: 130, // Reduced from 150
       child: Center(
         child: Column(
@@ -830,7 +830,7 @@ class _DetailedViewScreenState extends State<DetailedViewScreen> {
   Widget _buildReportsTable() {
     // If no reports, show empty state
     if (_reports.isEmpty) {
-      return Container(
+      return SizedBox(
         height: 130, // Reduced from 150
         child: Center(
           child: Column(

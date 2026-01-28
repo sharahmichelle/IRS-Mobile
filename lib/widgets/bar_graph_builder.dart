@@ -272,7 +272,7 @@ class _BarGraphBuilderState extends State<BarGraphBuilder> {
     required bool isPrimary,
     required VoidCallback onTap,
   }) {
-    return Container(
+    return SizedBox(
       width: 110, // Smaller width
       height: 36, // Smaller height
       child: ElevatedButton(

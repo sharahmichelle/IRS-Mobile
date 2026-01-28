@@ -9,27 +9,27 @@ class EventDataSource extends CalendarDataSource<Object?> {
 
   @override
   DateTime getStartTime(int index) {
-    return appointments![index].timeStampStart;
+    return (appointments![index] as Event).timeStampStart;
   }
 
   @override
   DateTime getEndTime(int index) {
-    return appointments![index].timeStampEnd;
+    return (appointments![index] as Event).timeStampEnd;
   }
 
   @override
   String getSubject(int index) {
-    return appointments![index].eventName;
+    return (appointments![index] as Event).eventName;
   }
 
   @override
   String getNotes(int index) {
-    return appointments![index].eventDescription;
+    return (appointments![index] as Event).eventDescription;
   }
 
   @override
   Color getColor(int index) {
-    final status = appointments![index].status.toLowerCase();
+    final status = (appointments![index] as Event).status.toLowerCase();
     switch (status) {
       case 'completed':
         return const Color(0xFF4CAF50);

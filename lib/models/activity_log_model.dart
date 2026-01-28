@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ActivityLog {
-ActivityLog({
+  ActivityLog({
     required this.dateCreated,
     required this.module,
     required this.moduleItem,
@@ -17,9 +17,9 @@ ActivityLog({
   final String action;
   final Map<String, dynamic> data;
 
-  Map<String, dynamic> toJson(){
-    return{
-      'dateCreated': Timestamp.fromDate(dateCreated),
+  Map<String, dynamic> toJson() {
+    return {
+      'dateCreated': dateCreated.toIso8601String(),
       'module': module,
       'moduleItem': moduleItem,
       'initiatedBy': initiatedBy,
@@ -28,23 +28,18 @@ ActivityLog({
     };
   }
 
-  factory ActivityLog.fromFirestore(Map<String, dynamic> firestoreData) {
-    final ts = firestoreData['dateCreated'];
+  factory ActivityLog.fromJson(Map<String, dynamic> jsonData) {
+    final ts = jsonData['dateCreated'];
 
     return ActivityLog(
-      dateCreated: ts is Timestamp
-          ? ts.toDate()
-          : DateTime.tryParse(ts ?? '') ?? DateTime.now(),
-
-      module: firestoreData['module'] ?? '',
-      moduleItem: firestoreData['moduleItem'] ?? '',
-      initiatedBy: firestoreData['initiatedBy'] ?? '',
-      action: firestoreData['action'] ?? '',
-      data: firestoreData['data'] != null
-          ? Map<String, dynamic>.from(firestoreData['data'])
+      dateCreated: DateTime.tryParse(ts ?? '') ?? DateTime.now(),
+      module: jsonData['module'] ?? '',
+      moduleItem: jsonData['moduleItem'] ?? '',
+      initiatedBy: jsonData['initiatedBy'] ?? '',
+      action: jsonData['action'] ?? '',
+      data: jsonData['data'] != null
+          ? Map<String, dynamic>.from(jsonData['data'])
           : {},
     );
   }
-
-
 }

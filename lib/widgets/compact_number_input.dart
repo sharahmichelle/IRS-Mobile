@@ -9,19 +9,19 @@ class CompactNumberInput extends StatelessWidget {
   final IconData icon;
 
   const CompactNumberInput({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     required this.hintText,
     this.validator,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final borderColor = Color(0xFFE2E8F0);
     
-    return Container(
+    return SizedBox(
       width: (MediaQuery.of(context).size.width - 80) / 2,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

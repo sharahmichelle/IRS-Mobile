@@ -1,6 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Report {
   final String encoderId;
@@ -43,11 +43,12 @@ class Report {
     this.numCasualty = 0,
   });
 
-  factory Report.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+
+
+  factory Report.fromMap(Map<String, dynamic> data, String id) {
     return Report(
-      encoderId: data['encoderId'] ?? '',
-      reportId: doc.id,
+      encoderId: id,
+      reportId: data['reportId'] ?? '',
       upSystem: data['upSystem'] ?? '',
       office: data['office'] ?? '',
       encoderPosition: data['encoderPosition'] ?? '',
@@ -64,6 +65,29 @@ class Report {
       headCountPatient: _parseInt(data['headCountPatient']),
       numMissingPerson: _parseInt(data['numMissingPerson']),
       numCasualty: _parseInt(data['numCasualty']),
+    );
+  }
+
+  factory Report.fromJson(Map<String, dynamic> json) {
+    return Report(
+      encoderId: json['encoderId'] ?? '',
+      reportId: json['reportId'] ?? '',
+      upSystem: json['upSystem'] ?? '',
+      office: json['office'] ?? '',
+      encoderPosition: json['encoderPosition'] ?? '',
+      headCountFaculty: _parseInt(json['headCountFaculty']),
+      headCountadminMember: _parseInt(json['headCountadminMember']),
+      headCountRepsMember: _parseInt(json['headCountRepsMember']),
+      headCountCustodian: _parseInt(json['headCountCustodian']),
+      headCountJoCosMember: _parseInt(json['headCountJoCosMember']),
+      headCountStudent: _parseInt(json['headCountStudent']),
+      headCountSecurity: _parseInt(json['headCountSecurity']),
+      headCountConstructionWorker: _parseInt(json['headCountConstructionWorker']),
+      headCountHealthWorker: _parseInt(json['headCountHealthWorker']),
+      headCountGuest: _parseInt(json['headCountGuest']),
+      headCountPatient: _parseInt(json['headCountPatient']),
+      numMissingPerson: _parseInt(json['numMissingPerson']),
+      numCasualty: _parseInt(json['numCasualty']),
     );
   }
 

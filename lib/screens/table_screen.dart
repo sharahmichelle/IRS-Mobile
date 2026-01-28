@@ -147,7 +147,7 @@ class _TableScreenState extends State<TableScreen> {
     setState(() {
       _currentIndex = index;
       _currentPage = 1;
-      _totalPages = _getCurrentListLength();
+      _totalPages = _getTotalPages();
       _updateDataSource();
     });
   }
@@ -170,7 +170,7 @@ class _TableScreenState extends State<TableScreen> {
     }
   }
 
-  int _getCurrentListLength() {
+  int _getTotalPages() {
     if (_currentIndex == 0) return (_activityData.length / _rowsPerPage).ceil();
     if (_currentIndex == 1) return (_eventData.length / _rowsPerPage).ceil();
     return (_reportData.length / _rowsPerPage).ceil();
@@ -188,10 +188,10 @@ class _TableScreenState extends State<TableScreen> {
                 return _buildLoadingState();
               }
 
-              final docs = snapshot.data!.docs;
-              _activityData = docs.map((d) => ActivityLog.fromFirestore(d.data())).toList();
-              _totalPages = _getCurrentListLength();
-              
+              final data = snapshot.data!;
+              _activityData = data.map((d) => ActivityLog.fromJson(d)).toList();
+              _totalPages = _getTotalPages();
+
               final startIndex = (_currentPage - 1) * _rowsPerPage;
               final end = (_currentPage * _rowsPerPage).clamp(0, _activityData.length);
               _activityDataSource = ActivityDataSource(_activityData.sublist(startIndex, end));
@@ -211,10 +211,10 @@ class _TableScreenState extends State<TableScreen> {
                 return _buildLoadingState();
               }
 
-              final docs = snapshot.data!.docs;
-              _eventData = docs.map((d) => Event.fromFirestore(d)).toList();
-              _totalPages = _getCurrentListLength();
-              
+              final data = snapshot.data!;
+              _eventData = data.map((d) => Event.fromMap(d, d['id'])).toList();
+              _totalPages = _getTotalPages();
+
               final startIndex = (_currentPage - 1) * _rowsPerPage;
               final end = (_currentPage * _rowsPerPage).clamp(0, _eventData.length);
               _eventDataSource = EventDataSource(_eventData.sublist(startIndex, end));
@@ -234,10 +234,10 @@ class _TableScreenState extends State<TableScreen> {
                     return _buildLoadingState();
                   }
 
-                  final docs = snapshot.data!.docs;
-                  _reportData = docs.map((d) => Report.fromFirestore(d)).toList();
-                  _totalPages = _getCurrentListLength();
-                  
+                  final data = snapshot.data!;
+                  _reportData = data;
+                  _totalPages = _getTotalPages();
+
                   final startIndex = (_currentPage - 1) * _rowsPerPage;
                   final end = (_currentPage * _rowsPerPage).clamp(0, _reportData.length);
                   _reportDataSource = ReportDataSource(_reportData.sublist(startIndex, end));
@@ -249,9 +249,8 @@ class _TableScreenState extends State<TableScreen> {
           );
     }
 
-    _totalPages = _getCurrentListLength();
-    _updateDataSource();
-    return _buildTableBody();
+    // This should never be reached since _currentIndex is always 0, 1, or 2
+    return _buildLoadingState();
   }
 
   Widget _buildLoadingState() {
@@ -457,12 +456,16 @@ class _TableScreenState extends State<TableScreen> {
       );
     }
 
-    return SfDataGrid(
-      source: _reportDataSource!,
-      columns: dataListColumns[2],
-      gridLinesVisibility: GridLinesVisibility.horizontal,
-      headerGridLinesVisibility: GridLinesVisibility.horizontal,
-    );
+    if (_currentIndex == 2 && _reportDataSource != null) {
+      return SfDataGrid(
+        source: _reportDataSource!,
+        columns: dataListColumns[2],
+        gridLinesVisibility: GridLinesVisibility.horizontal,
+        headerGridLinesVisibility: GridLinesVisibility.horizontal,
+      );
+    }
+
+    return const Center(child: Text('No data available'));
   }
 
   Widget _buildPagination() {

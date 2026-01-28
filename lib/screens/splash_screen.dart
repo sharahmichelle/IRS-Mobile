@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 
 class SplashScreenMinimal extends StatefulWidget {
-  const SplashScreenMinimal({Key? key}) : super(key: key);
+  const SplashScreenMinimal({super.key});
 
   @override
   State<SplashScreenMinimal> createState() => _SplashScreenMinimalState();

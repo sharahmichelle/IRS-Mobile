@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart'; */
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserModel{
   final String userName; 
@@ -29,23 +30,7 @@ class UserModel{
     this.userType = 0
   });
 
-  factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
-    return UserModel(
-      userName: doc.id,
-      firstName: data['firstName'] ?? '',
-      middleName: data['middleName'] ?? '',
-      lastName: data['lastName'] ?? '',
-      suffix: data['suffix'] ?? '',
-      email: data['email'] ?? '',
-      authId: data['authId'] ?? '',
-      upCampus: data['upCampus'] ?? '',
-      office: data['office'] ?? '',
-      bldgName: data['bldgName'] ?? '',
-      position: data['position'] ?? '',
-      userType: data['userType'] ?? 0,
-    );
-  }
+
 
   factory UserModel.fromMap(Map<String, dynamic> data, String userName) {
     return UserModel(
@@ -61,6 +46,23 @@ class UserModel{
       bldgName: data['bldgName'] ?? '',
       position: data['position'] ?? '',
       userType: data['userType'] ?? 0,
+    );
+  }
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      userName: json['userName'] ?? '',
+      firstName: json['firstName'] ?? '',
+      middleName: json['middleName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      suffix: json['suffix'] ?? '',
+      email: json['email'] ?? '',
+      authId: json['authId'] ?? '',
+      upCampus: json['upCampus'] ?? '',
+      office: json['office'] ?? '',
+      bldgName: json['bldgName'] ?? '',
+      position: json['position'] ?? '',
+      userType: json['userType'] ?? 0,
     );
   }
 

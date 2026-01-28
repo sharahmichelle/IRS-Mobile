@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart'; */
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:const_date_time/const_date_time.dart';
 
 class EventTotal {
@@ -72,12 +73,11 @@ class EventTotal {
     totalDistribution: {},
   );
 
-  factory EventTotal.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-
+  factory EventTotal.fromSupabase(Map<String, dynamic> data) {
     return EventTotal(
-      eventId: doc.id.toString(),
+      eventId: data['eventId']?.toString() ?? '',
+      timeStampStart: data['timeStampStart'] != null ? DateTime.parse(data['timeStampStart']) : const ConstDateTime(2000),
+      timeStampEnd: data['timeStampEnd'] != null ? DateTime.parse(data['timeStampEnd']) : const ConstDateTime(2000),
       expectedData: _parseInt(data['expectedData']),
       receivedData: _parseInt(data['receivedData']),
       reportsId: (data['reportsId'] != null)

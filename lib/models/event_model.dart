@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart'; */
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Event {
   final String eventID;
@@ -42,9 +42,7 @@ class Event {
     this.eventStarted = false,
   });
 
-  factory Event.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
+  factory Event.fromMap(Map<String, dynamic> data, String id) {
     // Parse observations safely
     final observations = data['eventObservations'] is List
         ? List<String>.from(data['eventObservations'])
@@ -59,18 +57,19 @@ class Event {
 
     DateTime parseDate(dynamic date) {
       if (date == null) return DateTime.now();
-      if (date is Timestamp) return date.toDate();
-      try {
-        final format = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US');
-
-        return format.parseUtc(date.toString());
-      } catch (_) {
-        return DateTime.now();
+      if (date is String) {
+        try {
+          return DateTime.parse(date);
+        } catch (_) {
+          return DateTime.now();
+        }
       }
+      if (date is DateTime) return date;
+      return DateTime.now();
     }
 
     return Event(
-      eventID: doc.id,
+      eventID: id,
       eventName: data['eventName'] ?? '',
       eventDescription: data['eventDescription'] ?? '',
       eventIntroduction: data['eventIntroduction'] ?? '',
@@ -138,6 +137,7 @@ class Event {
       'safetySecurityOfficer': safetySecurityOfficer,
       'status': status,
       'action': action,
+      'location': location,
     };
   }
 }

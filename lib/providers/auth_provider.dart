@@ -1,30 +1,30 @@
 // lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../apis/firebase_auth_api.dart';
-import '../apis/firebase_user_api.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../apis/supabase_auth_api.dart';
+import '../apis/supabase_user_api.dart';
 import '../models/user_model.dart';
 
 class AuthProvider with ChangeNotifier {
-  late FirebaseAuthAPI authService;
-  late FirebaseUserAPI userService;
+  late SupabaseAuthAPI authService;
+  late SupabaseUserAPI userService;
   late Stream<User?> uStream;
-  User? firebaseUser;
+  User? supabaseUser;
   UserModel? currentUser;
   bool isLoading = false;
   String? errorMessage;
 
   AuthProvider() {
-    authService = FirebaseAuthAPI();
-    userService = FirebaseUserAPI();
-    firebaseUser = FirebaseAuth.instance.currentUser;
+    authService = SupabaseAuthAPI();
+    userService = SupabaseUserAPI();
+    supabaseUser = Supabase.instance.client.auth.currentUser;
     uStream = authService.getUser();
-    
+
     // Listen to auth state changes
     uStream.listen((user) async {
-      firebaseUser = user;
+      supabaseUser = user;
       if (user != null) {
-        // Load user data from Firestore when auth state changes
+        // Load user data from Supabase when auth state changes
         await _loadCurrentUser(user);
       } else {
         currentUser = null;
@@ -34,28 +34,28 @@ class AuthProvider with ChangeNotifier {
   }
 
   Stream<User?> get userStream => uStream;
-  bool get isLoggedIn => firebaseUser != null;
-  bool get isEmailVerified => firebaseUser?.emailVerified ?? false;
+  bool get isLoggedIn => supabaseUser != null;
+  bool get isEmailVerified => supabaseUser?.emailConfirmedAt != null;
 
-  // Load current user data from Firestore
-  Future<void> _loadCurrentUser(User firebaseUser) async {
+  // Load current user data from Supabase
+  Future<void> _loadCurrentUser(User supabaseUser) async {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       // Extract username from email for querying
-      final emailParts = firebaseUser.email!.split('@');
+      final emailParts = supabaseUser.email!.split('@');
       final userName = emailParts[0];
-      
-      // Get user by userName from Firestore
+
+      // Get user by userName from Supabase
       final users = await userService.getUsersByUserNames([userName]);
       if (users.isNotEmpty) {
         currentUser = users.first;
         print('Loaded current user');
       } else {
-        // If user doesn't exist in Firestore, create a new one
-        currentUser = await _createUserInFirestore(firebaseUser);
-        print('Created new user in Firestore');
+        // If user doesn't exist in Supabase, create a new one
+        currentUser = await _createUserInSupabase(supabaseUser);
+        print('Created new user in Supabase');
       }
     } catch (e) {
       errorMessage = 'Failed to load user data: $e';
@@ -66,21 +66,26 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Create user in Firestore after Firebase Auth registration
-  Future<UserModel> _createUserInFirestore(User firebaseUser) async {
+  // Create user in Supabase after Supabase Auth registration
+  Future<UserModel> _createUserInSupabase(User supabaseUser) async {
     try {
       // Extract email username for document ID
-      final emailParts = firebaseUser.email!.split('@');
+      final emailParts = supabaseUser.email!.split('@');
       final userName = emailParts[0];
-      
+
+      // If user_metadata has display_name, use it; otherwise, default to 'Encoder'
+      final userMetadata = supabaseUser.userMetadata;
+      final firstName = userMetadata?['display_name']?.split(' ').first ?? 'Encoder';
+      final lastName = userMetadata?['display_name']?.split(' ').last ?? '';
+
       final newUser = UserModel(
         userName: userName,
-        firstName: firebaseUser.displayName?.split(' ').first ?? '',
-        lastName: firebaseUser.displayName?.split(' ').last ?? '',
+        firstName: firstName,
+        lastName: lastName,
         middleName: '',
         suffix: '',
-        email: firebaseUser.email ?? '',
-        authId: firebaseUser.uid,
+        email: supabaseUser.email ?? '',
+        authId: supabaseUser.id,
         upCampus: 'UPM', // Default campus
         office: 'DRRMO',
         position: 'Encoder',
@@ -91,7 +96,7 @@ class AuthProvider with ChangeNotifier {
       await userService.addUser(userName, newUser);
       return newUser;
     } catch (e) {
-      throw Exception('Failed to create user in Firestore: $e');
+      throw Exception('Failed to create user in Supabase: $e');
     }
   }
 
@@ -102,13 +107,9 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
 
       await authService.signIn(email, password);
-      
+
       // User will be loaded automatically via the stream listener
       return null; // Success
-    } on FirebaseAuthException catch (e) {
-      errorMessage = _getErrorMessage(e);
-      debugPrint('Sign in error: ${e.code} - ${e.message}');
-      return errorMessage;
     } catch (e) {
       errorMessage = 'Sign in failed. Please try again.';
       debugPrint('Sign in error: $e');
@@ -137,14 +138,24 @@ class AuthProvider with ChangeNotifier {
       errorMessage = null;
       notifyListeners();
 
-      // Create user in Firebase Auth
+      // Create user in Supabase Auth
       await authService.signUp(email, password);
-      
+
       // Extract username from email
       final emailParts = email.split('@');
       final userName = emailParts[0];
-      
-      // Create user in Firestore
+
+      // Build display name for Supabase Auth
+      final displayNameParts = [firstName];
+      if (middleName.isNotEmpty) displayNameParts.add(middleName);
+      displayNameParts.add(lastName);
+      if (suffix.isNotEmpty) displayNameParts.add(suffix);
+      final displayName = displayNameParts.join(' ');
+
+      // Update Supabase Auth profile with display name
+      await authService.updateProfile(displayName: displayName);
+
+      // Create user in Supabase
       final newUser = UserModel(
         userName: userName,
         firstName: firstName,
@@ -152,7 +163,7 @@ class AuthProvider with ChangeNotifier {
         middleName: middleName,
         suffix: suffix,
         email: email,
-        authId: FirebaseAuth.instance.currentUser?.uid ?? '',
+        authId: Supabase.instance.client.auth.currentUser?.id ?? '',
         upCampus: upCampus,
         office: office,
         position: position,
@@ -161,15 +172,11 @@ class AuthProvider with ChangeNotifier {
       );
 
       await userService.addUser(userName, newUser);
-      
+
       // Send email verification
       await authService.verifyEmail();
-      
+
       return null; // Success
-    } on FirebaseAuthException catch (e) {
-      errorMessage = _getErrorMessage(e);
-      debugPrint('Sign up error: ${e.code} - ${e.message}');
-      return errorMessage;
     } catch (e) {
       errorMessage = 'Sign up failed. Please try again.';
       debugPrint('Sign up error: $e');
@@ -184,11 +191,11 @@ class AuthProvider with ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
+
       await authService.signOut();
       currentUser = null;
-      firebaseUser = null;
-      
+      supabaseUser = null;
+
       // Navigate to login screen
       Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
@@ -205,11 +212,8 @@ class AuthProvider with ChangeNotifier {
       isLoading = true;
       errorMessage = null;
       notifyListeners();
-      
+
       await authService.resetPassword(email);
-    } on FirebaseAuthException catch (e) {
-      errorMessage = _getErrorMessage(e);
-      debugPrint('Reset password error: ${e.code} - ${e.message}');
     } catch (e) {
       errorMessage = 'Reset password failed. Please try again.';
       debugPrint('Reset password error: $e');
@@ -233,9 +237,9 @@ class AuthProvider with ChangeNotifier {
     try {
       isLoading = true;
       notifyListeners();
-      
-      if (currentUser != null && firebaseUser != null) {
-        // Update Firestore user
+
+      if (currentUser != null && supabaseUser != null) {
+        // Update Supabase user
         final updates = <String, dynamic>{};
         if (firstName != null) updates['firstName'] = firstName;
         if (lastName != null) updates['lastName'] = lastName;
@@ -245,10 +249,10 @@ class AuthProvider with ChangeNotifier {
         if (position != null) updates['position'] = position;
         if (upCampus != null) updates['upCampus'] = upCampus;
         if (bldgName != null) updates['bldgName'] = bldgName;
-        
+
         if (updates.isNotEmpty) {
           await userService.editUser(currentUser!.userName, updates);
-          
+
           // Update local user object
           currentUser = currentUser!.copyWith(
             firstName: firstName ?? currentUser!.firstName,
@@ -261,8 +265,8 @@ class AuthProvider with ChangeNotifier {
             bldgName: bldgName ?? currentUser!.bldgName,
           );
         }
-        
-        // Update Firebase Auth display name
+
+        // Update Supabase Auth display name
         if (displayName != null) {
           await authService.updateProfile(displayName: displayName);
         }
@@ -286,28 +290,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  String _getErrorMessage(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'invalid-credential':
-      case 'wrong-password':
-      case 'user-not-found':
-        return 'Invalid email or password. Please try again.';
-      case 'invalid-email':
-        return 'Invalid email address format.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many login attempts. Please try again later.';
-      case 'email-already-in-use':
-        return 'This email is already registered.';
-      case 'weak-password':
-        return 'Password is too weak. Please use a stronger password.';
-      case 'operation-not-allowed':
-        return 'Email/password accounts are not enabled.';
-      default:
-        return 'Authentication failed. Please try again.';
-    }
-  }
+
 
   // Clear error message
   void clearError() {
