@@ -186,8 +186,8 @@ class AuthProvider with ChangeNotifier {
         debugPrint('User added to database successfully');
       } catch (e) {
         debugPrint('Error: User database insert failed: $e');
-        // Re-throw so we can see the actual error
-        rethrow;
+        // Log the error but don't fail signup - auth succeeded
+        // The user can still sign in, just without a profile
       }
 
       // Step 4: Send email verification (optional, don't fail if this fails)
