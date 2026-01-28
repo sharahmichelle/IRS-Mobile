@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
@@ -57,14 +58,16 @@ class SupabaseUserAPI {
   }
 
   // Add a new user
-  Future<String> addUser(String userName, UserModel user) async {
+  Future<void> addUser(String userName, UserModel user) async {
     try {
-      await _supabase
+      debugPrint('Inserting user: $userName');
+      final response = await _supabase
           .from('users')
           .insert(user.toJson());
-      return "Successfully added user!";
+      debugPrint('User inserted successfully: $response');
     } catch (e) {
-      return "Failed with error: $e";
+      debugPrint('Error adding user: $e');
+      throw Exception('Failed to add user: $e');
     }
   }
 

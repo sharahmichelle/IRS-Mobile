@@ -185,8 +185,9 @@ class AuthProvider with ChangeNotifier {
         await userService.addUser(userName, newUser);
         debugPrint('User added to database successfully');
       } catch (e) {
-        debugPrint('Warning: User database insert failed: $e');
-        // Don't fail signup if user insert fails - they can still sign in
+        debugPrint('Error: User database insert failed: $e');
+        // Re-throw so we can see the actual error
+        rethrow;
       }
 
       // Step 4: Send email verification (optional, don't fail if this fails)
