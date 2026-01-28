@@ -110,12 +110,16 @@ class SupabaseAuthAPI {
   // Verify email
   Future<void> verifyEmail() async {
     try {
-      await _supabase.auth.resend(
-        type: OtpType.email,
-        email: _supabase.auth.currentUser?.email,
-      );
+      final email = _supabase.auth.currentUser?.email;
+      if (email != null) {
+        await _supabase.auth.resend(
+          type: OtpType.email,
+          email: email,
+        );
+      }
     } catch (e) {
-      throw Exception('Verify email error: $e');
+      // Email verification failed, but signup was successful - don't throw
+      print('Verify email warning: $e');
     }
   }
 

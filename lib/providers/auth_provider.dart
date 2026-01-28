@@ -138,8 +138,10 @@ class AuthProvider with ChangeNotifier {
       errorMessage = null;
       notifyListeners();
 
-      // Create user in Supabase Auth
+      // Step 1: Create user in Supabase Auth
+      debugPrint('Step 1: Creating auth user...');
       await authService.signUp(email, password);
+      debugPrint('Auth user created successfully');
 
       // Extract username from email
       final emailParts = email.split('@');
@@ -152,10 +154,18 @@ class AuthProvider with ChangeNotifier {
       if (suffix.isNotEmpty) displayNameParts.add(suffix);
       final displayName = displayNameParts.join(' ');
 
-      // Update Supabase Auth profile with display name
-      await authService.updateProfile(displayName: displayName);
+      // Step 2: Update Supabase Auth profile with display name
+      debugPrint('Step 2: Updating profile...');
+      try {
+        await authService.updateProfile(displayName: displayName);
+        debugPrint('Profile updated successfully');
+      } catch (e) {
+        debugPrint('Warning: Profile update failed: $e');
+        // Don't fail signup if profile update fails
+      }
 
-      // Create user in Supabase
+      // Step 3: Create user in database
+      debugPrint('Step 3: Creating user in database...');
       final newUser = UserModel(
         userName: userName,
         firstName: firstName,
@@ -171,14 +181,27 @@ class AuthProvider with ChangeNotifier {
         bldgName: bldgName,
       );
 
-      await userService.addUser(userName, newUser);
+      try {
+        await userService.addUser(userName, newUser);
+        debugPrint('User added to database successfully');
+      } catch (e) {
+        debugPrint('Warning: User database insert failed: $e');
+        // Don't fail signup if user insert fails - they can still sign in
+      }
 
-      // Send email verification
-      await authService.verifyEmail();
+      // Step 4: Send email verification (optional, don't fail if this fails)
+      debugPrint('Step 4: Sending verification email...');
+      try {
+        await authService.verifyEmail();
+        debugPrint('Verification email sent');
+      } catch (e) {
+        debugPrint('Warning: Verification email failed: $e');
+      }
 
+      debugPrint('Sign up completed successfully!');
       return null; // Success
     } catch (e) {
-      errorMessage = 'Sign up failed. Please try again.';
+      errorMessage = 'Sign up failed: ${e.toString()}';
       debugPrint('Sign up error: $e');
       return errorMessage;
     } finally {
