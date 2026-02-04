@@ -7,6 +7,8 @@ import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/graphs_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
 
+// ignore_for_file: unused_field, unused_local_variable
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 

@@ -11,9 +11,10 @@ class ReportDataSource extends DataGridSource {
             cells: [
               DataGridCell(columnName: 'encoderId', value: e.encoderId),
               DataGridCell(columnName: 'reportId', value: e.reportId),
-              DataGridCell(columnName: 'upSystem', value: e.upSystem),
+              DataGridCell(columnName: 'cluster', value: e.cluster),
               DataGridCell(columnName: 'office', value: e.office),
-              DataGridCell(columnName: 'encoderPosition', value: e.encoderPosition),
+              DataGridCell(columnName: 'bldgName', value: e.bldgName),
+              DataGridCell(columnName: 'encoderposition', value: e.encoderposition),
 
             ],
           ),

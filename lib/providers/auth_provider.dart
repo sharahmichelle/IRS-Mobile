@@ -86,7 +86,7 @@ class AuthProvider with ChangeNotifier {
         suffix: '',
         email: supabaseUser.email ?? '',
         authId: supabaseUser.id,
-        upCampus: 'UPM', // Default campus
+        cluster: 'UPM', // Default cluster
         office: 'DRRMO',
         position: 'Encoder',
         userType: 1, // Default user type
@@ -125,7 +125,7 @@ class AuthProvider with ChangeNotifier {
     required String password,
     required String firstName,
     required String lastName,
-    required String upCampus,
+    required String cluster,
     required String office,
     required String position,
     String middleName = '',
@@ -133,82 +133,10 @@ class AuthProvider with ChangeNotifier {
     String bldgName = '',
     int userType = 1,
   }) async {
-    try {
-      isLoading = true;
-      errorMessage = null;
-      notifyListeners();
-
-      // Step 1: Create user in Supabase Auth
-      debugPrint('Step 1: Creating auth user...');
-      await authService.signUp(email, password);
-      debugPrint('Auth user created successfully');
-
-      // Extract username from email
-      final emailParts = email.split('@');
-      final userName = emailParts[0];
-
-      // Build display name for Supabase Auth
-      final displayNameParts = [firstName];
-      if (middleName.isNotEmpty) displayNameParts.add(middleName);
-      displayNameParts.add(lastName);
-      if (suffix.isNotEmpty) displayNameParts.add(suffix);
-      final displayName = displayNameParts.join(' ');
-
-      // Step 2: Update Supabase Auth profile with display name
-      debugPrint('Step 2: Updating profile...');
-      try {
-        await authService.updateProfile(displayName: displayName);
-        debugPrint('Profile updated successfully');
-      } catch (e) {
-        debugPrint('Warning: Profile update failed: $e');
-        // Don't fail signup if profile update fails
-      }
-
-      // Step 3: Create user in database
-      debugPrint('Step 3: Creating user in database...');
-      final newUser = UserModel(
-        userName: userName,
-        firstName: firstName,
-        lastName: lastName,
-        middleName: middleName,
-        suffix: suffix,
-        email: email,
-        authId: Supabase.instance.client.auth.currentUser?.id ?? '',
-        upCampus: upCampus,
-        office: office,
-        position: position,
-        userType: userType,
-        bldgName: bldgName,
-      );
-
-      try {
-        await userService.addUser(userName, newUser);
-        debugPrint('User added to database successfully');
-      } catch (e) {
-        debugPrint('Error: User database insert failed: $e');
-        // Log the error but don't fail signup - auth succeeded
-        // The user can still sign in, just without a profile
-      }
-
-      // Step 4: Send email verification (optional, don't fail if this fails)
-      debugPrint('Step 4: Sending verification email...');
-      try {
-        await authService.verifyEmail();
-        debugPrint('Verification email sent');
-      } catch (e) {
-        debugPrint('Warning: Verification email failed: $e');
-      }
-
-      debugPrint('Sign up completed successfully!');
-      return null; // Success
-    } catch (e) {
-      errorMessage = 'Sign up failed: ${e.toString()}';
-      debugPrint('Sign up error: $e');
-      return errorMessage;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
+    // Account creation has been disabled in this build.
+    errorMessage = 'Account creation is disabled.';
+    debugPrint('Sign up attempted but feature is disabled');
+    return errorMessage;
   }
 
   Future<void> signOut(BuildContext context) async {
@@ -255,7 +183,7 @@ class AuthProvider with ChangeNotifier {
     String? displayName,
     String? office,
     String? position,
-    String? upCampus,
+    String? cluster,
     String? bldgName,
   }) async {
     try {
@@ -271,7 +199,7 @@ class AuthProvider with ChangeNotifier {
         if (suffix != null) updates['suffix'] = suffix;
         if (office != null) updates['office'] = office;
         if (position != null) updates['position'] = position;
-        if (upCampus != null) updates['upCampus'] = upCampus;
+        if (cluster != null) updates['cluster'] = cluster;
         if (bldgName != null) updates['bldgName'] = bldgName;
 
         if (updates.isNotEmpty) {
@@ -285,7 +213,7 @@ class AuthProvider with ChangeNotifier {
             suffix: suffix ?? currentUser!.suffix,
             office: office ?? currentUser!.office,
             position: position ?? currentUser!.position,
-            upCampus: upCampus ?? currentUser!.upCampus,
+            cluster: cluster ?? currentUser!.cluster,
             bldgName: bldgName ?? currentUser!.bldgName,
           );
         }

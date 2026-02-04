@@ -1,46 +1,58 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 class Report {
+  final String id;
   final String encoderId;
   final String reportId;
-  final String upSystem;
+  final String cluster;
   final String office;
-  final String encoderPosition;
-  final int headCountFaculty;
-  final int headCountadminMember;
-  final int headCountRepsMember;
-  final int headCountCustodian;
-  final int headCountJoCosMember;
-  final int headCountStudent;
-  final int headCountSecurity;
-  final int headCountConstructionWorker;
-  final int headCountHealthWorker;
-  final int headCountGuest;
-  final int headCountPatient;
-  final int numMissingPerson;
-  final int numCasualty;
+  final String bldgName;
+  final String encoderposition;
+
+  // New fields mapped to Supabase column names
+  final int facultymembers;
+  final int adminmembers;
+  final int repsmembers;
+  final int ramembers;
+  final int students;
+  final int philcarestaff;
+  final int securitypersonnel;
+  final int constructionworkers;
+  final int tenants;
+  final int healthworkers;
+  final int nonacademicstaff;
+  final int guests;
+  final int nummissingpersons;
+  final int numcasualties;
+  final String namesofmissingpersons;
+  final String identityandconditionofcasualties;
+  final String damageassessment;
+  final String exactlocation;
 
   Report({
+    this.id = '',
     required this.encoderId,
     required this.reportId,
-    required this.upSystem,
+    required this.cluster,
     required this.office,
-    this.encoderPosition = "",
-    this.headCountFaculty = 0,
-    this.headCountadminMember = 0,
-    this.headCountRepsMember = 0,
-    this.headCountCustodian = 0,
-    this.headCountJoCosMember = 0,
-    this.headCountStudent = 0,
-    this.headCountSecurity = 0,
-    this.headCountConstructionWorker = 0,
-    this.headCountHealthWorker = 0,
-    this.headCountGuest = 0,
-    this.headCountPatient = 0,
-    this.numMissingPerson = 0,
-    this.numCasualty = 0,
+    required this.bldgName,
+    this.encoderposition = "",
+    this.facultymembers = 0,
+    this.adminmembers = 0,
+    this.repsmembers = 0,
+    this.ramembers = 0,
+    this.students = 0,
+    this.philcarestaff = 0,
+    this.securitypersonnel = 0,
+    this.constructionworkers = 0,
+    this.tenants = 0,
+    this.healthworkers = 0,
+    this.nonacademicstaff = 0,
+    this.guests = 0,
+    this.nummissingpersons = 0,
+    this.numcasualties = 0,
+    this.namesofmissingpersons = "",
+    this.identityandconditionofcasualties = "",
+    this.damageassessment = "",
+    this.exactlocation = "",
   });
 
 
@@ -49,45 +61,70 @@ class Report {
     return Report(
       encoderId: id,
       reportId: data['reportId'] ?? '',
-      upSystem: data['upSystem'] ?? '',
+      cluster: data['cluster'] ?? '',
       office: data['office'] ?? '',
-      encoderPosition: data['encoderPosition'] ?? '',
-      headCountFaculty: _parseInt(data['headCountFaculty']),
-      headCountadminMember: _parseInt(data['headCountadminMember']),
-      headCountRepsMember: _parseInt(data['headCountRepsMember']),
-      headCountCustodian: _parseInt(data['headCountCustodian']),
-      headCountJoCosMember: _parseInt(data['headCountJoCosMember']),
-      headCountStudent: _parseInt(data['headCountStudent']),
-      headCountSecurity: _parseInt(data['headCountSecurity']),
-      headCountConstructionWorker: _parseInt(data['headCountConstructionWorker']),
-      headCountHealthWorker: _parseInt(data['headCountHealthWorker']),
-      headCountGuest: _parseInt(data['headCountGuest']),
-      headCountPatient: _parseInt(data['headCountPatient']),
-      numMissingPerson: _parseInt(data['numMissingPerson']),
-      numCasualty: _parseInt(data['numCasualty']),
+      bldgName: data['bldgName'] ?? '',
+      encoderposition: data['encoderposition'] ?? '',
+      facultymembers: _parseInt(data['headCountFaculty']),
+      adminmembers: _parseInt(data['headCountadminMember']),
+      repsmembers: _parseInt(data['headCountRepsMember']),
+      ramembers: _parseInt(data['headCountCustodian']),
+      students: _parseInt(data['headCountStudent']),
+      securitypersonnel: _parseInt(data['headCountSecurity']),
+      constructionworkers: _parseInt(data['headCountConstructionWorker']),
+      tenants: _parseInt(data['tenants']),
+      healthworkers: _parseInt(data['headCountHealthWorker']),
+      nonacademicstaff: _parseInt(data),
+      guests: _parseInt(data['headCountGuest']),
+      philcarestaff: _parseInt(data['headCountPatient']),
+      nummissingpersons: _parseInt(data['numMissingPerson']),
+      numcasualties: _parseInt(data['numCasualty']),
     );
   }
 
   factory Report.fromJson(Map<String, dynamic> json) {
+    // Support both legacy keys and the new Supabase column keys
+    int _pickInt(List<String> keys) {
+      for (var k in keys) {
+        if (json[k] != null) return _parseInt(json[k]);
+      }
+      return 0;
+    }
+
+    String _pickString(List<String> keys) {
+      for (var k in keys) {
+        if (json[k] != null) return (json[k] as String);
+      }
+      return '';
+    }
+
     return Report(
+      id: json['id'] ?? '',
       encoderId: json['encoderId'] ?? '',
       reportId: json['reportId'] ?? '',
-      upSystem: json['upSystem'] ?? '',
+      cluster: json['cluster'] ?? '',
       office: json['office'] ?? '',
-      encoderPosition: json['encoderPosition'] ?? '',
-      headCountFaculty: _parseInt(json['headCountFaculty']),
-      headCountadminMember: _parseInt(json['headCountadminMember']),
-      headCountRepsMember: _parseInt(json['headCountRepsMember']),
-      headCountCustodian: _parseInt(json['headCountCustodian']),
-      headCountJoCosMember: _parseInt(json['headCountJoCosMember']),
-      headCountStudent: _parseInt(json['headCountStudent']),
-      headCountSecurity: _parseInt(json['headCountSecurity']),
-      headCountConstructionWorker: _parseInt(json['headCountConstructionWorker']),
-      headCountHealthWorker: _parseInt(json['headCountHealthWorker']),
-      headCountGuest: _parseInt(json['headCountGuest']),
-      headCountPatient: _parseInt(json['headCountPatient']),
-      numMissingPerson: _parseInt(json['numMissingPerson']),
-      numCasualty: _parseInt(json['numCasualty']),
+      bldgName: json['bldgName'] ?? '',
+      encoderposition: json['encoderposition'] ?? '',
+      // New explicit fields
+      facultymembers: _pickInt(['facultymembers', 'headCountFaculty']),
+      adminmembers: _pickInt(['adminmembers', 'headCountadminMember']),
+      repsmembers: _pickInt(['repsmembers', 'headCountRepsMember']),
+      ramembers: _pickInt(['ramembers', 'headCountCustodian']),
+      students: _pickInt(['students', 'headCountStudent']),
+      philcarestaff: _pickInt(['philcarestaff', 'headCountPatient']),
+      securitypersonnel: _pickInt(['securitypersonnel', 'headCountSecurity']),
+      constructionworkers: _pickInt(['constructionworkers', 'headCountConstructionWorker']),
+      tenants: _pickInt(['tenants']),
+      healthworkers: _pickInt(['healthworkers', 'headCountHealthWorker']),
+      nonacademicstaff: _pickInt(['nonacademicstaff', 'headCountJoCosMember']),
+      guests: _pickInt(['guests', 'headCountGuest']),
+      nummissingpersons: _pickInt(['nummissingpersons', 'numMissingPerson']),
+      numcasualties: _pickInt(['numcasualties', 'numCasualty']),
+      namesofmissingpersons: _pickString(['namesofmissingpersons', 'namesOfMissingPersons', 'namesOfMissing']),
+      identityandconditionofcasualties: _pickString(['identityandconditionofcasualties', 'identityAndConditionOfCasualties']),
+      damageassessment: _pickString(['damageassessment', 'damageAssessment']),
+      exactlocation: _pickString(['exactlocation', 'exactLocation', 'location']),
     );
   }
 
@@ -100,23 +137,33 @@ class Report {
 
   Map<String, dynamic> toJson() {
     return {
+      // Legacy keys kept for backward compatibility
       'encoderId': encoderId,
       'reportId': reportId,
-      'upSystem': upSystem,
+      'cluster': cluster,
       'office': office,
-      'headCountFaculty': headCountFaculty,
-      'headCountadminMember': headCountadminMember,
-      'headCountRepsMember': headCountRepsMember,
-      'headCountCustodian': headCountCustodian,
-      'headCountJoCosMember': headCountJoCosMember,
-      'headCountStudent': headCountStudent,
-      'headCountSecurity': headCountSecurity,
-      'headCountConstructionWorker': headCountConstructionWorker,
-      'headCountHealthWorker': headCountHealthWorker,
-      'headCountGuest': headCountGuest,
-      'headCountPatient': headCountPatient,
-      'numMissingPerson': numMissingPerson,
-      'numCasualty': numCasualty,
+      'bldgName': bldgName,
+
+      // New required Supabase column names (as requested)
+      'facultymembers': facultymembers,
+      'adminmembers': adminmembers,
+      'repsmembers': repsmembers,
+      'ramembers': ramembers,
+      'students': students,
+      'philcarestaff': philcarestaff,
+      'securitypersonnel': securitypersonnel,
+      'constructionworkers': constructionworkers,
+      'tenants': tenants,
+      'healthworkers': healthworkers,
+      'nonacademicstaff': nonacademicstaff,
+      'guests': guests,
+
+      'nummissingpersons': nummissingpersons,
+      'numcasualties': numcasualties,
+      'namesofmissingpersons': namesofmissingpersons,
+      'identityandconditionofcasualties': identityandconditionofcasualties,
+      'damageassessment': damageassessment,
+      'exactlocation': exactlocation,
     };
   }
 }

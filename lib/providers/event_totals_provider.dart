@@ -1,5 +1,4 @@
 /* import 'package:cloud_firestore/cloud_firestore.dart'; */
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:upm_drrm_irs_mobile/apis/supabase_event_total_api.dart';
 import 'package:upm_drrm_irs_mobile/models/event_total_model.dart';
@@ -51,8 +50,8 @@ class EventTotals with ChangeNotifier {
     return null;
   }
 
-  Future<void> addReportToEventTotal(String eventId, String upSystem, String reportId, Map<String, int> data) async {
-    final message = await firebaseService.addReport(reportId, upSystem, eventId, data);
+  Future<void> addReportToEventTotal(String eventId, String cluster, String reportId, Map<String, int> data) async {
+    final message = await firebaseService.addReport(reportId, cluster, eventId, data);
     debugPrint(message);
     notifyListeners();
   }

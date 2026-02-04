@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 /* import 'package:cloud_firestore/cloud_firestore.dart'; */
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:upm_drrm_irs_mobile/models/event_calendar_datasource.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/screens/add_report_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -271,7 +271,7 @@ class _CalendarScreenState extends State<CalendarScreen> with SingleTickerProvid
 
                                       // Filter events based on selected filter
                                       List<Event> events = snapshot.data!
-                                          .map((data) => Event.fromMap(data, data['id']))
+                                          .map((data) => Event.fromMap(data, data['eventid']))
                                           .toList();
 
                                       if (_selectedFilter != 'all') {
@@ -510,10 +510,6 @@ class _CalendarScreenState extends State<CalendarScreen> with SingleTickerProvid
   }
 
   Widget _buildEventFilterDropdown() {
-    final selectedOption = _filterOptions.firstWhere(
-      (option) => option['value'] == _selectedFilter,
-      orElse: () => _filterOptions.first,
-    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -1452,45 +1448,67 @@ class _CalendarScreenState extends State<CalendarScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 36),
 
-                // Close Button
-                Container(
-                  height: 60,
-                  decoration: BoxDecoration(
-                    gradient: _emergencyGradient,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryRed.withOpacity(0.5),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                // Add Report Button
+                Builder(
+                  builder: (context) {
+                    final bool isReportingDisabled = appointment.status.toLowerCase() == 'upcoming' || appointment.status.toLowerCase() == 'completed';
+                    final LinearGradient buttonGradient = isReportingDisabled
+                        ? LinearGradient(colors: [Colors.grey.shade400, Colors.grey.shade600])
+                        : _emergencyGradient;
+                    final Color shadowColor = isReportingDisabled ? Colors.grey.shade400.withOpacity(0.3) : _primaryRed.withOpacity(0.5);
+
+                    return Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: buttonGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: shadowColor,
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => Navigator.pop(context),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.close_rounded, color: _white, size: 24),
-                            const SizedBox(width: 12),
-                            Text(
-                              'CLOSE DETAILS',
-                              style: TextStyle(
-                                color: _white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: isReportingDisabled ? null : () {
+                            Navigator.pop(context); // Close the modal first
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddReportScreen(currentEvent: appointment),
                               ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  isReportingDisabled ? Icons.block_rounded : Icons.add_circle_rounded,
+                                  color: _white,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  isReportingDisabled ? 'REPORTING UNAVAILABLE' : 'ADD REPORT',
+                                  style: TextStyle(
+                                    color: _white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
               ],

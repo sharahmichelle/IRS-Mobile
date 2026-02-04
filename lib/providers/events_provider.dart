@@ -1,5 +1,4 @@
 /* import 'package:cloud_firestore/cloud_firestore.dart'; */
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:upm_drrm_irs_mobile/apis/supabase_event_api.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
@@ -50,8 +49,8 @@ class Events with ChangeNotifier {
     return Event.fromMap(data, id);
   }
 
-  Future<void> addReportToEvent(String eventId, String upSystem, String reportId, Map<String, int> data) async {
-    final message = await supabaseService.addReport(reportId, upSystem, eventId, data);
+  Future<void> addReportToEvent(String eventId, String cluster, String reportId, Map<String, int> data) async {
+    final message = await supabaseService.addReport(reportId, cluster, eventId, data);
     debugPrint(message);
     notifyListeners();
   }

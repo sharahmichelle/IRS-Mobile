@@ -1,5 +1,4 @@
 // lib/providers/reports_provider.dart
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:upm_drrm_irs_mobile/apis/supabase_report_api.dart';
 import 'package:upm_drrm_irs_mobile/models/report_model.dart';
@@ -21,22 +20,37 @@ class Reports with ChangeNotifier {
   }
 
   Future<String> addReport(Report report) async {
-    final message = await supabaseService.addReport(report.toJson());
-    debugPrint(message);
-    notifyListeners();
-    return message;
+    try {
+      final id = await supabaseService.addReport(report.toJson());
+      debugPrint('Added report id: $id');
+      notifyListeners();
+      return id;
+    } catch (e) {
+      debugPrint('Failed to add report: $e');
+      rethrow;
+    }
   }
 
   Future<void> editReport(String id, Map<String, dynamic> edit) async {
-    final message = await supabaseService.editReport(id, edit);
-    debugPrint(message);
-    notifyListeners();
+    try {
+      await supabaseService.editReport(id, edit);
+      debugPrint('Successfully edited report: $id');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to edit report: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteReport(String id) async {
-    final message = await supabaseService.deleteReport(id);
-    debugPrint(message);
-    notifyListeners();
+    try {
+      await supabaseService.deleteReport(id);
+      debugPrint('Successfully deleted report: $id');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to delete report: $e');
+      rethrow;
+    }
   }
 
   Future<Report> getReportById(String id) async {

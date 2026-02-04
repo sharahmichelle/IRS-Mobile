@@ -6,7 +6,7 @@ class SupabaseEventAPI {
   Stream<List<Map<String, dynamic>>> getAllEvents() {
     return _supabase
         .from('events')
-        .stream(primaryKey: ['id'])
+        .stream(primaryKey: ['eventid'])
         .map((data) => data);
   }
 
@@ -14,7 +14,7 @@ class SupabaseEventAPI {
     final response = await _supabase
         .from('events')
         .select()
-        .eq('id', id)
+        .eq('eventid', id)
         .single();
     return response;
   }
@@ -24,10 +24,10 @@ class SupabaseEventAPI {
       final response = await _supabase
           .from('events')
           .insert(event)
-          .select('id')
+          .select('eventid')
           .single();
 
-      return response['id'] as String;
+      return response['eventid'] as String;
     } catch (e) {
       return "Failed with error: $e";
     }
@@ -43,7 +43,7 @@ class SupabaseEventAPI {
       await _supabase
           .from('events')
           .delete()
-          .eq('id', id);
+          .eq('eventid', id);
       return "Successfully deleted event!";
     } catch (e) {
       return "Failed with error: $e";
@@ -55,7 +55,7 @@ class SupabaseEventAPI {
       await _supabase
           .from('events')
           .update(edit)
-          .eq('id', id);
+          .eq('eventid', id);
       return "Successfully edited event!";
     } catch (e) {
       return "Failed with error: $e";
@@ -64,15 +64,15 @@ class SupabaseEventAPI {
 
   Future<String> addReport(
     String reportId,
-    String upSystem,
+    String cluster,
     String id,
     Map<String, int> data,
   ) async {
     try {
       await _supabase.rpc('add_report_to_event', params: {
-        'report_id': reportId,
-        'up_system': upSystem,
-        'event_id': id,
+        'reportid': reportId,
+        'cluster': cluster,
+        'eventid': id,
         'data': data,
       });
 

@@ -1,5 +1,5 @@
 /* import 'package:cloud_firestore/cloud_firestore.dart'; */
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 class UserModel{
   final String userName; 
@@ -9,7 +9,7 @@ class UserModel{
   final String suffix;
   final String email;
   final String authId;
-  final String upCampus;
+  final String cluster;
   final String office;
   final String bldgName;
   final String position; 
@@ -23,7 +23,7 @@ class UserModel{
     this.suffix = "",
     this.email = "",
     this.authId = "",
-    this.upCampus = "",
+    this.cluster = "",
     this.office = "",
     this.bldgName = "",
     this.position = "",
@@ -35,51 +35,51 @@ class UserModel{
   factory UserModel.fromMap(Map<String, dynamic> data, String userName) {
     return UserModel(
       userName: userName,
-      firstName: data['firstName'] ?? '',
-      middleName: data['middleName'] ?? '',
-      lastName: data['lastName'] ?? '',
+      firstName: data['firstname'] ?? '',
+      middleName: data['middlename'] ?? '',
+      lastName: data['lastname'] ?? '',
       suffix: data['suffix'] ?? '',
       email: data['email'] ?? '',
-      authId: data['authId'] ?? '',
-      upCampus: data['upCampus'] ?? '',
+      authId: data['authid'] ?? '',
+      cluster: data['cluster'] ?? '',
       office: data['office'] ?? '',
-      bldgName: data['bldgName'] ?? '',
+      bldgName: data['bldgname'] ?? '',
       position: data['position'] ?? '',
-      userType: data['userType'] ?? 0,
+      userType: data['usertype'] ?? 0,
     );
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userName: json['userName'] ?? '',
-      firstName: json['firstName'] ?? '',
-      middleName: json['middleName'] ?? '',
-      lastName: json['lastName'] ?? '',
+      userName: json['username'] ?? json['userName'] ?? '',
+      firstName: json['firstname'] ?? json['firstName'] ?? '',
+      middleName: json['middlename'] ?? json['middleName'] ?? '',
+      lastName: json['lastname'] ?? json['lastName'] ?? '',
       suffix: json['suffix'] ?? '',
       email: json['email'] ?? '',
-      authId: json['authId'] ?? '',
-      upCampus: json['upCampus'] ?? '',
+      authId: json['authid'] ?? json['authId'] ?? '',
+      cluster: json['cluster'] ?? json['upcampus'] ?? json['upCampus'] ?? '',
       office: json['office'] ?? '',
-      bldgName: json['bldgName'] ?? '',
+      bldgName: json['bldgname'] ?? json['bldgName'] ?? '',
       position: json['position'] ?? '',
-      userType: json['userType'] ?? 0,
+      userType: json['usertype'] ?? json['userType'] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userName': userName,
-      'firstName': firstName,
-      'middleName': middleName,
-      'lastName': lastName,
+      'username': userName,
+      'firstname': firstName,
+      'middlename': middleName,
+      'lastname': lastName,
       'suffix': suffix,
       'email': email,
-      'authId': authId,
-      'upCampus': upCampus,
+      'authid': authId,
+      'cluster': cluster,
       'office': office,
-      'bldgName': bldgName,
+      'bldgname': bldgName,
       'position': position,
-      'userType': userType
+      'usertype': userType
     };
   }
 
@@ -110,7 +110,7 @@ class UserModel{
     String? suffix,
     String? email,
     String? authId,
-    String? upCampus,
+    String? cluster,
     String? office,
     String? bldgName,
     String? position,
@@ -124,7 +124,7 @@ class UserModel{
       suffix: suffix ?? this.suffix,
       email: email ?? this.email,
       authId: authId ?? this.authId,
-      upCampus: upCampus ?? this.upCampus,
+      cluster: cluster ?? this.cluster,
       office: office ?? this.office,
       bldgName: bldgName ?? this.bldgName,
       position: position ?? this.position,

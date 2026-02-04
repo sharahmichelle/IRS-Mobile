@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+// ignore_for_file: unused_field
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 
@@ -332,15 +334,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
     final userDetails = [
       {
-        "icon": Icons.work_rounded,
-        "label": "Position",
-        "value": currentUser.position.isNotEmpty ? currentUser.position : "Not specified",
-        "color": _warningOrange,
-      },
-      {
         "icon": Icons.school_rounded,
-        "label": "UP Organization",
-        "value": currentUser.upCampus.isNotEmpty ? currentUser.upCampus : "Not specified",
+        "label": "Cluster",
+        "value": currentUser.cluster.isNotEmpty ? currentUser.cluster : "Not specified",
         "color": _accentBlue,
       },
       {

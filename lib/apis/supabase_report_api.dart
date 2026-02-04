@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import '../models/report_model.dart';
 
 class SupabaseReportAPI {
@@ -8,7 +9,9 @@ class SupabaseReportAPI {
     return _supabase
         .from('reports')
         .stream(primaryKey: ['id'])
-        .map((data) => data.map((json) => Report.fromJson(json)).toList());
+        .map<List<Report>>((data) => (data as List)
+            .map((json) => Report.fromJson(Map<String, dynamic>.from(json)))
+            .toList());
   }
 
   Future<Report> fetchReportById(String id) async {
@@ -19,47 +22,63 @@ class SupabaseReportAPI {
           .eq('id', id)
           .single();
 
-      return Report.fromJson(response);
+      if (response == null) {
+        throw Exception("Report not found for id: $id");
+      }
+
+      return Report.fromJson(Map<String, dynamic>.from(response));
     } catch (e) {
-      throw Exception("Report not found for id: $id");
+      throw Exception("Report not found for id: $id. Error: $e");
     }
   }
 
   Future<String> addReport(Map<String, dynamic> reportData) async {
     try {
+      debugPrint('[SupabaseReportAPI] Inserting report: $reportData');
       final response = await _supabase
           .from('reports')
           .insert(reportData)
           .select('id')
           .single();
+      debugPrint('[SupabaseReportAPI] Insert response: $response');
 
-      return response['id'] as String;
+      final id = response is Map ? response['id'] as String? : null;
+      if (id == null) {
+        throw Exception('Failed to add report: no id returned. Response: $response');
+      }
+      return id;
     } catch (e) {
-      return "Failed with error: $e";
+      debugPrint('[SupabaseReportAPI] Insert failed: $e');
+      // Propagate the exception so callers can handle failures explicitly
+      throw Exception('Failed to add report: $e');
     }
   }
 
-  Future<String> deleteReport(String id) async {
+  Future<void> deleteReport(String id) async {
     try {
-      await _supabase
+      final response = await _supabase
           .from('reports')
           .delete()
           .eq('id', id);
-      return "Successfully deleted Report!";
+      if (response == null) {
+        throw Exception('Failed to delete report with id: $id');
+      }
     } catch (e) {
-      return "Failed with error: $e";
+      throw Exception('Failed to delete report: $e');
     }
   }
 
-  Future<String> editReport(String id, Map<String, dynamic> edit) async {
+  Future<void> editReport(String id, Map<String, dynamic> edit) async {
     try {
-      await _supabase
+      final response = await _supabase
           .from('reports')
           .update(edit)
           .eq('id', id);
-      return "Successfully edited Report!";
+      if (response == null) {
+        throw Exception('Failed to edit report with id: $id');
+      }
     } catch (e) {
-      return "Failed with error: $e";
+      throw Exception('Failed to edit report: $e');
     }
   }
 }

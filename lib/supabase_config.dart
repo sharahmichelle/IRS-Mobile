@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_options.dart';
 
 class SupabaseConfig {
   static Future<void> initialize() async {

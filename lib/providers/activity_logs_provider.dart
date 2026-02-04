@@ -1,4 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:upm_drrm_irs_mobile/apis/supabase_activity_log_api.dart';
 import 'package:upm_drrm_irs_mobile/models/activity_log_model.dart';

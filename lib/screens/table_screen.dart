@@ -57,16 +57,6 @@ class _TableScreenState extends State<TableScreen> {
   void initState() {
     super.initState();
 
-    // // Temporary dummy report data
-    // _reportData = List.generate(25, (index) {
-    //   return Report(
-    //     encoderId: 'Encoder${index + 1}',
-    //     reportId: 'Report${index + 1}',
-    //     upSystem: 'UP System ${(index % 3) + 1}',
-    //     office: 'Office ${(index % 5) + 1}',
-    //   );
-    // });
-
     // Initialize columns with modern styling
     dataListColumns = [
       // ACTIVITY LOGS COLUMNS
@@ -91,7 +81,7 @@ class _TableScreenState extends State<TableScreen> {
       [
         _buildGridColumn('encoderId', 'Encoder ID', 130),
         _buildGridColumn('reportId', 'Report ID', 130),
-        _buildGridColumn('upSystem', 'UP System', 130),
+        _buildGridColumn('cluster', 'Cluster', 130),
         _buildGridColumn('office', 'Office', 130),
         _buildGridColumn('encoderPosition', 'Encoder Position', 160),
       ],
@@ -212,7 +202,7 @@ class _TableScreenState extends State<TableScreen> {
               }
 
               final data = snapshot.data!;
-              _eventData = data.map((d) => Event.fromMap(d, d['id'])).toList();
+              _eventData = data.map((d) => Event.fromMap(d, d['eventid'])).toList();
               _totalPages = _getTotalPages();
 
               final startIndex = (_currentPage - 1) * _rowsPerPage;

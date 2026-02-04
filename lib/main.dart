@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:upm_drrm_irs_mobile/supabase_config.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
@@ -11,7 +10,6 @@ import 'package:upm_drrm_irs_mobile/screens/add_event_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/faq_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/login_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
-import 'package:upm_drrm_irs_mobile/screens/signup_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/splash_screen.dart';
 
 // Supabase and Provider Initialization
@@ -252,7 +250,6 @@ class MyApp extends StatelessWidget {
         "/": (context) => const LoginScreen(),
         "/main": (context) => const MainScreen(),
         "/add_event": (context) => const AddEventScreen(),
-        "/signup": (context) => const SignUpScreen(),
         "/faq": (context) => const FaqScreen(),
       },
     );
