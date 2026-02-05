@@ -56,6 +56,12 @@ class _SubmittedReportsScreenState extends State<SubmittedReportsScreen>
     
     _fadeController.forward();
     _loadEventReports();
+
+    // Listen to reports changes to update the display
+    final reportsProvider = Provider.of<Reports>(context, listen: false);
+    reportsProvider.reports.listen((_) {
+      if (mounted) _loadEventReports();
+    });
   }
 
   @override
@@ -81,7 +87,8 @@ class _SubmittedReportsScreenState extends State<SubmittedReportsScreen>
         final eventId = eventData['eventid'];
         // Get all reports and filter by eventId if needed
         final allReports = await reportsProvider.reports.first;
-        final eventReports = allReports.where((report) => report.reportId == eventId).toList();
+        // Use the report's eventId field to match events to reports
+        final eventReports = allReports.where((report) => report.eventId == eventId).toList();
         reports[eventId] = eventReports;
       }
 
@@ -235,7 +242,8 @@ class _SubmittedReportsScreenState extends State<SubmittedReportsScreen>
                           itemBuilder: (context, index) {
                             final report = allReports[index];
                             final event = events.firstWhere(
-                              (e) => e.eventId == report.reportId,
+                              // Match using the report's eventId
+                              (e) => e.eventId == report.eventId,
                               orElse: () => Event(
                                 eventId: report.reportId,
                                 timeStampStart: DateTime.now(),

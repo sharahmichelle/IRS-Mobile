@@ -55,8 +55,6 @@ class Report {
     this.exactlocation = "",
   });
 
-
-
   factory Report.fromMap(Map<String, dynamic> data, String id) {
     return Report(
       encoderId: id,
@@ -68,15 +66,15 @@ class Report {
       facultymembers: _parseInt(data['headCountFaculty']),
       adminmembers: _parseInt(data['headCountadminMember']),
       repsmembers: _parseInt(data['headCountRepsMember']),
-      ramembers: _parseInt(data['headCountCustodian']),
+      ramembers: _parseInt(data['headCountRAMember']),
       students: _parseInt(data['headCountStudent']),
       securitypersonnel: _parseInt(data['headCountSecurity']),
       constructionworkers: _parseInt(data['headCountConstructionWorker']),
       tenants: _parseInt(data['tenants']),
       healthworkers: _parseInt(data['headCountHealthWorker']),
-      nonacademicstaff: _parseInt(data),
+      nonacademicstaff: _parseInt(data['headCountNonAcademicStaff']),
       guests: _parseInt(data['headCountGuest']),
-      philcarestaff: _parseInt(data['headCountPatient']),
+      philcarestaff: _parseInt(data['headCountPhilcareStaff']),
       nummissingpersons: _parseInt(data['numMissingPerson']),
       numcasualties: _parseInt(data['numCasualty']),
     );
@@ -110,14 +108,14 @@ class Report {
       facultymembers: _pickInt(['facultymembers', 'headCountFaculty']),
       adminmembers: _pickInt(['adminmembers', 'headCountadminMember']),
       repsmembers: _pickInt(['repsmembers', 'headCountRepsMember']),
-      ramembers: _pickInt(['ramembers', 'headCountCustodian']),
+      ramembers: _pickInt(['ramembers', 'headCountRAMember']),
       students: _pickInt(['students', 'headCountStudent']),
-      philcarestaff: _pickInt(['philcarestaff', 'headCountPatient']),
+      philcarestaff: _pickInt(['philcarestaff', 'headCountPhilcareStaff']),
       securitypersonnel: _pickInt(['securitypersonnel', 'headCountSecurity']),
       constructionworkers: _pickInt(['constructionworkers', 'headCountConstructionWorker']),
       tenants: _pickInt(['tenants']),
       healthworkers: _pickInt(['healthworkers', 'headCountHealthWorker']),
-      nonacademicstaff: _pickInt(['nonacademicstaff', 'headCountJoCosMember']),
+      nonacademicstaff: _pickInt(['nonacademicstaff', 'headCountNonAcademicStaff']),
       guests: _pickInt(['guests', 'headCountGuest']),
       nummissingpersons: _pickInt(['nummissingpersons', 'numMissingPerson']),
       numcasualties: _pickInt(['numcasualties', 'numCasualty']),
@@ -166,4 +164,8 @@ class Report {
       'exactlocation': exactlocation,
     };
   }
+
+  /// Compatibility getter used by SubmittedReportsScreen and other callers.
+  /// Returns the underlying event id field (adjust the field name if different).
+  String get eventId => reportId;
 }

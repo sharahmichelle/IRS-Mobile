@@ -312,7 +312,7 @@ class _AddReportScreenState extends State<AddReportScreen> with SingleTickerProv
 
     final report = Report(
       encoderId: currentUser != null ? currentUser.authId : "unknown",
-      reportId: "",
+      reportId: widget.currentEvent.eventId,
       cluster: currentUser != null ? currentUser.cluster : "unknown",
       bldgName: currentUser != null ? currentUser.bldgName : "unknown",
       office: currentUser != null ? currentUser.office : "unknown",
@@ -340,6 +340,7 @@ class _AddReportScreenState extends State<AddReportScreen> with SingleTickerProv
     if (widget.existingReport != null && widget.existingReport!.id.isNotEmpty) {
       // Edit existing report
       final editMap = {
+        'reportId': widget.currentEvent.eventId,
         'facultymembers': report.facultymembers,
         'adminmembers': report.adminmembers,
         'repsmembers': report.repsmembers,
@@ -363,7 +364,8 @@ class _AddReportScreenState extends State<AddReportScreen> with SingleTickerProv
 
       if (context.mounted) {
         await context.read<Reports>().editReport(widget.existingReport!.id, editMap);
-        // Reload event totals
+        // Reload reports and event totals
+        context.read<Reports>().fetchReports();
         context.read<EventTotals>().fetchEventTotals();
       }
 
@@ -392,13 +394,13 @@ class _AddReportScreenState extends State<AddReportScreen> with SingleTickerProv
       if (!context.mounted) return;
       await context.read<EventTotals>().addReportToEventTotal(
         widget.currentEvent.eventId,
-        "UP System A",
+        currentUser != null ? currentUser.cluster : "unknown",
         reportId,
         {
           "headCountFaculty": report.facultymembers,
           "headCountadminMember": report.adminmembers,
           "headCountRepsMember": report.repsmembers,
-          "headCountCustodian": report.ramembers,
+          "headCountRAMember": report.ramembers,
           "headCountStudent": report.students,
           "headCountPhilcare": report.philcarestaff,
           "headCountSecurity": report.securitypersonnel,

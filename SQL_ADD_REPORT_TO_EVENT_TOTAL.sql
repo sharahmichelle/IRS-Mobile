@@ -46,7 +46,7 @@ BEGIN
             "headcountfaculty",
             "headcountadminmember",
             "headcountrepsmember",
-            "headcountcustodian",
+            "headcountramember",
             "headcountstudent",
             "headcountsecurity",
             "headcountconstructionworker",

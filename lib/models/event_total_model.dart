@@ -9,14 +9,15 @@ class EventTotal {
   final int totalFaculty;
   final int totalAdminMembers;
   final int totalRepsMembers;
-  final int totalCustodians;
-  final int totalJoCosMembers;
+  final int totalRAMembers;
   final int totalStudents;
+  final int totalPhilcareStaff;
   final int totalSecurity;
   final int totalConstructionWorkers;
+  final int totalTenants;
   final int totalHealthWorkers;
+  final int totalNonAcademicStaff;
   final int totalGuests;
-  final int totalPatients;
   final int totalMissingPersons;
   final int totalCasualties;
   final bool isActual;
@@ -32,14 +33,15 @@ class EventTotal {
     this.totalFaculty = 0,
     this.totalAdminMembers = 0,
     this.totalRepsMembers = 0,
-    this.totalCustodians = 0,
-    this.totalJoCosMembers = 0,
+    this.totalRAMembers = 0,
+    this.totalPhilcareStaff = 0,
     this.totalStudents = 0,
     this.totalSecurity = 0,
     this.totalConstructionWorkers = 0,
     this.totalHealthWorkers = 0,
+    this.totalTenants = 0,
+    this.totalNonAcademicStaff = 0,
     this.totalGuests = 0,
-    this.totalPatients = 0,
     this.totalMissingPersons = 0,
     this.totalCasualties = 0,
     this.isActual = false,
@@ -70,15 +72,16 @@ class EventTotal {
       totalFaculty: _parseInt(data['totalfaculty']),
       totalAdminMembers: _parseInt(data['totaladminmembers']),
       totalRepsMembers: _parseInt(data['totalrepsmembers']),
-      totalCustodians: _parseInt(data['totalcustodians']),
-      totalJoCosMembers: _parseInt(data['totaljocosmembers']),
+      totalRAMembers: _parseInt(data['totalramembers']),
+      totalPhilcareStaff: _parseInt(data['totalphilcarestaff']),
+      totalTenants: _parseInt(data['totaltenants']),
+      totalNonAcademicStaff: _parseInt(data['totalnonacademicstaff']),
       totalStudents: _parseInt(data['totalstudents']),
       totalSecurity: _parseInt(data['totalsecurity']),
       totalConstructionWorkers:
           _parseInt(data['totalconstructionworkers']),
       totalHealthWorkers: _parseInt(data['totalhealthworkers']),
       totalGuests: _parseInt(data['totalguests']),
-      totalPatients: _parseInt(data['totalpatients']),
       totalMissingPersons: _parseInt(data['totalmissingpersons']),
       totalCasualties: _parseInt(data['totalcasualties']),
       totalDistribution: data['totaldistribution'] != null
@@ -107,14 +110,15 @@ class EventTotal {
       'totalfaculty': totalFaculty,
       'totaladminmembers': totalAdminMembers,
       'totalrepsmembers': totalRepsMembers,
-      'totalcustodians': totalCustodians,
-      'totaljocosmembers': totalJoCosMembers,
+      'totalramembers': totalRAMembers,
+      'totalphilcarestaff': totalPhilcareStaff,
+      'totaltenants': totalTenants,
+      'totalnonacademicstaff': totalNonAcademicStaff,
       'totalstudents': totalStudents,
       'totalsecurity': totalSecurity,
       'totalconstructionworkers': totalConstructionWorkers,
       'totalhealthworkers': totalHealthWorkers,
       'totalguests': totalGuests,
-      'totalpatients': totalPatients,
       'totalmissingpersons': totalMissingPersons,
       'totalcasualties': totalCasualties,
       'totaldistribution': totalDistribution,
