@@ -10,53 +10,55 @@ class SplashScreenMinimal extends StatefulWidget {
   State<SplashScreenMinimal> createState() => _SplashScreenMinimalState();
 }
 
-class _SplashScreenMinimalState extends State<SplashScreenMinimal> 
-    with SingleTickerProviderStateMixin {
-  final Color primaryColor = Color(0xFFA11D1C);
-  final Color backgroundColor = Color(0xFFF8FAFC);
+class _SplashScreenMinimalState extends State<SplashScreenMinimal>
+    with TickerProviderStateMixin {
+  // Red gradient colors
+  static const Color _primaryRed = Color(0xFFE63946);
+  static const Color _darkRed = Color(0xFFD00000);
   
-  late AnimationController _controller;
+  late AnimationController _rippleController;
+  late AnimationController _fadeController;
   late Animation<double> _logoFadeAnimation;
   late Animation<double> _textFadeAnimation;
-  late Animation<double> _loadingFadeAnimation;
 
   @override
   void initState() {
     super.initState();
     
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+    // Ripple animation controller
+    _rippleController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat();
+    
+    // Fade animation controller
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
     
-    // Staggered fade animations for different elements
     _logoFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.0, 0.5, curve: Curves.easeIn),
+        parent: _fadeController,
+        curve: Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
     
     _textFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.3, 0.8, curve: Curves.easeIn),
+        parent: _fadeController,
+        curve: Interval(0.4, 1.0, curve: Curves.easeOut),
       ),
     );
     
-    _loadingFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.6, 1.0, curve: Curves.easeIn),
-      ),
-    );
-    
-    _controller.forward();
+    _fadeController.forward();
     _checkAuthAndNavigate();
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 5000));
+    
+    if (!mounted) return;
     
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
@@ -69,120 +71,141 @@ class _SplashScreenMinimalState extends State<SplashScreenMinimal>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _rippleController.dispose();
+    _fadeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [primaryColor, Color(0xFFC62828)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [_primaryRed, _darkRed],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo with fade animation
-              FadeTransition(
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Concentric circles ripple effect - centered with logo
+            AnimatedBuilder(
+              animation: _rippleController,
+              builder: (context, child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    _buildRipple(0.0),
+                    _buildRipple(0.25),
+                    _buildRipple(0.5),
+                    _buildRipple(0.75),
+                  ],
+                );
+              },
+            ),
+            
+            // Logo centered in the middle of screen (aligned with ripples)
+            Positioned(
+              top: MediaQuery.of(context).size.height / 2 - 70, // Adjust to center logo with ripples
+              child: FadeTransition(
                 opacity: _logoFadeAnimation,
                 child: Container(
-                  width: 150,
-                  height: 150,
+                  width: 140,
+                  height: 140,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
+                    color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 20,
-                        offset: Offset(0, 8),
+                        offset: Offset(0, 10),
                       ),
                     ],
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [primaryColor.withOpacity(0.1), Color(0xFFC62828).withOpacity(0.05)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                      ),
-                      Image.asset(
-                        'assets/favicon.png',
-                        width: 120,
-                        height: 120,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              
-              // App Name with fade animation
-              FadeTransition(
-                opacity: _textFadeAnimation,
-                child: Text(
-                  'UPM DRRM - H IRS',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              
-              // Tagline with fade animation
-              FadeTransition(
-                opacity: _textFadeAnimation,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Incident Reporting System',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.95),
+                  child: Center(
+                    child: Image.asset(
+                      'assets/favicon.png',
+                      width: 100,
+                      height: 100,
+                      color: _primaryRed,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.shield_rounded,
+                          size: 80,
+                          color: _primaryRed,
+                        );
+                      },
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 4),
-              
-              // Loading text with fade animation
-              FadeTransition(
-                opacity: _loadingFadeAnimation,
-                child: Text(
-                  'Loading...',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
+            ),
+            
+            // Text content at the bottom part of screen
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.25,
+              child: FadeTransition(
+                opacity: _textFadeAnimation,
+                child: Column(
+                  children: [
+                    Text(
+                      'Incident Reporting System',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'UP Manila DRRM-H',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.9),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRipple(double delay) {
+    final double size = 400;
+    return AnimatedBuilder(
+      animation: _rippleController,
+      builder: (context, child) {
+        double progress = (_rippleController.value + delay) % 1.0;
+        double opacity = 1.0 - progress;
+        double scale = 0.3 + (progress * 1.2);
+        
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withOpacity(opacity * 0.35),
+                width: 3,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

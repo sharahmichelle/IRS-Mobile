@@ -13,7 +13,6 @@ class EventDataSource extends DataGridSource {
               DataGridCell(columnName: 'name', value: e.eventName),
               DataGridCell(columnName: 'description', value: e.eventDescription),
               DataGridCell(columnName: 'status', value: e.status),
-              DataGridCell(columnName: 'action', value: e.action),
             ],
           ),
         )

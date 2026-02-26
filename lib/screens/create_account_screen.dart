@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
+import 'package:upm_drrm_irs_mobile/screens/terms_privacy_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/register';
@@ -31,7 +32,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _agreeToTerms = false;
   bool _showZoneDropdown = false;
 
-  // Color scheme - Red gradient theme matching login
   static const Color _primaryRed = Color(0xFFE63946);
   static const Color _darkRed = Color(0xFFD00000);
   final Color _white = const Color(0xFFF8F9FA);
@@ -46,7 +46,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     colors: [Color(0xFFE63946), Color(0xFFD00000)],
   );
 
-  // Cluster options
   final List<String> _clusterOptions = [
     'Select cluster',
     'PGH',
@@ -57,7 +56,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     'Not Applicable'
   ];
 
-  // Zone options for PGH
   final List<String> _zoneOptions = [
     'Select zone',
     'Zone 1',
@@ -82,11 +80,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _onClusterChanged() {
     setState(() {
-      // FIXED: Compare controller text, not the list
       _showZoneDropdown = _clusterCtrl.text == 'PGH';
-      if (!_showZoneDropdown) {
-        _zoneCtrl.text = '';
-      }
+      if (!_showZoneDropdown) _zoneCtrl.text = '';
     });
   }
 
@@ -108,29 +103,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  Future<void> _openTermsScreen() async {
+    final accepted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const TermsPrivacyScreen(requireAcceptance: true),
+      ),
+    );
+    if (accepted == true) {
+      setState(() => _agreeToTerms = true);
+    }
+  }
+
   Future<void> _submit(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final form = _formKey.currentState;
 
     if (form == null || !form.validate()) return;
 
-    // Validate cluster selection
     if (_clusterCtrl.text == 'Select cluster' || _clusterCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select a cluster'),
+          content: const Text('Please select a cluster'),
           backgroundColor: _primaryRed,
         ),
       );
       return;
     }
 
-    // Validate zone if PGH is selected
-    // FIXED: Check controller text instead of the list
-    if (_clusterCtrl.text == 'PGH' && (_zoneCtrl.text.isEmpty || _zoneCtrl.text == 'Select zone')) {
+    if (_clusterCtrl.text == 'PGH' &&
+        (_zoneCtrl.text.isEmpty || _zoneCtrl.text == 'Select zone')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select a zone for PGH'),
+          content: const Text('Please select a zone for PGH'),
           backgroundColor: _primaryRed,
         ),
       );
@@ -138,7 +143,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     if (!_agreeToTerms) {
-      _showTermsAlert();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: _primaryRed,
+          content: const Text(
+            'Please read and accept the Terms & Privacy Policy to continue.',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
+          action: SnackBarAction(
+            label: 'Read Now',
+            textColor: Colors.white,
+            onPressed: _openTermsScreen,
+          ),
+        ),
+      );
       return;
     }
 
@@ -156,6 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         office: _officeCtrl.text,
         position: _positionCtrl.text,
         bldgName: _bldgNameCtrl.text.trim(),
+        zone: _zoneCtrl.text.trim(),
         userType: 1,
       );
 
@@ -165,10 +187,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _showErrorDialog(context, error);
       }
     } catch (e) {
-      _showErrorDialog(
-        context,
-        'An unexpected error occurred. Please try again.',
-      );
+      _showErrorDialog(context, 'An unexpected error occurred. Please try again.');
     }
   }
 
@@ -190,15 +209,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   color: _successGreen.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  size: 40,
-                  color: _successGreen,
-                ),
+                child: Icon(Icons.check_circle_rounded, size: 40, color: _successGreen),
               ),
               const SizedBox(height: 20),
               Text(
-                "Registration Successful!",
+                'Registration Successful!',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -207,12 +222,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                "Please check your email for verification link before signing in.",
+                'Please check your email for verification link before signing in.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: _textSecondary),
               ),
               const SizedBox(height: 24),
               Row(
@@ -220,22 +232,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        final authProvider = Provider.of<AuthProvider>(
-                          context,
-                          listen: false,
-                        );
+                        final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
                         authProvider.verifyEmail();
                         Navigator.of(context).pop();
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                            borderRadius: BorderRadius.circular(12)),
                         side: BorderSide(color: _primaryRed, width: 2),
                       ),
                       child: Text(
-                        "Resend Email",
+                        'Resend Email',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -252,11 +261,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context)
-                            ..pop()
-                            ..pop();
-                        },
+                        onPressed: () => Navigator.of(context)
+                          ..pop()
+                          ..pop(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
@@ -264,15 +271,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           shadowColor: Colors.transparent,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                              borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: Text(
-                          "Sign In",
+                        child: const Text(
+                          'Sign In',
                           style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              fontSize: 15, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -307,7 +311,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                "Registration Failed",
+                'Registration Failed',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -318,10 +322,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: _textSecondary),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -340,93 +341,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      "Try Again",
+                    child: const Text(
+                      'Try Again',
                       style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showTermsAlert() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.warning_rounded,
-                  size: 40,
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Terms Required",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: _textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                "Please agree to the Terms & Conditions and Privacy Policy to continue.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _textSecondary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: _redGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      "Got It",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
+                          fontSize: 15, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -456,8 +376,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Please enter password';
     if (v.length < 8) return 'Password must be at least 8 characters';
-    if (!RegExp(r'[A-Z]').hasMatch(v))
-      return 'Include at least one uppercase letter';
+    if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Include at least one uppercase letter';
     if (!RegExp(r'[0-9]').hasMatch(v)) return 'Include at least one number';
     return null;
   }
@@ -474,16 +393,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   String? _validateCluster(String? v) {
-    if (v == null || v.isEmpty || v == 'Select cluster') {
+    if (v == null || v.isEmpty || v == 'Select cluster')
       return 'Please select a cluster';
-    }
     return null;
   }
 
   String? _validateZone(String? v) {
-    if (_showZoneDropdown && (v == null || v.isEmpty || v == 'Select zone')) {
+    if (_showZoneDropdown && (v == null || v.isEmpty || v == 'Select zone'))
       return 'Please select a zone';
-    }
     return null;
   }
 
@@ -498,7 +415,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -506,20 +424,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         const SizedBox(height: 32),
 
-                        // Logo - Bigger and transparent
+                        // Logo
                         Center(
                           child: Image.asset(
                             'assets/favicon.png',
                             width: 100,
                             height: 100,
                             color: _primaryRed,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.shield_rounded,
-                                size: 80,
-                                color: _primaryRed,
-                              );
-                            },
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.shield_rounded,
+                              size: 80,
+                              color: _primaryRed,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -544,7 +460,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Form fields
                         _buildMinimalTextField(
                           controller: _firstNameCtrl,
                           label: 'First Name',
@@ -553,7 +468,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           validator: (v) => _validateName(v, 'First Name'),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _lastNameCtrl,
                           label: 'Last Name',
@@ -562,25 +476,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           validator: (v) => _validateName(v, 'Last Name'),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _middleNameCtrl,
                           label: 'Middle Name (Optional)',
                           icon: Icons.person_outline_rounded,
                           hintText: 'Enter middle name',
-                          validator: (v) => null,
+                          validator: (_) => null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _suffixCtrl,
                           label: 'Suffix (Optional)',
                           icon: Icons.credit_card_outlined,
                           hintText: 'Enter suffix',
-                          validator: (v) => null,
+                          validator: (_) => null,
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _emailCtrl,
                           label: 'Email Address',
@@ -590,17 +501,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           validator: _validateEmail,
                         ),
                         const SizedBox(height: 16),
-
-                        // Cluster dropdown with different icon
                         _buildDropdownField(
                           controller: _clusterCtrl,
                           label: 'Cluster',
-                          icon: Icons.account_tree_rounded, // Different from office icon
+                          icon: Icons.account_tree_rounded,
                           hintText: 'Select cluster',
                           options: _clusterOptions,
                           validator: _validateCluster,
                           onChanged: (value) {
-                            // Manually call the listener since DropdownButtonFormField doesn't auto-update the controller
                             if (value != null) {
                               _clusterCtrl.text = value;
                               _onClusterChanged();
@@ -608,47 +516,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-
-                        // Zone dropdown (conditionally shown) 
                         if (_showZoneDropdown) ...[
                           _buildDropdownField(
                             controller: _zoneCtrl,
                             label: 'Zone',
-                            icon: Icons.map_rounded, // Different icon for zone
+                            icon: Icons.map_rounded,
                             hintText: 'Select zone',
                             options: _zoneOptions,
                             validator: _validateZone,
                           ),
                           const SizedBox(height: 16),
                         ],
-
                         _buildMinimalTextField(
                           controller: _officeCtrl,
                           label: 'Office/College',
-                          icon: Icons.business_rounded, // Different from cluster icon
+                          icon: Icons.business_rounded,
                           hintText: 'Enter office or college',
-                          validator: (v) => _validateRequiredField(v, 'Office/College'),
+                          validator: (v) =>
+                              _validateRequiredField(v, 'Office/College'),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _bldgNameCtrl,
                           label: 'Building Name',
                           icon: Icons.apartment_rounded,
                           hintText: 'Enter building name',
-                          validator: (v) => _validateRequiredField(v, 'Building Name'),
+                          validator: (v) =>
+                              _validateRequiredField(v, 'Building Name'),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _positionCtrl,
                           label: 'Position',
                           icon: Icons.work_outline_rounded,
                           hintText: 'Enter position',
-                          validator: (v) => _validateRequiredField(v, 'Position'),
+                          validator: (v) =>
+                              _validateRequiredField(v, 'Position'),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _passwordCtrl,
                           label: 'Password',
@@ -664,12 +569,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               color: _textSecondary,
                               size: 20,
                             ),
-                            onPressed: () =>
-                                setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                         ),
                         const SizedBox(height: 16),
-
                         _buildMinimalTextField(
                           controller: _confirmPasswordCtrl,
                           label: 'Confirm Password',
@@ -687,77 +591,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               size: 20,
                             ),
                             onPressed: () => setState(
-                              () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
                             ),
                           ),
                         ),
                         const SizedBox(height: 24),
 
-                        // Password requirements
                         _buildPasswordRequirements(),
                         const SizedBox(height: 24),
 
-                        // Terms checkbox - Fixed spacing
-                        GestureDetector(
-                          onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: _agreeToTerms ? _primaryRed : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: _agreeToTerms
-                                        ? _primaryRed
-                                        : _textLight.withOpacity(0.5),
-                                    width: 2,
-                                  ),
-                                ),
-                                child: _agreeToTerms
-                                    ? Icon(Icons.check_rounded,
-                                        size: 16, color: Colors.white)
-                                    : null,
-                              ),
-                              const SizedBox(width: 12), // Added spacing
-                              Expanded(
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: 'I agree to the ',
-                                        style: TextStyle(
-                                          color: _textSecondary,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'Terms & Privacy Policy',
-                                        style: TextStyle(
-                                          color: _primaryRed,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // ── Terms checkbox row ───────────────────────────────
+                        _buildTermsRow(),
                         const SizedBox(height: 32),
 
-                        // Create Account Button
+                        // Create Account button
                         SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: Container(
                             decoration: BoxDecoration(
-                              gradient: authProvider.isLoading ? null : _redGradient,
+                              gradient:
+                                  authProvider.isLoading ? null : _redGradient,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: authProvider.isLoading
                                   ? []
@@ -770,8 +625,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ],
                             ),
                             child: ElevatedButton(
-                              onPressed:
-                                  authProvider.isLoading ? null : () => _submit(context),
+                              onPressed: authProvider.isLoading
+                                  ? null
+                                  : () => _submit(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: authProvider.isLoading
                                     ? _textLight.withOpacity(0.3)
@@ -792,7 +648,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         color: _textSecondary,
                                       ),
                                     )
-                                  : Text(
+                                  : const Text(
                                       'Create Account',
                                       style: TextStyle(
                                         fontSize: 16,
@@ -840,14 +696,77 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 // Loading overlay
                 if (authProvider.isLoading)
-                  Container(
-                    color: Colors.black.withOpacity(0.3),
-                  ),
+                  Container(color: Colors.black.withOpacity(0.3)),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  // ── Terms row: plain checkbox + inline tappable link ─────────────────────────
+  Widget _buildTermsRow() {
+    return GestureDetector(
+      onTap: () => setState(() => _agreeToTerms = !_agreeToTerms),
+      behavior: HitTestBehavior.translucent,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Checkbox
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: _agreeToTerms ? _primaryRed : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: _agreeToTerms ? _primaryRed : _textLight.withOpacity(0.5),
+                width: 2,
+              ),
+            ),
+            child: _agreeToTerms
+                ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                : null,
+          ),
+          const SizedBox(width: 12),
+
+          // Label with tappable link
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'I agree to the ',
+                    style: TextStyle(
+                      color: _textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: GestureDetector(
+                      onTap: _openTermsScreen,
+                      child: Text(
+                        'Terms & Privacy Policy',
+                        style: TextStyle(
+                          color: _primaryRed,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                          decorationColor: _primaryRed,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -890,61 +809,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: TextStyle(
-              color: _textLight,
-              fontSize: 14,
-            ),
-            prefixIcon: Icon(
-              icon,
-              size: 20,
-              color: _textSecondary,
-            ),
+            hintStyle: TextStyle(color: _textLight, fontSize: 14),
+            prefixIcon: Icon(icon, size: 20, color: _textSecondary),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _textLight.withOpacity(0.3),
-                width: 1,
-              ),
+              borderSide:
+                  BorderSide(color: _textLight.withOpacity(0.3), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _textLight.withOpacity(0.3),
-                width: 1,
-              ),
+              borderSide:
+                  BorderSide(color: _textLight.withOpacity(0.3), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: _primaryRed, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: _primaryRed, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: _primaryRed, width: 2),
             ),
-            errorStyle: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            errorStyle:
+                const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -978,84 +873,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
           value: controller.text.isNotEmpty && options.contains(controller.text)
               ? controller.text
               : null,
-          hint: Text(
-            hintText,
-            style: TextStyle(
-              color: _textLight,
-              fontSize: 15,
-            ),
-          ),
-          items: options.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(
-                value,
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              controller.text = newValue;
-              if (validator != null) {
-                validator(newValue);
-              }
-            }
-            if (onChanged != null) {
-              onChanged(newValue);
-            }
+          hint: Text(hintText,
+              style: TextStyle(color: _textLight, fontSize: 15)),
+          items: options
+              .map((value) => DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        color: _textPrimary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ))
+              .toList(),
+          onChanged: (newValue) {
+            if (newValue != null) controller.text = newValue;
+            onChanged?.call(newValue);
           },
           validator: validator,
           decoration: InputDecoration(
-            prefixIcon: Icon(
-              icon,
-              size: 20,
-              color: _textSecondary,
-            ),
+            prefixIcon: Icon(icon, size: 20, color: _textSecondary),
             filled: true,
             fillColor: Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _textLight.withOpacity(0.3),
-                width: 1,
-              ),
+              borderSide:
+                  BorderSide(color: _textLight.withOpacity(0.3), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _textLight.withOpacity(0.3),
-                width: 1,
-              ),
+              borderSide:
+                  BorderSide(color: _textLight.withOpacity(0.3), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: _primaryRed, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: _primaryRed, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _primaryRed,
-                width: 2,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+              borderSide: const BorderSide(color: _primaryRed, width: 2),
             ),
           ),
           style: TextStyle(
@@ -1070,7 +934,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildPasswordRequirements() {
     final password = _passwordCtrl.text;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1093,14 +956,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _buildRequirementRow('At least 8 characters', password.length >= 8),
           const SizedBox(height: 6),
           _buildRequirementRow(
-            'One uppercase letter',
-            RegExp(r'[A-Z]').hasMatch(password),
-          ),
+              'One uppercase letter', RegExp(r'[A-Z]').hasMatch(password)),
           const SizedBox(height: 6),
           _buildRequirementRow(
-            'One number',
-            RegExp(r'[0-9]').hasMatch(password),
-          ),
+              'One number', RegExp(r'[0-9]').hasMatch(password)),
           const SizedBox(height: 6),
           _buildRequirementRow(
             'Passwords match',

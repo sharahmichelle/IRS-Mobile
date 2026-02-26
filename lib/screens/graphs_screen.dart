@@ -1,13 +1,15 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/models/event_model.dart';
+import 'package:upm_drrm_irs_mobile/models/news_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
-import 'package:upm_drrm_irs_mobile/screens/event_selection_screen.dart';
+import 'package:upm_drrm_irs_mobile/providers/news_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/submitted_reports_screen.dart';
-
-// ignore_for_file: unused_field, unused_local_variable
+import 'package:upm_drrm_irs_mobile/screens/add_report_general_screen.dart';
+import 'package:upm_drrm_irs_mobile/screens/news_detail_screen.dart';
 
 class GraphsScreen extends StatefulWidget {
   const GraphsScreen({super.key});
@@ -38,6 +40,7 @@ class _GraphsScreenState extends State<GraphsScreen>
     end: Alignment.bottomRight,
     colors: [Color(0xFFE63946), Color(0xFF9D0208)],
     stops: [0.0, 0.8],
+    transform: GradientRotation(0.5),
   );
 
   final LinearGradient _emergencyGradient = const LinearGradient(
@@ -59,6 +62,11 @@ class _GraphsScreenState extends State<GraphsScreen>
   late Animation<double> _scaleIn;
 
   bool _isRefreshing = false;
+
+  // News filter state
+  String _selectedCategory = 'All';
+
+  final _uuid = const Uuid();
 
   @override
   void initState() {
@@ -109,6 +117,11 @@ class _GraphsScreenState extends State<GraphsScreen>
       curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
     );
 
+    // Fetch news data on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NewsProvider>().fetchNews();
+    });
+
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _fadeController.forward();
@@ -123,28 +136,6 @@ class _GraphsScreenState extends State<GraphsScreen>
     _pulseController.dispose();
     _staggerController.dispose();
     super.dispose();
-  }
-
-  void _navigateToEventSelection() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const EventSelectionScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeOutCubic;
-          var tween =
-              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
   }
 
   void _navigateToSubmittedReports() {
@@ -169,17 +160,158 @@ class _GraphsScreenState extends State<GraphsScreen>
     );
   }
 
+  void _navigateToAddReportGeneral() {
+    final dummyEvent = Event(
+      eventId: '',
+      eventName: 'General Incident Report',
+      location: '',
+      status: 'ongoing',
+      timeStampStart: DateTime.now(),
+      timeStampEnd: DateTime.now().add(const Duration(hours: 1)),
+      category: 'General',
+      eventDescription: 'Unscheduled emergency or general incident report',
+      incidentCommander: 'General',
+      liasonOfficer: 'General',
+      publicInformationOfficer: 'General',
+      safetySecurityOfficer: 'General',
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddReportGeneralScreen(
+          currentEvent: dummyEvent,
+          isGeneralReport: true,
+        ),
+      ),
+    );
+  }
+
   Future<void> _refreshData() async {
     setState(() => _isRefreshing = true);
     final eventsProvider = Provider.of<Events>(context, listen: false);
-    eventsProvider.refreshEvents();
+    final newsProvider = Provider.of<NewsProvider>(context, listen: false);
+
+    await Future.wait([
+      eventsProvider.refreshEvents(),
+      newsProvider.refreshNews(),
+    ]);
+
     await Future.delayed(const Duration(milliseconds: 1200));
     setState(() => _isRefreshing = false);
+  }
+
+  PreferredSizeWidget get _appBar {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: _headerGradient,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          title: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.home_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Home",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "UP MANILA DRRM-H IRS",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/favicon.png',
+                        width: 18,
+                        height: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: _appBar,
       backgroundColor: _white,
       body: RefreshIndicator.adaptive(
         onRefresh: _refreshData,
@@ -190,95 +322,21 @@ class _GraphsScreenState extends State<GraphsScreen>
           builder: (context, child) {
             return Opacity(
               opacity: _fadeAnimation.value,
-              child: CustomScrollView(
+              child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
-                slivers: [
-                  // Header - UNCHANGED
-                  SliverToBoxAdapter(
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 20,
-                        left: 24,
-                        right: 24,
-                        bottom: 24,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: _headerGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  Icons.emergency_rounded,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "Incident Reports",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.5,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Real-time monitoring system",
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildMainActionCards(),
+                      const SizedBox(height: 32),
+                      _buildCurrentNewsSection(),
+                    ],
                   ),
-
-                  // Main Content
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildMainActionCards(),
-                          const SizedBox(height: 32),
-                          _buildEventStatusSection(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             );
           },
@@ -287,24 +345,10 @@ class _GraphsScreenState extends State<GraphsScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // MAIN ACTION CARDS – unchanged
-  // ---------------------------------------------------------------------------
   Widget _buildMainActionCards() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: _textPrimary,
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 20),
-
         AnimatedBuilder(
           animation: _slideUp1,
           builder: (context, child) {
@@ -317,9 +361,7 @@ class _GraphsScreenState extends State<GraphsScreen>
             );
           },
         ),
-
         const SizedBox(height: 16),
-
         AnimatedBuilder(
           animation: _slideUp2,
           builder: (context, child) {
@@ -336,9 +378,6 @@ class _GraphsScreenState extends State<GraphsScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // QUICK RESPONSE – unchanged
-  // ---------------------------------------------------------------------------
   Widget _buildQuickResponseCard() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -362,7 +401,6 @@ class _GraphsScreenState extends State<GraphsScreen>
                 ),
               ),
             ),
-
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
@@ -372,7 +410,7 @@ class _GraphsScreenState extends State<GraphsScreen>
                   colors: const [
                     Color(0xFFE63946),
                     Color(0xFFD00000),
-                    Color(0xFFB20000)
+                    Color(0xFFB20000),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
@@ -381,7 +419,7 @@ class _GraphsScreenState extends State<GraphsScreen>
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(24),
                 child: InkWell(
-                  onTap: _navigateToEventSelection,
+                  onTap: _navigateToAddReportGeneral,
                   borderRadius: BorderRadius.circular(24),
                   splashColor: Colors.white.withOpacity(0.18),
                   highlightColor: Colors.white.withOpacity(0.08),
@@ -439,57 +477,56 @@ class _GraphsScreenState extends State<GraphsScreen>
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 24),
-
                         Container(
                           height: 1,
                           color: Colors.white.withOpacity(0.15),
                         ),
-
                         const SizedBox(height: 20),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.18),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 13),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.add_circle_outline,
-                                      color: _primaryRed,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      'Add Report',
-                                      style: TextStyle(
-                                        color: _primaryRed,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.2,
-                                      ),
+                            InkWell(
+                              onTap: _navigateToAddReportGeneral,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.18),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 13),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.add_circle_outline,
+                                        color: _primaryRed,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        'Add Report',
+                                        style: TextStyle(
+                                          color: _primaryRed,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-
                             Text(
                               'Tap anywhere →',
                               style: TextStyle(
@@ -513,18 +550,10 @@ class _GraphsScreenState extends State<GraphsScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // VIEW REPORTS – unchanged
-  // ---------------------------------------------------------------------------
   Widget _buildSubmittedReportsCard() {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: context.watch<Events>().events,
       builder: (context, snapshot) {
-        int totalReports = 0;
-        if (snapshot.hasData) {
-          totalReports = snapshot.data!.length;
-        }
-
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -571,9 +600,7 @@ class _GraphsScreenState extends State<GraphsScreen>
                         size: 26,
                       ),
                     ),
-
                     const SizedBox(width: 18),
-
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,32 +626,11 @@ class _GraphsScreenState extends State<GraphsScreen>
                         ],
                       ),
                     ),
-
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (totalReports > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _accentBlue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '$totalReports report${totalReports != 1 ? 's' : ''}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: _accentBlue,
-                              ),
-                            ),
-                          )
-                        else
-                          const SizedBox(height: 24),
                         const SizedBox(height: 8),
-
                         Container(
                           width: 36,
                           height: 36,
@@ -650,276 +656,452 @@ class _GraphsScreenState extends State<GraphsScreen>
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // EVENT STATUS SECTION – three uniform status cards in a row.
-  // ---------------------------------------------------------------------------
-  Widget _buildEventStatusSection() {
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: context.watch<Events>().events,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return _buildLoadingSkeleton();
-        }
+  Widget _buildCurrentNewsSection() {
+    return Consumer<NewsProvider>(
+      builder: (context, newsProvider, child) {
+        final filteredNews = newsProvider.getNewsByCategory(_selectedCategory);
 
-        final events = snapshot.data!.map((data) {
-          return Event.fromMap(data, data['eventid']);
-        }).toList();
-
-        final completedCount =
-            events.where((e) => e.status.toLowerCase() == 'completed').length;
-        final ongoingCount =
-            events.where((e) => e.status.toLowerCase() == 'ongoing').length;
-        final upcomingCount =
-            events.where((e) => e.status.toLowerCase() == 'upcoming').length;
+        // Category metadata for the custom dropdown
+        final Map<String, Map<String, dynamic>> categoryMeta = {
+          'All': {'icon': Icons.grid_view_rounded, 'color': _textPrimary},
+          'Event': {'icon': Icons.event_rounded, 'color': _infoCyan},
+          'Announcement': {'icon': Icons.campaign_rounded, 'color': _warningOrange},
+          'Alert': {'icon': Icons.warning_rounded, 'color': _primaryRed},
+        };
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Section header row ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Event Status Overview',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: _textPrimary,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                // Total events badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _textPrimary.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${events.length} event${events.length != 1 ? 's' : ''}',
+            // ── Section header with custom dropdown filter ──
+            Padding(
+              padding: const EdgeInsets.only(left: 0, bottom: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Current News',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _textSecondary,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: _textPrimary,
+                      letterSpacing: -0.8,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
 
-            // ── Three equal-width status cards ──
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatusCard(
-                    title: 'Ongoing',
-                    count: ongoingCount,
-                    color: _primaryRed,
-                    icon: Icons.radio_button_checked,
+                  // ── Category Filter Dropdown (add_report hazard style) ──
+                  Builder(
+                    builder: (context) {
+                      final selected = categoryMeta[_selectedCategory]!;
+                      final Color selectedColor = selected['color'] as Color;
+                      final IconData selectedIcon = selected['icon'] as IconData;
+
+                      return GestureDetector(
+                        onTap: () async {
+                          final RenderBox box =
+                              context.findRenderObject() as RenderBox;
+                          final Offset offset = box.localToGlobal(Offset.zero);
+                          final Size size = box.size;
+
+                          final result = await showMenu<String>(
+                            context: context,
+                            color: _surfaceWhite,
+                            elevation: 8,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: BorderSide(
+                                color: _lightBlue.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            position: RelativeRect.fromLTRB(
+                              offset.dx,
+                              offset.dy + size.height + 4,
+                              offset.dx + size.width,
+                              offset.dy + size.height + 4 + 300,
+                            ),
+                            items: categoryMeta.entries.map((entry) {
+                              final Color color = entry.value['color'] as Color;
+                              final IconData icon = entry.value['icon'] as IconData;
+                              return PopupMenuItem<String>(
+                                value: entry.key,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: color.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: color.withOpacity(0.2),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          icon,
+                                          size: 18,
+                                          color: color,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      entry.key,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: _textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          );
+
+                          if (result != null) {
+                            setState(() {
+                              _selectedCategory = result;
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _surfaceWhite,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: _lightBlue.withOpacity(0.4),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: selectedColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: selectedColor.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    selectedIcon,
+                                    size: 18,
+                                    color: selectedColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _selectedCategory,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: _textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_drop_down_rounded,
+                                color: _textSecondary,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatusCard(
-                    title: 'Upcoming',
-                    count: upcomingCount,
-                    color: _infoCyan,
-                    icon: Icons.upcoming_rounded,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatusCard(
-                    title: 'Completed',
-                    count: completedCount,
-                    color: _successGreen,
-                    icon: Icons.check_circle_rounded,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
+
+            // ── Loading, error, or news list ──
+            if (newsProvider.isLoading)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: CircularProgressIndicator(color: _primaryRed),
+                ),
+              )
+            else if (newsProvider.error != null)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: [
+                      Icon(Icons.error_outline, color: _primaryRed, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Failed to load news',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        newsProvider.error!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: _textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (filteredNews.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    children: [
+                      Icon(Icons.newspaper_outlined,
+                          color: _textSecondary, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No news in this category',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredNews.length,
+                itemBuilder: (context, index) {
+                  final news = filteredNews[index];
+                  return TweenAnimationBuilder<double>(
+                    duration: Duration(milliseconds: 300 + (index * 50)),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 20 * (1 - value)),
+                        child: Opacity(
+                          opacity: value,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index < filteredNews.length - 1 ? 16 : 0,
+                            ),
+                            child: _buildVerticalNewsCard(news: news),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
           ],
         );
       },
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // STATUS CARD – unified card widget used by all three statuses
-  // ---------------------------------------------------------------------------
-  Widget _buildStatusCard({
-    required String title,
-    required int count,
-    required Color color,
-    required IconData icon,
-  }) {
+  Widget _buildVerticalNewsCard({required News news}) {
+    final category = news.category;
+    final headline = news.title;
+    final description = news.content;
+
+    Color categoryColor;
+    IconData categoryIcon;
+
+    switch (category.toLowerCase()) {
+      case 'update':
+        categoryColor = _successGreen;
+        categoryIcon = Icons.system_update_rounded;
+        break;
+      case 'event':
+        categoryColor = _infoCyan;
+        categoryIcon = Icons.event_rounded;
+        break;
+      case 'tech':
+        categoryColor = _accentBlue;
+        categoryIcon = Icons.computer_rounded;
+        break;
+      case 'alert':
+        categoryColor = _primaryRed;
+        categoryIcon = Icons.warning_rounded;
+        break;
+      case 'announcement':
+        categoryColor = _warningOrange;
+        categoryIcon = Icons.campaign_rounded;
+        break;
+      default:
+        categoryColor = _textSecondary;
+        categoryIcon = Icons.info_rounded;
+    }
+
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: _surfaceWhite,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withOpacity(0.18),
+          color: _accentBlue.withOpacity(0.18),
           width: 1.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Icon row + live badge (ongoing only) ──
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                color: color.withOpacity(0.12),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    NewsDetailScreen(news: news),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeOutCubic;
+                  final tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
               ),
-              child: Center(
-                child: Icon(icon, color: color, size: 22),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ── Title ──
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: _textPrimary,
-                letterSpacing: -0.2,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ── Event count (large number) ──
-            Text(
-              count.toString(),
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                color: color,
-                height: 1,
-              ),
-            ),
-
-            const SizedBox(height: 2),
-
-            Text(
-              'event${count != 1 ? 's' : ''}',
-              style: TextStyle(
-                fontSize: 12,
-                color: _textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // LOADING SKELETON – updated to match new 3-column layout
-  // ---------------------------------------------------------------------------
-  Widget _buildLoadingSkeleton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section header placeholder
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              width: 180,
-              height: 24,
-              decoration: BoxDecoration(
-                color: _lightBlue.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            Container(
-              width: 70,
-              height: 28,
-              decoration: BoxDecoration(
-                color: _lightBlue.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-
-        // Three skeleton cards
-        Row(
-          children: List.generate(
-            3,
-            (index) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: index < 2 ? 12 : 0),
-                child: Container(
-                  height: 210,
-                  decoration: BoxDecoration(
-                    color: _lightBlue.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(20),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          splashColor: _accentBlue.withOpacity(0.08),
+          highlightColor: _accentBlue.withOpacity(0.04),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Category badge ──
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // icon placeholder
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: _lightBlue.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: categoryColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(height: 16),
-                        // title
-                        Container(
-                          width: 55,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: _lightBlue.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                        child: Icon(
+                          categoryIcon,
+                          color: categoryColor,
+                          size: 12,
                         ),
-                        const SizedBox(height: 10),
-                        // big number
-                        Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: _lightBlue.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        category.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: categoryColor,
+                          letterSpacing: 0.8,
                         ),
-                        const Spacer(),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                // ── Headline ──
+                Text(
+                  headline,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: _textPrimary,
+                    letterSpacing: -0.5,
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+
+                // ── Description ──
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textSecondary,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Read more ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Read more',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: categoryColor,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: categoryColor,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

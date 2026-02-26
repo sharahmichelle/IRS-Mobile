@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 // ignore_for_file: unused_field
 import 'package:upm_drrm_irs_mobile/models/user_model.dart';
@@ -12,22 +15,22 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
-  // 2025 Modern Color Scheme
-  final Color _primaryRed = const Color(0xFFE63946); // Vibrant emergency red
-  final Color _darkRed = const Color(0xFF9D0208); // Deep emergency red
-  final Color _emergencyBlue = const Color(0xFF1D3557); // Dark blue for contrast
-  final Color _accentBlue = const Color(0xFF457B9D); // Medium blue
-  final Color _lightBlue = const Color(0xFFA8DADC); // Light blue accent
-  final Color _white = const Color(0xFFF8F9FA); // Pure white background
-  final Color _surfaceWhite = const Color(0xFFFFFFFF); // Card surface
-  final Color _textPrimary = const Color(0xFF212529); // Near black
-  final Color _textSecondary = const Color(0xFF6C757D); // Medium gray
-  final Color _successGreen = const Color(0xFF2A9D8F); // Teal green
-  final Color _warningOrange = const Color(0xFFE9C46A); // Amber
-  final Color _infoCyan = const Color(0xFF4CC9F0); // Bright cyan
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
+  // Red gradient theme matching login/signup
+  final Color _primaryRed = const Color(0xFFE63946);
+  final Color _darkRed = const Color(0xFF9D0208);
+  final Color _white = const Color(0xFFF8F9FA);
+  final Color _surfaceWhite = const Color(0xFFFFFFFF);
+  final Color _textPrimary = const Color(0xFF212529);
+  final Color _textSecondary = const Color(0xFF6C757D);
+  final Color _textLight = const Color(0xFF9CA3AF);
+  final Color _successGreen = const Color(0xFF2A9D8F);
+  final Color _accentBlue = const Color(0xFF457B9D);
+  final Color _lightBlue = const Color(0xFFA8DADC);
+  final Color _infoCyan = const Color(0xFF4CC9F0);
 
-  // Header gradient matching main_screen.dart
+  // Header gradient - KEEP THIS UNCHANGED
   final LinearGradient _headerGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -42,11 +45,10 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     colors: [Color(0xFFE63946), Color(0xFFD00000)],
   );
 
-  final LinearGradient _blueGradient = const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF457B9D), Color(0xFF1D3557)],
-  );
+  // Photo picker
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
+  bool _isUploading = false;
 
   // Animation
   late AnimationController _animationController;
@@ -56,27 +58,26 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    
-    // Initialize animations
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
       ),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
       ),
     );
-    
+
     _animationController.forward();
   }
 
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  // Header matching main_screen.dart
+  // Header - KEEP THIS UNCHANGED
   PreferredSizeWidget get _appBar {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -107,7 +108,44 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
-          title: const SizedBox.shrink(),
+          title: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Profile",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -118,9 +156,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     "UP MANILA DRRM-H IRS",
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -157,13 +195,243 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
+  // Method to check and request permission
+  Future<bool> _checkAndRequestPermission() async {
+    if (Platform.isIOS) {
+      final status = await Permission.photos.request();
+      return status == PermissionStatus.granted;
+    } else {
+      final status = await Permission.storage.request();
+      if (status == PermissionStatus.granted) {
+        return true;
+      } else if (status == PermissionStatus.permanentlyDenied) {
+        // Show dialog to guide user to settings
+        await _showPermissionDeniedDialog();
+        return false;
+      }
+      return false;
+    }
+  }
+
+  // Show permission denied dialog
+  Future<void> _showPermissionDeniedDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          "Permission Required",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: _textPrimary,
+          ),
+        ),
+        content: Text(
+          "Photo library access is required to change profile picture. "
+          "Please enable it in your device settings.",
+          style: TextStyle(
+            fontSize: 14,
+            color: _textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: _textSecondary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await openAppSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryRed,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              "Open Settings",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Method to pick image from gallery
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final hasPermission = await _checkAndRequestPermission();
+      if (!hasPermission) return;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+
+        // TODO: Upload image to server
+        // await _uploadProfileImage(File(image.path));
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile picture updated successfully'),
+            backgroundColor: _successGreen,
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: _primaryRed,
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
+  }
+
+  // Method to show image source options
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                "Change Profile Picture",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
+                ),
+              ),
+            ),
+            Divider(height: 0, thickness: 1, color: Colors.grey[300]),
+            ListTile(
+              leading: Icon(Icons.photo_library_rounded, color: _primaryRed),
+              title: Text(
+                "Choose from Gallery",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
+            ),
+            Divider(height: 0, thickness: 1, color: Colors.grey[300]),
+            ListTile(
+              leading: Icon(Icons.camera_alt_rounded, color: _primaryRed),
+              title: Text(
+                "Take a Photo",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Implement camera functionality if needed
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Camera functionality coming soon'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+            Divider(height: 0, thickness: 1, color: Colors.grey[300]),
+            ListTile(
+              leading: Icon(Icons.cancel_rounded, color: _textSecondary),
+              title: Text(
+                "Cancel",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _textSecondary,
+                ),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+            SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final currentUser = authProvider.currentUser;
-    
-    // Show loading if user data is not yet loaded
+
     if (authProvider.isLoading) {
+      return Scaffold(
+        appBar: _appBar,
+        backgroundColor: _white,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: _primaryRed,
+            strokeWidth: 3,
+          ),
+        ),
+      );
+    }
+
+    if (currentUser == null) {
       return Scaffold(
         appBar: _appBar,
         backgroundColor: _white,
@@ -171,22 +439,50 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 60,
-                height: 60,
-                child: CircularProgressIndicator.adaptive(
-                  valueColor: AlwaysStoppedAnimation(_primaryRed),
-                  strokeWidth: 4,
-                  backgroundColor: _primaryRed.withOpacity(0.1),
-                ),
+              Icon(
+                Icons.person_off_rounded,
+                size: 80,
+                color: _textLight,
               ),
               const SizedBox(height: 20),
               Text(
-                'Loading Profile',
+                'No User Data',
                 style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                   color: _textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: _emergencyGradient,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    'GO TO LOGIN',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -194,121 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         ),
       );
     }
-    
-    // Show error or empty state if no user
-    if (currentUser == null) {
-      return Scaffold(
-        appBar: _appBar,
-        backgroundColor: _white,
-        body: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _fadeAnimation.value,
-              child: Transform.translate(
-                offset: Offset(0, _slideAnimation.value),
-                child: SafeArea(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [_lightBlue, _white],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.person_off_rounded,
-                              size: 56,
-                              color: _accentBlue.withOpacity(0.6),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        Text(
-                          'No User Data',
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: _textPrimary,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48),
-                          child: Text(
-                            'Please sign in again to access your profile',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: _textSecondary,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        Container(
-                          height: 56,
-                          width: 200,
-                          decoration: BoxDecoration(
-                            gradient: _emergencyGradient,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _primaryRed.withOpacity(0.3),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).pushReplacementNamed('/');
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.login_rounded, color: _white, size: 22),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'GO TO LOGIN',
-                                      style: TextStyle(
-                                        color: _white,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    }
 
-    // Build full name with optional middle name and suffix
     String getFullName() {
       final nameParts = [];
       if (currentUser.firstName.isNotEmpty) nameParts.add(currentUser.firstName);
@@ -319,9 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       if (currentUser.suffix.isNotEmpty) {
         nameParts.add(currentUser.suffix);
       }
-      // Fallback to formatted username if no name parts are available
       if (nameParts.isEmpty) {
-        // Format username like "encoder1" to "Encoder 1"
         final userName = currentUser.userName;
         if (userName.startsWith('encoder') && userName.length > 7) {
           final number = userName.substring(7);
@@ -332,854 +512,403 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       return nameParts.join(' ');
     }
 
-    final userDetails = [
-      {
-        "icon": Icons.school_rounded,
-        "label": "Cluster",
-        "value": currentUser.cluster.isNotEmpty ? currentUser.cluster : "Not specified",
-        "color": _accentBlue,
-      },
-      {
-        "icon": Icons.business_rounded,
-        "label": "Office / College",
-        "value": currentUser.office.isNotEmpty ? currentUser.office : "Not specified",
-        "color": _infoCyan,
-      },
-      {
-        "icon": Icons.location_city_rounded,
-        "label": "Building Name",
-        "value": currentUser.bldgName.isNotEmpty ? currentUser.bldgName : "Not specified",
-        "color": _successGreen,
-      },
-    ];
+    // Check if user is registered under PGH cluster
+    bool isPghCluster = currentUser.cluster.toLowerCase() == 'pgh';
 
     return Scaffold(
       appBar: _appBar,
       backgroundColor: _white,
-      body: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return Opacity(
-            opacity: _fadeAnimation.value,
-            child: Transform.translate(
-              offset: Offset(0, _slideAnimation.value),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      // Profile Content (without the gradient header from before)
-                      _buildProfileContent(currentUser, getFullName()),
-                      const SizedBox(height: 24),
-
-                      // User Info Card
-                      _buildUserInfoCard(currentUser, userDetails),
-                      const SizedBox(height: 24),
-
-                      // Action Cards
-                      _buildActionCards(context, authProvider),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildProfileContent(UserModel user, String fullName) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          // Profile Avatar with Edit Button
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: _primaryRed, width: 4),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: ClipOval(
-                    child: Image.network(
-                      "https://avatar.iran.liara.run/public/boy",
-                      width: 116,
-                      height: 116,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.white, _lightBlue],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 60,
-                            color: _accentBlue,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              // Edit Photo Button
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: _surfaceWhite,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: () => _showEditPhotoOptions(),
-                  icon: Icon(
-                    Icons.camera_alt_rounded,
-                    size: 22,
-                    color: _primaryRed,
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // User Name with improved overflow handling
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              fullName,
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: _textPrimary,
-                letterSpacing: -0.5,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Position with improved overflow handling
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              user.position.isNotEmpty ? user.position : "No position specified",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: _textSecondary,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Email with improved overflow handling
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: _primaryRed.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _primaryRed.withOpacity(0.2)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.email_rounded,
-                    size: 18,
-                    color: _primaryRed,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      user.email,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: _textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUserInfoCard(UserModel user, List<Map<String, dynamic>> details) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height * 0.4,
-        ),
-        decoration: BoxDecoration(
-          color: _surfaceWhite,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 32,
-              offset: const Offset(0, 12),
-            ),
-            BoxShadow(
-              color: _primaryRed.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.white.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: _emergencyGradient,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: _white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Personal Information",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: _textPrimary,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        Text(
-                          "Your account and profile details",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: _textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Details Grid with proper constraints
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: constraints.maxWidth > 600 ? 2 : 1,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: constraints.maxWidth > 600 ? 2.2 : 2.8,
-                      mainAxisExtent: constraints.maxWidth > 600 ? null : 120,
-                    ),
-                    itemCount: details.length,
-                    itemBuilder: (context, index) {
-                      final item = details[index];
-                      return _buildDetailItem(
-                        icon: item['icon'] as IconData,
-                        label: item['label'] as String,
-                        value: item['value'] as String,
-                        color: item['color'] as Color,
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _fadeAnimation.value,
-          child: Transform.translate(
-            offset: Offset(0, _slideAnimation.value * 0.5),
-            child: Container(
-              constraints: const BoxConstraints(
-                minHeight: 100,
-              ),
-              decoration: BoxDecoration(
-                color: _white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Icon(icon, size: 20, color: color),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _textSecondary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Flexible(
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: _textPrimary,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildActionCards(BuildContext context, AuthProvider authProvider) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          // FAQ Card
-          _buildActionCard(
-            icon: Icons.help_rounded,
-            title: "FAQs & Help Center",
-            subtitle: "Get answers to common questions",
-            gradient: LinearGradient(
-              colors: [_accentBlue, _emergencyBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            onTap: () => _showFAQs(),
-          ),
-          const SizedBox(height: 16),
-
-          // Logout Card
-          _buildActionCard(
-            icon: Icons.logout_rounded,
-            title: "Log Out",
-            subtitle: "Sign out of your account",
-            gradient: _emergencyGradient,
-            isLogout: true,
-            onTap: () => _showModernLogoutConfirmation(context, authProvider),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Gradient gradient,
-    bool isLogout = false,
-    required VoidCallback onTap,
-  }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _fadeAnimation.value,
-              child: Transform.translate(
-                offset: Offset(0, _slideAnimation.value * 0.3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _primaryRed.withOpacity(0.25),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              icon,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                subtitle,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showEditPhotoOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: _surfaceWhite,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 32,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 48,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: _textSecondary.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Update Profile Photo",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: _textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildPhotoOption(
-                icon: Icons.photo_library_rounded,
-                title: "Choose from Gallery",
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement gallery selection
-                },
-              ),
-              _buildPhotoOption(
-                icon: Icons.camera_alt_rounded,
-                title: "Take Photo",
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement camera
-                },
-              ),
-              const SizedBox(height: 16),
-              Container(
-                height: 56,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: _white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _borderColor),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Center(
-                      child: Text(
-                        "CANCEL",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: _textSecondary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoOption({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: _white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _borderColor),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            
+            // Profile Avatar
+            Stack(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
-                    color: _primaryRed.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _primaryRed, width: 3),
                   ),
-                  child: Icon(icon, color: _primaryRed, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: _textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showFAQs() {
-    // Implement FAQ screen navigation
-    Navigator.of(context).pushNamed('/faq');
-  }
-
-  void _showModernLogoutConfirmation(BuildContext context, AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _fadeAnimation.value,
-              child: Transform.translate(
-                offset: Offset(0, _slideAnimation.value * 0.5),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: _surfaceWhite,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
-                        blurRadius: 40,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Title
-                      Text(
-                        "Log Out?",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: _textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Description
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          "Are you sure you want to log out? You'll need to sign in again to access your account.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: _textSecondary,
-                            height: 1.5,
+                  child: _isUploading
+                      ? Center(
+                          child: CircularProgressIndicator(
+                            color: _primaryRed,
+                            strokeWidth: 3,
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Buttons
-                      Row(
-                        children: [
-                          // Cancel Button
-                          Expanded(
-                            child: Container(
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: _white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: _borderColor),
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => Navigator.pop(context),
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Center(
-                                    child: Text(
-                                      "CANCEL",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: _textSecondary,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
+                        )
+                      : CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: _selectedImage != null
+                              ? ClipOval(
+                                  child: Image.file(
+                                    _selectedImage!,
+                                    width: 94,
+                                    height: 94,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildDefaultAvatar();
+                                    },
+                                  ),
+                                )
+                              : ClipOval(
+                                  child: Image.network(
+                                    "https://avatar.iran.liara.run/public/boy",
+                                    width: 94,
+                                    height: 94,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildDefaultAvatar();
+                                    },
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Logout Button
-                          Expanded(
-                            child: Container(
-                              height: 56,
-                              decoration: BoxDecoration(
-                                gradient: _emergencyGradient,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: _primaryRed.withOpacity(0.4),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () async {
-                                    await authProvider.signOut(context);
-                                    Navigator.of(context).pushReplacementNamed('/');
-                                  },
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Center(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.logout_rounded, color: _white, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          "LOG OUT",
-                                          style: TextStyle(
-                                            color: _white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                        ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _isUploading ? null : _showImagePickerOptions,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _isUploading ? Colors.grey : _primaryRed,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                    ],
+                      child: _isUploading
+                          ? Center(
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              Icons.camera_alt_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // User Name
+            Text(
+              getFullName(),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: _textPrimary,
               ),
-            );
-          },
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+
+            // Email (replaces position)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                currentUser.email,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: _textSecondary,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Information Container
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(
+                      'Position',
+                      currentUser.position.isNotEmpty
+                          ? currentUser.position
+                          : "Not specified",
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                      'Cluster',
+                      currentUser.cluster.isNotEmpty
+                          ? currentUser.cluster
+                          : "Not specified",
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Show Zone only if user is registered under PGH cluster
+                    if (isPghCluster) ...[
+                      _buildInfoRow(
+                        'Zone',
+                        currentUser.zone.isNotEmpty
+                            ? currentUser.zone
+                            : "Not specified",
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    
+                    _buildInfoRow(
+                      'Office / College',
+                      currentUser.office.isNotEmpty
+                          ? currentUser.office
+                          : "Not specified",
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                      'Building Name',
+                      currentUser.bldgName.isNotEmpty
+                          ? currentUser.bldgName
+                          : "Not specified",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Action Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _buildActionTile(
+                    'FAQs',
+                    Icons.help_outline_rounded,
+                    () => Navigator.of(context).pushNamed('/faq'),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActionTile(
+                    'Log Out',
+                    Icons.logout_rounded,
+                    () => _showLogoutDialog(context, authProvider),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
   }
 
-  Color get _borderColor => const Color(0xFFE2E8F0);
+  Widget _buildDefaultAvatar() {
+    return Icon(
+      Icons.person_rounded,
+      size: 50,
+      color: _primaryRed,
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: _textSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: _textPrimary,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionTile(String label, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE5E7EB),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _primaryRed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: _primaryRed,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: _textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Log Out?",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Are you sure you want to log out?",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                          color: _textLight.withOpacity(0.5),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: _emergencyGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await authProvider.signOut(context);
+                          Navigator.of(context).pushReplacementNamed('/');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          "Log Out",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

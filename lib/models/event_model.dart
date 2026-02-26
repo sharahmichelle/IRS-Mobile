@@ -8,18 +8,19 @@ class Event {
   final String category;
   final String eventName;
   final String eventDescription;
-  final String eventIntroduction;
-  final List<String> eventObservations;
-  final String eventScenario;
   final bool eventStarted;
-  final String factSheet;
   final String incidentCommander;
   final String liasonOfficer;
   final String status;
-  final String action;
   final String location;
   final String publicInformationOfficer;
   final String safetySecurityOfficer;
+  final String eventType;
+  
+  // User-Event association fields
+  final String? cluster;
+  final String? office;
+  final String? bldgName;
 
   Event({
     required this.eventId,
@@ -28,18 +29,17 @@ class Event {
     required this.category,
     required this.eventName,
     required this.eventDescription,
-    required this.eventIntroduction,
-    required this.eventObservations,
-    required this.eventScenario,
-    required this.factSheet,
     required this.incidentCommander,
     required this.liasonOfficer,
     required this.status,
-    required this.action,
     required this.publicInformationOfficer,
     required this.safetySecurityOfficer,
     required this.location,
     this.eventStarted = false,
+    this.eventType = '',
+    this.cluster,
+    this.office,
+    this.bldgName,
   });
 
   factory Event.fromMap(Map<String, dynamic> data, String id) {
@@ -98,20 +98,19 @@ class Event {
       eventId: id,
       eventName: eventName,
       eventDescription: _str(['eventDescription', 'eventdescription', 'description']),
-      eventIntroduction: _str(['eventIntroduction', 'eventintroduction']),
       status: _str(['status']),
       timeStampStart: parseDate(data['timeStampStart'] ?? data['timestampstart'] ?? data['time_stamp_start']),
       timeStampEnd: parseDate(data['timeStampEnd'] ?? data['timestampend'] ?? data['time_stamp_end']),
-      factSheet: _str(['factSheet', 'factsheet']),
       category: _str(['category']),
-      eventObservations: _list(['eventObservations', 'eventobservations', 'event_observations']),
-      eventScenario: _str(['eventScenario', 'eventscenario', 'scenario']),
       incidentCommander: _str(['incidentCommander', 'incidentcommander']),
       liasonOfficer: _str(['liasonOfficer', 'liasonofficer']),
-      action: _str(['action']),
       publicInformationOfficer: _str(['publicInformationOfficer', 'publicinformationofficer']),
       safetySecurityOfficer: _str(['safetySecurityOfficer', 'safetysecurityofficer']),
       location: _str(['location']),
+      // User-Event association fields
+      cluster: data['cluster']?.toString(),
+      office: data['office']?.toString(),
+      bldgName: data['bldgname']?.toString(),
     );
   }
 
@@ -123,18 +122,14 @@ class Event {
       category: '',
       eventName: '',
       eventDescription: '',
-      eventIntroduction: '',
-      eventObservations: [],
-      eventScenario: '',
-      factSheet: '',
       incidentCommander: '',
       liasonOfficer: '',
       status: '',
-      action: '',
       publicInformationOfficer: '',
       safetySecurityOfficer: '',
       location: '',
       eventStarted: false,
+      eventType: '',
     );
   }
 
@@ -153,17 +148,13 @@ class Event {
       'category': category,
       'eventName': eventName,
       'eventDescription': eventDescription,
-      'eventIntroduction': eventIntroduction,
-      'eventObservations': eventObservations,
-      'eventScenario': eventScenario,
-      'factSheet': factSheet,
       'incidentCommander': incidentCommander,
       'liasonOfficer': liasonOfficer,
       'publicInformationOfficer': publicInformationOfficer,
       'safetySecurityOfficer': safetySecurityOfficer,
       'status': status,
-      'action': action,
       'location': location,
+      'eventType': eventType,
     };
   }
 }

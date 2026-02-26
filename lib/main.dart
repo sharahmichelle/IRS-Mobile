@@ -6,23 +6,36 @@ import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
+import 'package:upm_drrm_irs_mobile/screens/create_account_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/faq_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/login_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/main_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/splash_screen.dart';
+import 'package:upm_drrm_irs_mobile/providers/news_provider.dart';
 
 // Supabase and Provider Initialization
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseConfig.initialize();
+  // Create providers manually so we can wire initProviders
+  final eventTotalsProvider = EventTotals();
+  final eventsProvider      = Events();
+  final reportsProvider     = Reports(eventTotalsProvider);
+  final authProvider        = AuthProvider();
+
+  // Give AuthProvider references to Events and Reports so it can call
+  // setCurrentUser on both after login/logout/session restore
+  authProvider.initProviders(eventsProvider, reportsProvider);
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => Events()),
+        ChangeNotifierProvider.value(value: eventsProvider),
+        ChangeNotifierProvider.value(value: eventTotalsProvider),
+        ChangeNotifierProvider.value(value: reportsProvider),
+        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (context) => ActivityLogs()),
-        ChangeNotifierProvider(create: (context) => EventTotals()),
-        ChangeNotifierProvider(create: (context) => Reports()),
-        ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => NewsProvider()),
       ],
       child: const MyApp(),
     ),
@@ -247,6 +260,7 @@ class MyApp extends StatelessWidget {
       routes: {
         "/splash": (context) => const SplashScreenMinimal(),
         "/": (context) => const LoginScreen(),
+        "/register": (context) => const SignUpScreen(),
         "/main": (context) => const MainScreen(),
         "/faq": (context) => const FaqScreen(),
       },

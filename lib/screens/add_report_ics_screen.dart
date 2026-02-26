@@ -7,8 +7,8 @@ import 'package:upm_drrm_irs_mobile/models/report_model.dart';
 import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
-import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 import 'package:upm_drrm_irs_mobile/screens/submitted_reports_screen.dart';
+import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
@@ -125,6 +125,28 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
   // Tracks whether user attempted to submit so we show validation outlines
   bool _submitAttempted = false;
 
+  // Flag to prevent listeners from triggering when loading existing data
+  bool _isLoadingExistingData = false;
+
+  // Event type selection
+  String? _selectedEventType = 'drill_training';
+
+  // Event type options
+  final List<Map<String, dynamic>> _eventTypes = [
+    {
+      'value': 'drill_training',
+      'label': 'Drill Training',
+      'icon': Icons.event_available_rounded,
+      'color': const Color(0xFF2A9D8F),
+    },
+    {
+      'value': 'actual',
+      'label': 'Actual',
+      'icon': Icons.warning_rounded,
+      'color': const Color(0xFFE63946),
+    },
+  ];
+
   // GPS location variables
   bool _isGettingLocation = false;
   String? _gpsError;
@@ -132,6 +154,10 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
   @override
   void initState() {
     super.initState();
+
+    // Get current user for fallback
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.currentUser;
 
     // Initialize animations
     _animationController = AnimationController(
@@ -174,11 +200,6 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
       }
     });
 
-    // Prefill location from current event
-    if (widget.currentEvent.location.isNotEmpty) {
-      _locationController.text = widget.currentEvent.location;
-    }
-
     // Add listeners to all controllers to trigger rebuild and update outline colors
     final allControllers = [
       _nameController, _positionController, _clusterController,
@@ -200,14 +221,28 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
 
     // Add listener to missing persons count
     _numberMissingController.addListener(_updateMissingPersonsFields);
-    
+
     // Add listener to casualties count
     _numberCasualtyController.addListener(_updateCasualtiesFields);
 
     // If we're editing an existing report, prefill controllers
     if (widget.existingReport != null) {
       final r = widget.existingReport!;
-      _positionController.text = r.encoderposition;
+
+      // Parse existing missing persons and casualties data FIRST
+      if (r.namesofmissingpersons.isNotEmpty) {
+        _parseMissingPersonsData(r.namesofmissingpersons);
+      }
+      if (r.identityandconditionofcasualties.isNotEmpty) {
+        _parseCasualtiesData(r.identityandconditionofcasualties);
+      }
+
+      // Then set the count controllers (this will trigger the update methods but won't add extra entries)
+      
+      // Set flag to prevent listeners from resetting the parsed data
+      _isLoadingExistingData = true;
+      
+      _positionController.text = r.encoderposition ?? (currentUser?.position ?? '');
       _headcountFacultyController.text = (r.facultymembers != 0 ? r.facultymembers : 0).toString();
       _headcountAdminController.text = (r.adminmembers != 0 ? r.adminmembers : 0).toString();
       _headcountREPSController.text = (r.repsmembers != 0 ? r.repsmembers : 0).toString();
@@ -223,30 +258,35 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
       _numberMissingController.text = (r.nummissingpersons != 0 ? r.nummissingpersons : 0).toString();
       _numberCasualtyController.text = (r.numcasualties != 0 ? r.numcasualties : 0).toString();
       _damageAssessmentController.text = r.damageassessment;
-      _locationController.text = r.exactlocation.isNotEmpty ? r.exactlocation : _locationController.text;
+      _locationController.text = r.exactlocation;
       
-      // Parse existing missing persons and casualties data if available
-      if (r.namesofmissingpersons.isNotEmpty) {
-        _parseMissingPersonsData(r.namesofmissingpersons);
-      }
-      if (r.identityandconditionofcasualties.isNotEmpty) {
-        _parseCasualtiesData(r.identityandconditionofcasualties);
-      }
+      // Reset flag after loading is complete
+      _isLoadingExistingData = false;
     }
   }
 
   void _updateMissingPersonsFields() {
-    final count = int.tryParse(_numberMissingController.text) ?? 0;
-    
+    // Skip if we're loading existing data - the list is already populated from parsing
+    if (_isLoadingExistingData) return;
+
+    final rawText = _numberMissingController.text;
+
+    // If the field is empty or not yet a valid number (user is mid-edit, e.g. cleared
+    // "4" before typing "5"), do nothing — preserve the existing list so filled-in
+    // details are not lost.
+    if (rawText.isEmpty) return;
+
+    final count = int.tryParse(rawText);
+    if (count == null) return; // non-numeric input, ignore
+
     if (count < 0) {
       _numberMissingController.text = '0';
       return;
     }
-    
+
     setState(() {
-      // Adjust the list size
       if (count > _missingPersonsList.length) {
-        // Add new entries
+        // Add new (empty) entries for the extra slots
         for (int i = _missingPersonsList.length; i < count; i++) {
           _missingPersonsList.add({
             'name': TextEditingController(),
@@ -255,7 +295,7 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
           });
         }
       } else if (count < _missingPersonsList.length) {
-        // Remove excess entries and dispose controllers
+        // Only trim when the user has confirmed a smaller valid number.
         for (int i = count; i < _missingPersonsList.length; i++) {
           _missingPersonsList[i]['name']?.dispose();
           _missingPersonsList[i]['age']?.dispose();
@@ -267,17 +307,27 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
   }
 
   void _updateCasualtiesFields() {
-    final count = int.tryParse(_numberCasualtyController.text) ?? 0;
-    
+    // Skip if we're loading existing data - the list is already populated from parsing
+    if (_isLoadingExistingData) return;
+
+    final rawText = _numberCasualtyController.text;
+
+    // If the field is empty or not yet a valid number (user is mid-edit, e.g. cleared
+    // "4" before typing "5"), do nothing — preserve the existing list so filled-in
+    // details are not lost.
+    if (rawText.isEmpty) return;
+
+    final count = int.tryParse(rawText);
+    if (count == null) return; // non-numeric input, ignore
+
     if (count < 0) {
       _numberCasualtyController.text = '0';
       return;
     }
-    
+
     setState(() {
-      // Adjust the list size
       if (count > _casualtiesList.length) {
-        // Add new entries
+        // Add new (empty) entries for the extra slots
         for (int i = _casualtiesList.length; i < count; i++) {
           _casualtiesList.add({
             'name': TextEditingController(),
@@ -287,7 +337,7 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
           });
         }
       } else if (count < _casualtiesList.length) {
-        // Remove excess entries and dispose controllers
+        // Only trim when the user has confirmed a smaller valid number.
         for (int i = count; i < _casualtiesList.length; i++) {
           _casualtiesList[i]['name']?.dispose();
           _casualtiesList[i]['age']?.dispose();
@@ -737,7 +787,7 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
     // All required fields filled; proceed
 
     final report = Report(
-      encoderId: currentUser != null ? currentUser.authId : "unknown",
+      encoderId: currentUser != null ? currentUser.encoderId : "unknown",
       reportId: widget.currentEvent.eventId,
       cluster: currentUser != null ? currentUser.cluster : "unknown",
       bldgName: currentUser != null ? currentUser.bldgName : "unknown",
@@ -761,6 +811,8 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
       identityandconditionofcasualties: _formatCasualtiesData(),
       damageassessment: _damageAssessmentController.text.trim(),
       exactlocation: _locationController.text.trim(),
+      eventType: 'drill_training',
+      hazardType: '',
     );
 
     if (widget.existingReport != null && widget.existingReport!.id.isNotEmpty) {
@@ -837,6 +889,7 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
           "headCountGuest": report.guests,
           "numMissingPerson": report.nummissingpersons,
           "numCasualty": report.numcasualties,
+          "eventType": 'drill_training',
         },
       );
 
@@ -979,8 +1032,10 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
         onDone: () {
           Navigator.of(context).pop(); // close dialog
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => SubmittedReportsScreen()),
-          );
+            MaterialPageRoute(
+              builder: (_) => const SubmittedReportsScreen(),
+            ),
+          ); // navigate to SubmittedReportsScreen
         },
         primaryColor: _primaryRed,
         textPrimary: _textPrimary,

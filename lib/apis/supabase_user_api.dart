@@ -101,7 +101,7 @@ class SupabaseUserAPI {
       final response = await _supabase
           .from('users')
           .select()
-          .eq('position', position);
+          .eq('encoder_position', position);
 
       return response.map((json) => UserModel.fromJson(json)).toList();
     } catch (e) {
@@ -150,11 +150,11 @@ class SupabaseUserAPI {
   }
 
   // Update user profile
-  Future<String> updateUserProfile(String userName, UserModel updatedUser) async {
+  Future<String> updateUserProfile(String userName, UserModel user) async {
     try {
       await _supabase
           .from('users')
-          .update(updatedUser.toJson())
+          .update(user.toJson())
           .eq('username', userName);
       return "Successfully updated user profile!";
     } catch (e) {

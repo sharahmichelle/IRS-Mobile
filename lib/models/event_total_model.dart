@@ -4,8 +4,15 @@ class EventTotal {
   final String eventId;
   final DateTime timeStampStart;
   final DateTime timeStampEnd;
+  final DateTime lastModified; // Track when totals were last updated
   final int expectedData;
   final int receivedData;
+  
+  // Event classification
+  final String eventType; // 'incident' or 'activity'
+  final String hazardType; // 'earthquake', 'fire', 'flood', 'general', etc.
+  
+  // All headcount fields matching reports table
   final int totalFaculty;
   final int totalAdminMembers;
   final int totalRepsMembers;
@@ -18,18 +25,24 @@ class EventTotal {
   final int totalHealthWorkers;
   final int totalNonAcademicStaff;
   final int totalGuests;
+  
+  // Incident details
   final int totalMissingPersons;
   final int totalCasualties;
+  
   final bool isActual;
   final List<String> reportsId;
   final Map<String, int> totalDistribution;
 
-  const EventTotal({
+  EventTotal({
     this.eventId = '',
     this.timeStampStart = const ConstDateTime(2000),
     this.timeStampEnd = const ConstDateTime(2000),
+    DateTime? lastModified,
     this.expectedData = 0,
     this.receivedData = 0,
+    this.eventType = 'incident',
+    this.hazardType = '',
     this.totalFaculty = 0,
     this.totalAdminMembers = 0,
     this.totalRepsMembers = 0,
@@ -47,14 +60,30 @@ class EventTotal {
     this.isActual = false,
     this.reportsId = const [],
     this.totalDistribution = const {},
-  });
+  }) : lastModified = lastModified ?? _getPSTNow();
 
-  static EventTotal empty() => const EventTotal();
+  // Helper method to get current time in Philippine Standard Time (UTC+8)
+  static DateTime _getPSTNow() {
+    final utcNow = DateTime.now().toUtc();
+    return utcNow.add(const Duration(hours: 8));
+  }
+
+  static EventTotal empty() => EventTotal();
 
   /* ===========================
      Supabase → Flutter mapping
      =========================== */
   factory EventTotal.fromSupabase(Map<String, dynamic> data) {
+    // Parse lastModified timestamp
+    DateTime parsedLastModified = _getPSTNow();
+    if (data['last_modified'] != null || data['lastModified'] != null) {
+      try {
+        parsedLastModified = DateTime.parse(data['last_modified'] ?? data['lastModified']);
+      } catch (e) {
+        parsedLastModified = _getPSTNow();
+      }
+    }
+
     return EventTotal(
       eventId: data['eventid']?.toString() ?? '',
       timeStampStart: data['timestampstart'] != null
@@ -63,9 +92,12 @@ class EventTotal {
       timeStampEnd: data['timestampend'] != null
           ? DateTime.parse(data['timestampend'])
           : const ConstDateTime(2000),
+      lastModified: parsedLastModified,
       expectedData: _parseInt(data['expecteddata']),
       receivedData: _parseInt(data['receiveddata']),
       isActual: data['isactual'] ?? false,
+      eventType: data['eventtype'] ?? data['eventType'] ?? 'incident',
+      hazardType: data['hazardtype'] ?? data['hazardType'] ?? '',
       reportsId: data['reportsid'] != null
           ? List<String>.from(data['reportsid'].map((e) => e.toString()))
           : [],
@@ -78,8 +110,7 @@ class EventTotal {
       totalNonAcademicStaff: _parseInt(data['totalnonacademicstaff']),
       totalStudents: _parseInt(data['totalstudents']),
       totalSecurity: _parseInt(data['totalsecurity']),
-      totalConstructionWorkers:
-          _parseInt(data['totalconstructionworkers']),
+      totalConstructionWorkers: _parseInt(data['totalconstructionworkers']),
       totalHealthWorkers: _parseInt(data['totalhealthworkers']),
       totalGuests: _parseInt(data['totalguests']),
       totalMissingPersons: _parseInt(data['totalmissingpersons']),
@@ -103,9 +134,12 @@ class EventTotal {
       'eventid': eventId,
       'timestampstart': timeStampStart.toIso8601String(),
       'timestampend': timeStampEnd.toIso8601String(),
+      'last_modified': lastModified.toIso8601String(),
       'expecteddata': expectedData,
       'receiveddata': receivedData,
       'isactual': isActual,
+      'eventtype': eventType,
+      'hazardtype': hazardType,
       'reportsid': reportsId,
       'totalfaculty': totalFaculty,
       'totaladminmembers': totalAdminMembers,
@@ -147,11 +181,24 @@ class EventTotal {
       'eventid': eventId,
       'timestampstart': timeStampStart.toIso8601String(),
       'timestampend': timeStampEnd.toIso8601String(),
+      'lastmodified': lastModified.toIso8601String(),
       'expecteddata': expectedData,
       'receiveddata': receivedData,
       'isactual': isActual,
+      'eventtype': eventType,
+      'hazardtype': hazardType,
       'reportsid': reportsId,
       'totaldistribution': totalDistribution,
     };
+  }
+
+  /// Format lastModified timestamp for display (with seconds)
+  String get formattedLastModified {
+    return "${lastModified.day.toString().padLeft(2, '0')}/"
+           "${lastModified.month.toString().padLeft(2, '0')}/"
+           "${lastModified.year} "
+           "${lastModified.hour.toString().padLeft(2, '0')}:"
+           "${lastModified.minute.toString().padLeft(2, '0')}:"
+           "${lastModified.second.toString().padLeft(2, '0')}";
   }
 }

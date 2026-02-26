@@ -45,5 +45,38 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Location permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to your location to record incident locations accurately.</string>
+    
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app needs access to your location to record incident locations accurately.</string>
+    
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to your location to record incident locations accurately.</string>
+    
+    <!-- For iOS 14+ Accurate location -->
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>IncidentReport</key>
+        <string>Need precise location for incident reporting</string>
+    </dict>
+    
+    <!-- Internet access -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to update profile picture</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to camera to take profile pictures</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+	    <string>https</string>
+		<string>http</string>
+	</array>
+
 </dict>
 </plist>

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/activity_logs_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/auth_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/event_totals_provider.dart';
 import 'package:upm_drrm_irs_mobile/providers/events_provider.dart';
+import 'package:upm_drrm_irs_mobile/providers/reports_provider.dart';
 import 'package:upm_drrm_irs_mobile/screens/calendar_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/graphs_screen.dart';
 import 'package:upm_drrm_irs_mobile/screens/profile_screen.dart';
@@ -45,7 +47,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   // Navigation data
   final List<NavItemData> _navItems = [
     NavItemData(icon: Icons.calendar_month_rounded, label: "Events"),
-    NavItemData(icon: Icons.dashboard_rounded, label: "Reports"),
+    NavItemData(icon: Icons.home_rounded, label: "Reports"),
     NavItemData(icon: Icons.person_rounded, label: "Profile"),
   ];
 
@@ -114,29 +116,28 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
-      body: Stack(
+      // Set extendBody to true to extend background behind the system UI
+      extendBody: true,
+      body: Column(
         children: [
-          // Page content
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            child: _pages[_currentIndex],
+          // Main content area - takes all available space except navbar
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: _pages[_currentIndex],
+            ),
           ),
           
-          // Modern navigation bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildModernNavigationBar(),
-          ),
+          // Modern navigation bar - fixed at bottom
+          _buildModernNavigationBar(),
         ],
       ),
     );
@@ -173,7 +174,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           ],
         ),
         child: Container(
-          height: 72, // Slightly increased for better spacing
+          height: 72,
           decoration: BoxDecoration(
             color: _surfaceColor,
             borderRadius: BorderRadius.circular(24),
@@ -213,14 +214,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         },
         child: Container(
           constraints: const BoxConstraints(
-            minWidth: 72, // Minimum width for each item
-            maxWidth: 96,  // Maximum width to prevent overflow
+            minWidth: 72,
+            maxWidth: 96,
           ),
           height: 72,
           alignment: Alignment.center,
           child: Container(
-            width: 56, // Increased width for bigger icons
-            height: 56, // Increased height for bigger icons
+            width: 56,
+            height: 56,
             alignment: Alignment.center,
             child: Stack(
               alignment: Alignment.center,
@@ -245,7 +246,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 // Bigger Icon
                 Icon(
                   item.icon,
-                  size: 28, // Increased from 22 to 28
+                  size: 28,
                   color: isActive ? _primaryRed : _textInactive,
                 ),
               ],

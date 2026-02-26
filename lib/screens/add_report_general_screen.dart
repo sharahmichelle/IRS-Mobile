@@ -11,12 +11,20 @@ import 'package:upm_drrm_irs_mobile/widgets/success_dialog.dart';
 import 'package:upm_drrm_irs_mobile/screens/submitted_reports_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart'; 
 
 class AddReportGeneralScreen extends StatefulWidget {
   final Event currentEvent;
   final Report? existingReport;
+  final bool isGeneralReport; 
 
-  const AddReportGeneralScreen({super.key, required this.currentEvent, this.existingReport});
+  const AddReportGeneralScreen({
+    Key? key, 
+    required this.currentEvent, 
+    this.existingReport,
+    this.isGeneralReport = false, // Default to false
+  }) : super(key: key);
+
   @override
   State<AddReportGeneralScreen> createState() => _AddReportGeneralScreenState();
 }
@@ -48,7 +56,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // 2025 Modern Color Scheme - Enhanced
+  // Color Scheme
   final Color _primaryRed = const Color(0xFFE63946);
   final Color _darkRed = const Color(0xFF9D0208);
   final Color _emergencyBlue = const Color(0xFF1D3557);
@@ -92,7 +100,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
   final IconData _submitIcon = Icons.check_circle_rounded;
   final IconData _backIcon = Icons.arrow_back_ios_new_rounded;
   final IconData _emergencyIcon = Icons.emergency_rounded;
-  final IconData _gpsIcon = Icons.my_location_rounded; // GPS icon
+  final IconData _gpsIcon = Icons.my_location_rounded;
 
   // Category Icons for Headcount
   final Map<String, IconData> _categoryIcons = {
@@ -124,11 +132,14 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
   // Tracks whether user attempted to submit so we show validation outlines
   bool _submitAttempted = false;
 
+  // Flag to prevent listeners from triggering when loading existing data
+  bool _isLoadingExistingData = false;
+
   // Incident type dropdown
-  String? _selectedIncidentType;
+  String? _selectedHazardType;
 
   // Incident type options with icons
-  final List<Map<String, dynamic>> _incidentTypes = [
+  final List<Map<String, dynamic>> _hazardTypes = [
     {
       'value': 'earthquake',
       'label': 'Earthquake',
@@ -158,6 +169,9 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
   // GPS location variables
   bool _isGettingLocation = false;
   String? _gpsError;
+  
+  // UUID generator
+  final _uuid = const Uuid();
 
   @override
   void initState() {
@@ -237,6 +251,19 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
     // If we're editing an existing report, prefill controllers
     if (widget.existingReport != null) {
       final r = widget.existingReport!;
+
+      // Parse existing missing persons and casualties data FIRST
+      if (r.namesofmissingpersons.isNotEmpty) {
+        _parseMissingPersonsData(r.namesofmissingpersons);
+      }
+      if (r.identityandconditionofcasualties.isNotEmpty) {
+        _parseCasualtiesData(r.identityandconditionofcasualties);
+      }
+
+      // Set flag to prevent listeners from resetting the parsed data
+      _isLoadingExistingData = true;
+
+      // Then set the count controllers (this will trigger the update methods but won't add extra entries)
       _positionController.text = r.encoderposition;
       _headcountFacultyController.text = (r.facultymembers != 0 ? r.facultymembers : 0).toString();
       _headcountAdminController.text = (r.adminmembers != 0 ? r.adminmembers : 0).toString();
@@ -254,29 +281,35 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       _numberCasualtyController.text = (r.numcasualties != 0 ? r.numcasualties : 0).toString();
       _damageAssessmentController.text = r.damageassessment;
       _locationController.text = r.exactlocation.isNotEmpty ? r.exactlocation : _locationController.text;
-      
-      // Parse existing missing persons and casualties data if available
-      if (r.namesofmissingpersons.isNotEmpty) {
-        _parseMissingPersonsData(r.namesofmissingpersons);
-      }
-      if (r.identityandconditionofcasualties.isNotEmpty) {
-        _parseCasualtiesData(r.identityandconditionofcasualties);
-      }
+      _selectedHazardType = r.hazardType;
+
+      // Reset flag after loading is complete
+      _isLoadingExistingData = false;
     }
   }
 
   void _updateMissingPersonsFields() {
-    final count = int.tryParse(_numberMissingController.text) ?? 0;
-    
+    // Skip if we're loading existing data - the list is already populated from parsing
+    if (_isLoadingExistingData) return;
+
+    final rawText = _numberMissingController.text;
+
+    // If the field is empty or not yet a valid number (user is mid-edit, e.g. cleared
+    // "4" before typing "5"), do nothing — preserve the existing list so filled-in
+    // details are not lost.
+    if (rawText.isEmpty) return;
+
+    final count = int.tryParse(rawText);
+    if (count == null) return; // non-numeric input, ignore
+
     if (count < 0) {
       _numberMissingController.text = '0';
       return;
     }
-    
+
     setState(() {
-      // Adjust the list size
       if (count > _missingPersonsList.length) {
-        // Add new entries
+        // Add new (empty) entries for the extra slots
         for (int i = _missingPersonsList.length; i < count; i++) {
           _missingPersonsList.add({
             'name': TextEditingController(),
@@ -285,7 +318,8 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           });
         }
       } else if (count < _missingPersonsList.length) {
-        // Remove excess entries and dispose controllers
+        // Only trim the list when the user has confirmed a smaller valid number.
+        // Dispose controllers that are being removed to avoid memory leaks.
         for (int i = count; i < _missingPersonsList.length; i++) {
           _missingPersonsList[i]['name']?.dispose();
           _missingPersonsList[i]['age']?.dispose();
@@ -297,17 +331,27 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
   }
 
   void _updateCasualtiesFields() {
-    final count = int.tryParse(_numberCasualtyController.text) ?? 0;
-    
+    // Skip if we're loading existing data - the list is already populated from parsing
+    if (_isLoadingExistingData) return;
+
+    final rawText = _numberCasualtyController.text;
+
+    // If the field is empty or not yet a valid number (user is mid-edit, e.g. cleared
+    // "4" before typing "5"), do nothing — preserve the existing list so filled-in
+    // details are not lost.
+    if (rawText.isEmpty) return;
+
+    final count = int.tryParse(rawText);
+    if (count == null) return; // non-numeric input, ignore
+
     if (count < 0) {
       _numberCasualtyController.text = '0';
       return;
     }
-    
+
     setState(() {
-      // Adjust the list size
       if (count > _casualtiesList.length) {
-        // Add new entries
+        // Add new (empty) entries for the extra slots
         for (int i = _casualtiesList.length; i < count; i++) {
           _casualtiesList.add({
             'name': TextEditingController(),
@@ -317,7 +361,8 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           });
         }
       } else if (count < _casualtiesList.length) {
-        // Remove excess entries and dispose controllers
+        // Only trim the list when the user has confirmed a smaller valid number.
+        // Dispose controllers that are being removed to avoid memory leaks.
         for (int i = count; i < _casualtiesList.length; i++) {
           _casualtiesList[i]['name']?.dispose();
           _casualtiesList[i]['age']?.dispose();
@@ -451,7 +496,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           _isGettingLocation = false;
         });
         
-        // Optionally, you can ask the user to enable location services
         bool locationServiceEnabled = await Geolocator.openLocationSettings();
         if (locationServiceEnabled && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -469,7 +513,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       LocationPermission permission = await Geolocator.checkPermission();
       
       if (permission == LocationPermission.denied) {
-        // Request permission
         permission = await Geolocator.requestPermission();
         
         if (permission == LocationPermission.denied) {
@@ -478,7 +521,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
             _isGettingLocation = false;
           });
           
-          // Show a more helpful message
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -504,7 +546,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
             _isGettingLocation = false;
           });
           
-          // Open app settings
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -541,7 +582,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
         final response = await http.get(
           url,
           headers: {
-            'User-Agent': 'UPM-DRRM-IRS-Mobile/1.0', // Required by Nominatim
+            'User-Agent': 'UPM-DRRM-IRS-Mobile/1.0',
           },
         ).timeout(Duration(seconds: 10));
 
@@ -552,7 +593,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           final address = data['address'];
           List<String> addressParts = [];
           
-          // Try to build a meaningful address
           if (address['road'] != null) {
             addressParts.add(address['road']);
           }
@@ -580,7 +620,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
             _isGettingLocation = false;
           });
           
-          // Show success snackbar
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -591,7 +630,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
             );
           }
         } else {
-          // If OpenStreetMap API fails, just show coordinates
           setState(() {
             _locationController.text = 'Current Location: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
             _isGettingLocation = false;
@@ -608,7 +646,6 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           }
         }
       } catch (e) {
-        // If geocoding fails, still show coordinates
         setState(() {
           _locationController.text = 'Current Location: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
           _isGettingLocation = false;
@@ -688,12 +725,12 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       _submitAttempted = true;
     });
 
-    // Required fields: location and incident type
-    if (_locationController.text.trim().isEmpty || _selectedIncidentType == null) {
+    // Required fields: location and hazard type
+    if (_locationController.text.trim().isEmpty || _selectedHazardType == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Please select incident type and enter location.'),
+            content: const Text('Please select hazard type and enter location.'),
             backgroundColor: Colors.redAccent.withOpacity(0.9),
           ),
         );
@@ -747,14 +784,34 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       }
     }
 
-    // All required fields filled; proceed
+    // FIXED: Handle event_id properly for general reports vs event reports
+    String? eventId;
+    String? reportId;
+
+    if (widget.isGeneralReport) {
+      // For general/emergency reports: event_id is NULL
+      eventId = null;
+      reportId = null; // report_id also NULL
+    } else {
+      // For event reports: use the event's ID if it exists, otherwise treat as general
+      eventId = widget.currentEvent.eventId.isNotEmpty
+          ? widget.currentEvent.eventId
+          : null; // Fallback to null if empty, will create new event
+      reportId = eventId; // report_id is same as event_id for backward compatibility
+    }
+
     final report = Report(
-      encoderId: currentUser != null ? currentUser.authId : "unknown",
-      reportId: widget.currentEvent.eventId,
+      encoderId: currentUser != null ? currentUser.encoderId : "unknown",
+      reportId: reportId, // Can be null for general reports
+      eventId: eventId, // Can be null for general reports
       cluster: currentUser != null ? currentUser.cluster : "unknown",
       bldgName: currentUser != null ? currentUser.bldgName : "unknown",
       office: currentUser != null ? currentUser.office : "unknown",
       encoderposition: _positionController.text,
+      
+      eventType: 'actual',
+      hazardType: _selectedHazardType ?? 'general',
+      
       facultymembers: int.tryParse(_headcountFacultyController.text) ?? 0,
       adminmembers: int.tryParse(_headcountAdminController.text) ?? 0,
       repsmembers: int.tryParse(_headcountREPSController.text) ?? 0,
@@ -773,13 +830,13 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       identityandconditionofcasualties: _formatCasualtiesData(),
       damageassessment: _damageAssessmentController.text.trim(),
       exactlocation: _locationController.text.trim(),
-      // Note: You may need to add incidentType field to your Report model
     );
 
+    // EDIT EXISTING REPORT
     if (widget.existingReport != null && widget.existingReport!.id.isNotEmpty) {
-      // Edit existing report
       final editMap = {
-        'reportId': widget.currentEvent.eventId,
+        'eventType': 'actual',
+        'hazardType': _selectedHazardType ?? 'general',
         'facultymembers': report.facultymembers,
         'adminmembers': report.adminmembers,
         'repsmembers': report.repsmembers,
@@ -799,26 +856,29 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
         'damageassessment': report.damageassessment,
         'exactlocation': report.exactlocation,
         'encoderposition': report.encoderposition,
-        // Add incidentType to editMap if your model supports it
       };
+
+      // Only include event_id/report_id if not a general report
+      if (!widget.isGeneralReport && eventId != null) {
+        editMap['event_id'] = eventId;
+        editMap['report_id'] = eventId;
+      }
 
       if (context.mounted) {
         await context.read<Reports>().editReport(widget.existingReport!.id, editMap);
-        // Reload reports and event totals
         context.read<Reports>().fetchReports();
         context.read<EventTotals>().fetchEventTotals();
       }
 
-      // Show success and pop back
       _showSuccessAndClose();
       return;
     }
 
-    // Create new report
-    String reportId;
+    // CREATE NEW REPORT
+    String? newReportId;
     try {
       if (!context.mounted) return;
-      reportId = await context.read<Reports>().addReport(report);
+      newReportId = await context.read<Reports>().addReport(report);
     } catch (e) {
       final errMsg = e.toString();
       if (context.mounted) {
@@ -829,42 +889,43 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
       return;
     }
 
-    // Add report to event totals (RPC) and ensure totals are refreshed
-    try {
-      if (!context.mounted) return;
-      await context.read<EventTotals>().addReportToEventTotal(
-        widget.currentEvent.eventId,
-        currentUser != null ? currentUser.cluster : "unknown",
-        reportId,
-        {
-          "headCountFaculty": report.facultymembers,
-          "headCountadminMember": report.adminmembers,
-          "headCountRepsMember": report.repsmembers,
-          "headCountRAMember": report.ramembers,
-          "headCountStudent": report.students,
-          "headCountPhilcare": report.philcarestaff,
-          "headCountSecurity": report.securitypersonnel,
-          "headCountConstructionWorker": report.constructionworkers,
-          "headCountTenant": report.tenants,
-          "headCountNonAcademicStaff": report.nonacademicstaff,
-          "headCountHealthWorker": report.healthworkers,
-          "headCountGuest": report.guests,
-          "numMissingPerson": report.nummissingpersons,
-          "numCasualty": report.numcasualties,
-        },
-      );
-
-      if (context.mounted) {
-        context.read<EventTotals>().fetchEventTotals();
-      }
-    } catch (e) {
-      final errMsg = e.toString();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update event totals: $errMsg'), backgroundColor: Colors.orangeAccent),
+    // ONLY add to event totals if this is NOT a general report and has event_id
+    if (!widget.isGeneralReport && eventId != null && newReportId != null) {
+      try {
+        if (!context.mounted) return;
+        await context.read<EventTotals>().addReportToEventTotal(
+          eventId,
+          currentUser != null ? currentUser.cluster : "unknown",
+          newReportId,
+          {
+            "headCountFaculty": report.facultymembers,
+            "headCountadminMember": report.adminmembers,
+            "headCountRepsMember": report.repsmembers,
+            "headCountRAMember": report.ramembers,
+            "headCountStudent": report.students,
+            "headCountPhilcare": report.philcarestaff,
+            "headCountSecurity": report.securitypersonnel,
+            "headCountConstructionWorker": report.constructionworkers,
+            "headCountTenant": report.tenants,
+            "headCountNonAcademicStaff": report.nonacademicstaff,
+            "headCountHealthWorker": report.healthworkers,
+            "headCountGuest": report.guests,
+            "numMissingPerson": report.nummissingpersons,
+            "numCasualty": report.numcasualties,
+            "eventType": 'actual',
+          },
         );
+        if (context.mounted) {
+          context.read<EventTotals>().fetchEventTotals();
+        }
+      } catch (e) {
+        final errMsg = e.toString();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update event totals: $errMsg'), backgroundColor: Colors.orangeAccent),
+          );
+        }
       }
-      // Continue — report record may still exist, but totals couldn't be updated.
     }
 
     // Show success and redirect to Submitted Reports screen
@@ -989,11 +1050,12 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
     if (!context.mounted) return;
     showDialog(
       context: context,
-      builder: (context) => SuccessDialog(
+      builder: (dialogContext) => SuccessDialog(
         onDone: () {
-          Navigator.of(context).pop(); // close dialog
+          Navigator.of(dialogContext).pop(); // close dialog
+          // Navigate to SubmittedReportsScreen
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => SubmittedReportsScreen()),
+            MaterialPageRoute(builder: (context) => const SubmittedReportsScreen()),
           );
         },
         primaryColor: _primaryRed,
@@ -1150,7 +1212,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 15, // Increased from 13
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: _textPrimary,
                     letterSpacing: -0.1,
@@ -1188,7 +1250,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
               textAlign: TextAlign.left,
               textAlignVertical: TextAlignVertical.center,
               style: TextStyle(
-                fontSize: 17, // Increased from 16
+                fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: readOnly ? Colors.grey[700] : _textPrimary,
               ),
@@ -1196,7 +1258,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                 hintText: "0",
                 hintStyle: TextStyle(
                   color: readOnly ? Colors.grey[600] : _textSecondary.withOpacity(0.5),
-                  fontSize: 17, // Increased from 16
+                  fontSize: 17,
                   fontWeight: FontWeight.w500,
                 ),
                 border: InputBorder.none,
@@ -1259,7 +1321,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 16, // Increased from 14
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: _textPrimary,
                   letterSpacing: -0.2,
@@ -1296,7 +1358,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
             readOnly: readOnly,
             enabled: !readOnly,
             style: TextStyle(
-              fontSize: 16, // Increased from 15
+              fontSize: 16,
               fontWeight: FontWeight.w500,
               color: readOnly ? Colors.grey[700] : _textPrimary,
             ),
@@ -1304,7 +1366,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
               hintText: hintText,
               hintStyle: TextStyle(
                 color: readOnly ? Colors.grey[600] : _textSecondary.withOpacity(0.5),
-                fontSize: 16, // Increased from 15
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
               border: InputBorder.none,
@@ -1495,6 +1557,11 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
   }
 
   Widget _buildIncidentTypeDropdown({bool readOnly = false}) {
+    final selectedType = _hazardTypes.firstWhere(
+      (t) => t['value'] == _selectedHazardType,
+      orElse: () => {},
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1512,19 +1579,15 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                 ),
               ),
               child: Center(
-                child: Icon(
-                  Icons.category_rounded,
-                  color: _primaryRed,
-                  size: 18,
-                ),
+                child: Icon(Icons.category_rounded, color: _primaryRed, size: 18),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                "Incident Type",
+                "Hazard Type",
                 style: TextStyle(
-                  fontSize: 16, // Increased from 14
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: _textPrimary,
                   letterSpacing: -0.2,
@@ -1534,109 +1597,168 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
           ],
         ),
         const SizedBox(height: 10),
-        Container(
-          decoration: BoxDecoration(
-            color: _surfaceWhite,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: readOnly
-                  ? Colors.grey.withOpacity(0.18)
-                  : ((_selectedIncidentType == null && _submitAttempted)
-                      ? Colors.red.withOpacity(0.5)
-                      : _lightBlue.withOpacity(0.4)),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: _shadowColor,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButtonFormField<String>(
-              value: _selectedIncidentType,
-              icon: Icon(
-                Icons.arrow_drop_down_rounded,
-                color: _textSecondary,
-                size: 24,
-              ),
-              iconSize: 24,
-              elevation: 8,
-              style: TextStyle(
-                fontSize: 16, // Increased from 15
-                fontWeight: FontWeight.w500,
-                color: _textPrimary,
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+        Builder(
+          builder: (context) {
+            return GestureDetector(
+              onTap: readOnly
+                  ? null
+                  : () async {
+                      // Get the position of this widget on screen
+                      final RenderBox box = context.findRenderObject() as RenderBox;
+                      final Offset offset = box.localToGlobal(Offset.zero);
+                      final Size size = box.size;
+
+                      final result = await showMenu<String>(
+                        context: context,
+                        color: _surfaceWhite,
+                        elevation: 8,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(
+                            color: _lightBlue.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        // Position menu directly below the field
+                        position: RelativeRect.fromLTRB(
+                          offset.dx,
+                          offset.dy + size.height + 4, // just below the field
+                          offset.dx + size.width,
+                          offset.dy + size.height + 4 + 300, // max height 300
+                        ),
+                        items: _hazardTypes.map((type) {
+                          return PopupMenuItem<String>(
+                            value: type['value'] as String,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: (type['color'] as Color).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: (type['color'] as Color).withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      type['icon'] as IconData,
+                                      color: type['color'] as Color,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  type['label'] as String,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: _textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
+
+                      if (result != null) {
+                        setState(() {
+                          _selectedHazardType = result;
+                        });
+                      }
+                    },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _surfaceWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: readOnly
+                        ? Colors.grey.withOpacity(0.18)
+                        : ((_selectedHazardType == null && _submitAttempted)
+                            ? Colors.red.withOpacity(0.5)
+                            : _lightBlue.withOpacity(0.4)),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _shadowColor,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-              hint: Text(
-                "Select incident type",
-                style: TextStyle(
-                  color: _textSecondary.withOpacity(0.5),
-                  fontSize: 16, // Increased from 15
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              items: _incidentTypes.map((type) {
-                return DropdownMenuItem<String>(
-                  value: type['value'],
-                  child: Row(
-                    children: [
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    if (selectedType.isNotEmpty) ...[
                       Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: type['color'].withOpacity(0.1),
+                          color: (selectedType['color'] as Color).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: type['color'].withOpacity(0.2),
+                            color: (selectedType['color'] as Color).withOpacity(0.2),
                             width: 1,
                           ),
                         ),
                         child: Center(
                           child: Icon(
-                            type['icon'],
-                            color: type['color'],
+                            selectedType['icon'] as IconData,
+                            color: selectedType['color'] as Color,
                             size: 18,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        type['label'],
-                        style: TextStyle(
-                          fontSize: 15, // Increased from 14
-                          fontWeight: FontWeight.w600,
-                          color: _textPrimary,
+                      Expanded(
+                        child: Text(
+                          selectedType['label'] as String,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: readOnly ? Colors.grey[700] : _textPrimary,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: readOnly
-                  ? null
-                  : (String? newValue) {
-                      setState(() {
-                        _selectedIncidentType = newValue;
-                      });
-                    },
-              validator: (value) {
-                if (value == null && _submitAttempted) {
-                  return 'Please select incident type';
-                }
-                return null;
-              },
+                    ] else
+                      Expanded(
+                        child: Text(
+                          "Select hazard type",
+                          style: TextStyle(
+                            color: _textSecondary.withOpacity(0.5),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    Icon(
+                      Icons.arrow_drop_down_rounded,
+                      color: _textSecondary,
+                      size: 24,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        // Validation error text
+        if (_selectedHazardType == null && _submitAttempted)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              'Please select hazard type',
+              style: TextStyle(
+                color: Colors.red[700],
+                fontSize: 12,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -1930,10 +2052,12 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
     final isWideScreen = screenWidth > 600;
 
     // Determine event status to control submission behavior
+    // When editing an existing report, always allow editing regardless of event status
     final status = widget.currentEvent.status.toLowerCase();
     final bool isUpcoming = status == 'upcoming';
     final bool isCompleted = status == 'completed';
-    final bool isSubmissionDisabled = isUpcoming || isCompleted;
+    final bool isEditingExisting = widget.existingReport != null;
+    final bool isSubmissionDisabled = (isUpcoming || isCompleted) && !isEditingExisting;
 
     // Parse counts
     final missingCount = int.tryParse(_numberMissingController.text) ?? 0;
@@ -1994,7 +2118,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                 ),
                               ),
                               Text(
-                                widget.existingReport != null 
+                                widget.existingReport != null
                                   ? 'Update your incident details'
                                   : 'Submit new incident details',
                                 style: TextStyle(
@@ -2027,8 +2151,8 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Status banner for upcoming/completed events
-                                if (isSubmissionDisabled)
+                                // Status banner for upcoming/completed events (only show for non-general reports)
+                                if (!widget.isGeneralReport && isSubmissionDisabled)
                                   Container(
                                     width: double.infinity,
                                     margin: const EdgeInsets.only(bottom: 12),
@@ -2053,7 +2177,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                           child: Text(
                                             isUpcoming
                                                 ? 'This incident is still not available for submission.'
-                                                : 'Submission for this incident is already closed.',
+                                                : 'Submission for this incident is not available.',
                                             style: TextStyle(
                                               color: isUpcoming ? _warningOrange : Colors.grey[800],
                                               fontWeight: FontWeight.w700,
@@ -2069,7 +2193,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Incident Type Dropdown
-                                    _buildIncidentTypeDropdown(readOnly: isSubmissionDisabled),
+                                    _buildIncidentTypeDropdown(readOnly: isSubmissionDisabled && !widget.isGeneralReport),
                                     const SizedBox(height: 20),
 
                                     // Incident Details Grid
@@ -2085,7 +2209,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                                 icon: _missingIcon,
                                                 hintText: "0",
                                                 isNumber: true,
-                                                readOnly: isSubmissionDisabled,
+                                                readOnly: isSubmissionDisabled && !widget.isGeneralReport,
                                               ),
                                             ),
                                             const SizedBox(width: 16),
@@ -2096,7 +2220,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                                 icon: _casualtyIcon,
                                                 hintText: "0",
                                                 isNumber: true,
-                                                readOnly: isSubmissionDisabled,
+                                                readOnly: isSubmissionDisabled && !widget.isGeneralReport,
                                               ),
                                             ),
                                           ],
@@ -2119,7 +2243,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                               index: entry.key,
                                               person: entry.value,
                                               isCasualty: false,
-                                              readOnly: isSubmissionDisabled,
+                                              readOnly: isSubmissionDisabled && !widget.isGeneralReport,
                                             );
                                           }).toList(),
                                           const SizedBox(height: 12),
@@ -2141,7 +2265,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                               index: entry.key,
                                               person: entry.value,
                                               isCasualty: true,
-                                              readOnly: isSubmissionDisabled,
+                                              readOnly: isSubmissionDisabled && !widget.isGeneralReport,
                                             );
                                           }).toList(),
                                           const SizedBox(height: 12),
@@ -2156,12 +2280,12 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                           validator: (val) => val == null || val.isEmpty
                                               ? 'Damage assessment is required'
                                               : null,
-                                          readOnly: isSubmissionDisabled,
+                                          readOnly: isSubmissionDisabled && !widget.isGeneralReport,
                                         ),
                                         const SizedBox(height: 20),
 
                                         // Location Field with GPS Button
-                                        _buildLocationInput(readOnly: isSubmissionDisabled),
+                                        _buildLocationInput(readOnly: isSubmissionDisabled && !widget.isGeneralReport),
                                       ],
                                     ),
 
@@ -2171,13 +2295,13 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                     Container(
                                       height: 58,
                                       decoration: BoxDecoration(
-                                        gradient: isSubmissionDisabled
+                                        gradient: (isSubmissionDisabled && !widget.isGeneralReport)
                                             ? LinearGradient(
                                                 colors: [Colors.grey.withOpacity(0.12), Colors.grey.withOpacity(0.08)],
                                               )
                                             : _emergencyGradient,
                                         borderRadius: BorderRadius.circular(16),
-                                        boxShadow: isSubmissionDisabled
+                                        boxShadow: (isSubmissionDisabled && !widget.isGeneralReport)
                                             ? []
                                             : [
                                                 BoxShadow(
@@ -2190,7 +2314,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                       child: Material(
                                         color: Colors.transparent,
                                         child: InkWell(
-                                          onTap: isSubmissionDisabled ? null : _onSubmit,
+                                          onTap: (isSubmissionDisabled && !widget.isGeneralReport) ? null : _onSubmit,
                                           borderRadius: BorderRadius.circular(16),
                                           highlightColor: Colors.white.withOpacity(0.1),
                                           splashColor: Colors.white.withOpacity(0.2),
@@ -2203,13 +2327,15 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                                   width: 30,
                                                   height: 30,
                                                   decoration: BoxDecoration(
-                                                    color: isSubmissionDisabled ? Colors.grey.withOpacity(0.18) : Colors.white.withOpacity(0.2),
+                                                    color: (isSubmissionDisabled && !widget.isGeneralReport) 
+                                                        ? Colors.grey.withOpacity(0.18) 
+                                                        : Colors.white.withOpacity(0.2),
                                                     borderRadius: BorderRadius.circular(8),
                                                   ),
                                                   child: Center(
                                                     child: Icon(
                                                       _submitIcon,
-                                                      color: isSubmissionDisabled ? Colors.grey[700] : _white,
+                                                      color: (isSubmissionDisabled && !widget.isGeneralReport) ? Colors.grey[700] : _white,
                                                       size: 18,
                                                     ),
                                                   ),
@@ -2218,7 +2344,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                                                 Text(
                                                   widget.existingReport != null ? 'UPDATE INCIDENT REPORT' : 'SUBMIT INCIDENT REPORT',
                                                   style: TextStyle(
-                                                    color: isSubmissionDisabled ? Colors.grey[700] : _white,
+                                                    color: (isSubmissionDisabled && !widget.isGeneralReport) ? Colors.grey[700] : _white,
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w800,
                                                     letterSpacing: 0.6,

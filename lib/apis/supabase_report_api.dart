@@ -3,15 +3,93 @@ import 'package:flutter/foundation.dart';
 import '../models/report_model.dart';
 
 class SupabaseReportAPI {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase =
+      Supabase.instance.client;
 
   Stream<List<Report>> getAllReports() {
     return _supabase
         .from('reports')
         .stream(primaryKey: ['id'])
-        .map<List<Report>>((data) => (data as List)
-            .map((json) => Report.fromJson(Map<String, dynamic>.from(json)))
+        .map<List<Report>>((data) => data
+            .map((json) =>
+                Report.fromJson(Map<String, dynamic>.from(json)))
             .toList());
+  }
+
+  Stream<List<Report>> getReportsByEncoderId(
+      String encoderId) {
+    return _supabase
+        .from('reports')
+        .stream(primaryKey: ['id'])
+        .eq('encoder_id', encoderId)
+        .map<List<Report>>((data) => data
+            .map((json) =>
+                Report.fromJson(Map<String, dynamic>.from(json)))
+            .toList());
+  }
+
+  Future<String> addReport(
+      Map<String, dynamic> reportData) async {
+    try {
+      final nowUtcString =
+          DateTime.now().toUtc().toIso8601String();
+
+      final dataWithTimestamp = {
+        ...reportData,
+        'lastModified': nowUtcString,
+        'created': nowUtcString,
+      };
+
+      final dbFormattedData =
+          _convertToDatabaseFormat(dataWithTimestamp);
+
+      final response = await _supabase
+          .from('reports')
+          .insert(dbFormattedData)
+          .select('id')
+          .single();
+
+      return response['id'];
+    } catch (e) {
+      throw Exception('Failed to add report: $e');
+    }
+  }
+
+  Future<void> editReport(
+      String id, Map<String, dynamic> edit) async {
+    try {
+      final nowUtcString =
+          DateTime.now().toUtc().toIso8601String();
+
+      final editCopy = Map<String, dynamic>.from(edit);
+      editCopy.remove('created');
+
+      final updatedEdit = {
+        ...editCopy,
+        'lastModified': nowUtcString,
+      };
+
+      final dbFormattedEdit =
+          _convertToDatabaseFormat(updatedEdit);
+
+      await _supabase
+          .from('reports')
+          .update(dbFormattedEdit)
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to edit report: $e');
+    }
+  }
+
+  Future<void> deleteReport(String id) async {
+    try {
+      await _supabase
+          .from('reports')
+          .delete()
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('Failed to delete report: $e');
+    }
   }
 
   Future<Report> fetchReportById(String id) async {
@@ -22,63 +100,54 @@ class SupabaseReportAPI {
           .eq('id', id)
           .single();
 
-      if (response == null) {
-        throw Exception("Report not found for id: $id");
-      }
-
-      return Report.fromJson(Map<String, dynamic>.from(response));
+      return Report.fromJson(
+          Map<String, dynamic>.from(response));
     } catch (e) {
-      throw Exception("Report not found for id: $id. Error: $e");
+      throw Exception('Report not found for id: $id. Error: $e');
     }
   }
 
-  Future<String> addReport(Map<String, dynamic> reportData) async {
-    try {
-      debugPrint('[SupabaseReportAPI] Inserting report: $reportData');
-      final response = await _supabase
-          .from('reports')
-          .insert(reportData)
-          .select('id')
-          .single();
-      debugPrint('[SupabaseReportAPI] Insert response: $response');
+  Map<String, dynamic> _convertToDatabaseFormat(
+      Map<String, dynamic> reportData) {
+    final dbData = <String, dynamic>{};
 
-      final id = response is Map ? response['id'] as String? : null;
-      if (id == null) {
-        throw Exception('Failed to add report: no id returned. Response: $response');
+    reportData.forEach((key, value) {
+      switch (key) {
+        case 'encoderId':
+          dbData['encoder_id'] = value;
+          break;
+        case 'encoderposition':
+          dbData['encoder_position'] = value;
+          break;
+        case 'reportId':
+          dbData['event_id'] = value;
+          dbData['report_id'] = value;
+          break;
+        case 'eventId':
+          dbData['event_id'] = value;
+          break;
+        case 'bldgName':
+          dbData['bldg_name'] = value;
+          break;
+        case 'lastModified':
+          dbData['last_modified'] = value;
+          break;
+        case 'created':
+          dbData['created_at'] = value;
+          break;
+        case 'eventType':
+          dbData['event_type'] = value;
+          break;
+        case 'hazardType':
+          dbData['hazard_type'] = value;
+          break;
+        case 'id':
+          break;
+        default:
+          dbData[key] = value;
       }
-      return id;
-    } catch (e) {
-      debugPrint('[SupabaseReportAPI] Insert failed: $e');
-      // Propagate the exception so callers can handle failures explicitly
-      throw Exception('Failed to add report: $e');
-    }
-  }
+    });
 
-  Future<void> deleteReport(String id) async {
-    try {
-      final response = await _supabase
-          .from('reports')
-          .delete()
-          .eq('id', id);
-      if (response == null) {
-        throw Exception('Failed to delete report with id: $id');
-      }
-    } catch (e) {
-      throw Exception('Failed to delete report: $e');
-    }
-  }
-
-  Future<void> editReport(String id, Map<String, dynamic> edit) async {
-    try {
-      final response = await _supabase
-          .from('reports')
-          .update(edit)
-          .eq('id', id);
-      if (response == null) {
-        throw Exception('Failed to edit report with id: $id');
-      }
-    } catch (e) {
-      throw Exception('Failed to edit report: $e');
-    }
+    return dbData;
   }
 }
