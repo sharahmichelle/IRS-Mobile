@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <application
-        android:label="DRRM-H IRS"
+        android:label="IRS"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

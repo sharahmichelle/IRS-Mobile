@@ -442,20 +442,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                         // Title
                         Text(
-                          'Create your',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: _textSecondary,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Account',
+                          'Create Account',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w700,
                             color: _textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Register to access the app',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: _textSecondary,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                         const SizedBox(height: 32),

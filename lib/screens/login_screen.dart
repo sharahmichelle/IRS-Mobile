@@ -127,20 +127,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Title
                     Text(
-                      'Proceed with your',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: _textSecondary,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
                       'Login',
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w700,
                         color: _textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Welcome back to the app',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: _textSecondary,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(height: 40),

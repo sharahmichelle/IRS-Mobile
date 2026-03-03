@@ -164,9 +164,20 @@ class _SplashScreenMinimalState extends State<SplashScreenMinimal>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'UP Manila DRRM-H',
+                      'Disaster Risk Reduction and Management',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.9),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Text(
+                      'in Health Program',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: Colors.white.withOpacity(0.9),
                         letterSpacing: 0.5,

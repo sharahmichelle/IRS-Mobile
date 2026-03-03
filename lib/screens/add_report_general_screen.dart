@@ -1947,7 +1947,7 @@ class _AddReportGeneralScreenState extends State<AddReportGeneralScreen> with Si
                     color: readOnly ? Colors.grey[700] : _textPrimary,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Gender',
+                    labelText: 'Sex at Birth',
                     labelStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

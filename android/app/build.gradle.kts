@@ -30,7 +30,8 @@ android {
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionName = "IRS"
+        resValue("string", "app_name", "IRS")
     }
 
     buildTypes {

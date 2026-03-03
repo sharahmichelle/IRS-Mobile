@@ -1719,7 +1719,7 @@ class _AddReportIcsScreenState extends State<AddReportIcsScreen> with SingleTick
                     color: readOnly ? Colors.grey[700] : _textPrimary,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Gender',
+                    labelText: 'Sex at Birth',
                     labelStyle: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
